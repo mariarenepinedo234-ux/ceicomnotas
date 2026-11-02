@@ -35,6 +35,8 @@ El importador abre el origen en modo de solo lectura y mantiene IDs, relaciones,
 
 ## Flujos disponibles
 
+Los resúmenes administrativos y docentes distinguen **materias diferentes** de **grupos**. Una materia se cuenta por nombre normalizado y año académico, aunque se dicte en distintas carreras, turnos o módulos. Por ejemplo, Power BI en cinco carreras y Web III en Sistemas son **2 materias y 6 grupos**, con 19 estudiantes y 30 registros de notas en el caso preparado. La agrupación es visual: conserva las asignaciones, listas y planillas individuales. El panorama muestra todas las materias y permite desplegar todos sus grupos, sin truncar la sexta asignación. En el panel docente las materias encabezan sus grupos por carrera; los filtros de gestión, módulo y carrera mantienen el conteo correspondiente al período.
+
 - Administración de estudiantes, docentes, carreras, turnos, gestiones, módulos y materias.
 - Asignación docente con selección **carrera → materias de esa carrera → módulo → turno**. Desde la ficha del docente no se vuelve a elegir a la persona. El servidor valida la relación carrera/materia. Las materias comunes pueden registrarse en distintas carreras sin mezclar sus planillas.
 - Inscripción en materias según carrera, turno y año académico.
