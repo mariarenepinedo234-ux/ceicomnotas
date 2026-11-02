@@ -26,7 +26,7 @@ npm run crear-admin
 npm run dev
 ```
 
-`crear-admin` solicita usuario, nombre y contraseña en la terminal. La contraseña no se muestra y debe tener al menos 12 caracteres. El primer acceso exige cambiarla. Anota tus credenciales; no hay recuperación de contraseña desde la interfaz todavía.
+`crear-admin` solicita usuario, nombre y contraseña en la terminal. La contraseña no se muestra y debe tener al menos 8 caracteres. El primer acceso exige cambiarla. Anota tus credenciales; no hay recuperación de contraseña desde la interfaz todavía.
 
 **Para explorar con datos ficticios**, desde una carpeta y configuración nuevas:
 
@@ -51,7 +51,7 @@ Si cambias `POSTGRES_PORT`, modifica también el puerto en `DATABASE_URL` y `TES
 | Docente | `4567890` | `4567890` |
 | Estudiante | `7000001` | `7000001` |
 
-Estos accesos no se crean en modo institucional. La primera vez debes cambiar cada contraseña por una diferente de al menos 10 caracteres. Después usa la nueva; los botones de demostración completan únicamente la contraseña inicial.
+Estos accesos no se crean en modo institucional. La primera vez debes cambiar cada contraseña por una diferente de al menos 8 caracteres. Después usa la nueva; los botones de demostración completan únicamente la contraseña inicial.
 
 El ejemplo tiene nueve carreras, cuatro turnos, materias y módulos de 2026. Selecciona **Gestión 2026 → Módulo 4** para probar Programación I. El docente ve las materias por carrera y registra **Saber 40 + Hacer 40 + Ser 20**. Ejemplos: 20+30+10=60 (reprobado), 20+30+11=61 (aprobado), 40+40+20=100. Guarda todas las notas finales para descargar la planilla PDF o Excel. El estudiante `7000001` corresponde a Valentina Rojas.
 

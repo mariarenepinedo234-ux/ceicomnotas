@@ -17,7 +17,7 @@ npm run crear-admin
 npm run dev
 ```
 
-Abre `http://localhost:3000`. El administrador se crea en la terminal con una contraseña elegida por ti. El primer acceso obliga a cambiarla. No existen contraseñas predeterminadas en modo institucional. El catálogo académico real se registra desde el panel.
+Abre `http://localhost:3000`. El administrador se crea en la terminal con una contraseña elegida por ti. El primer acceso obliga a cambiarla. Las contraseñas elegidas deben tener entre 8 y 160 caracteres y ser distintas del usuario/CI y de la anterior. No existen contraseñas predeterminadas en modo institucional. El catálogo académico real se registra desde el panel.
 
 Para una instalación de prueba nueva con datos ficticios, usa `npm run configurar -- --demo` en lugar de `npm run configurar`, y omite `crear-admin`. Los accesos de demostración están en la guía. No actives demostración sobre una base institucional. `configurar` nunca sobrescribe `.env`.
 

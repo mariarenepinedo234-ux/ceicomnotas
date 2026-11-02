@@ -6,7 +6,7 @@ import {openDatabase} from '../db.js';
 import {hashPassword} from '../lib.js';
 export async function createAdmin(db,{ci,name,password}) {
   if(!ci?.trim()||!name?.trim()||ci.length>160||name.length>160)throw new Error('Usuario y nombre son obligatorios (máximo 160 caracteres).');
-  if(typeof password!=='string'||password.length<12||password.length>160||password===ci)throw new Error('Usa una contraseña inicial de 12 a 160 caracteres, diferente del usuario.');
+  if(typeof password!=='string'||password.length<8||password.length>160||password===ci)throw new Error('Usa una contraseña inicial de 8 a 160 caracteres, diferente del usuario.');
   await db.transaction(async()=>{
     await db.query('SELECT pg_advisory_xact_lock(731202602)');
     if(await db.prepare("SELECT id FROM users WHERE role='admin' LIMIT 1").get())throw new Error('Ya existe un administrador. Este comando no lo reemplaza.');

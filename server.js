@@ -75,7 +75,7 @@ export function createApp(db) {
       if(path==='/api/password' && req.method==='POST') {
         if(!verifyPassword(required(body.current,'Contraseña actual'),user.password)) fail('La contraseña actual es incorrecta.');
         const pw=required(body.password,'Contraseña nueva');
-        if(pw.length<10 || pw===user.ci || pw===body.current) fail('Usa al menos 10 caracteres y una contraseña distinta del CI y la anterior.');
+        if(pw.length<8 || pw===user.ci || pw===body.current) fail('Usa al menos 8 caracteres y una contraseña distinta del CI y la anterior.');
         await transaction(async()=>{(await db.prepare('UPDATE users SET password=?,must_change=0 WHERE id=?').run(hashPassword(pw),user.id));(await db.prepare('DELETE FROM sessions WHERE user_id=? AND token<>?').run(user.id,tokenHash));await audit(user.id,'Contraseña actualizada',user.name);});
         return send({ok:true});
       }

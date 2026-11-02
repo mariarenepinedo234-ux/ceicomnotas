@@ -43,7 +43,8 @@ test('flujo académico completo y permisos por rol',async()=>{
   assert.equal((await request('login',{ci:'admin',password:'incorrecta'})).status,401);
   await signIn('admin','admin','Ceicom2026!');
   assert.equal((await request('data')).status,403);
-  assert.equal((await request('password',{current:'Ceicom2026!',password:'AdminPrueba2026!'})).status,200);
+  assert.equal((await request('password',{current:'Ceicom2026!',password:'Clave12'})).status,400);
+  assert.equal((await request('password',{current:'Ceicom2026!',password:'Clave123'})).status,200);
   let a=(await request('data')).body;
   assert.equal(a.careers.length,9);assert.equal(a.shifts.length,4);
   assert.equal((await request('users',{name:'Estudiante Prueba',ci:'8888888',role:'student',career_id:1,shift_id:1,admission_year_id:3,level:1})).status,200);
