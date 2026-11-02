@@ -164,7 +164,10 @@ export function createApp(db = openDatabase()) {
       }
       if(path==='/api/offerings') {
         const teacher=number(b.teacher_id);if(!db.prepare("SELECT id FROM users WHERE id=? AND role='teacher'").get(teacher)) fail('Docente inválido.');
-        transaction(()=>{db.prepare('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES (?,?,?,?)').run(number(b.subject_id),number(b.module_id),number(b.shift_id),teacher);audit(user.id,'Asignación docente creada',`Docente ${teacher} · materia ${b.subject_id}`);});return send({ok:true});
+        const subjectId=number(b.subject_id),careerId=number(b.career_id);
+        const subject=db.prepare('SELECT career_id FROM subjects WHERE id=?').get(subjectId);
+        if(!subject||subject.career_id!==careerId) fail('La materia debe pertenecer a la carrera seleccionada.');
+        transaction(()=>{db.prepare('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES (?,?,?,?)').run(subjectId,number(b.module_id),number(b.shift_id),teacher);audit(user.id,'Asignación docente creada',`Docente ${teacher} · carrera ${careerId} · materia ${subjectId}`);});return send({ok:true});
       }
       if(path==='/api/enrollments') {
         const s=db.prepare('SELECT * FROM students WHERE user_id=?').get(number(b.student_id));

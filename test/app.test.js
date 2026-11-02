@@ -92,8 +92,12 @@ test('creación de catálogos, módulos y asignaciones, con validación de perí
   assert.equal((await request('modules',{name:'Superpuesto',year_id:y.id,start_date:'2027-03-01',end_date:'2027-04-01'})).status,400);
   assert.equal((await request('modules',{name:'Fecha inválida',year_id:y.id,start_date:'2027-02-30',end_date:'2027-04-01'})).status,400);
   assert.equal((await request('subjects',{name:'Redes I',career_id:1,level:1})).status,200);
+  assert.equal((await request('subjects',{name:'Redes I',career_id:2,level:1})).status,200);
   const a=(await request('data')).body;
-  assert.equal((await request('offerings',{subject_id:a.subjects.find(s=>s.name==='Redes I').id,module_id:a.modules.find(m=>m.year_id===y.id).id,shift_id:1,teacher_id:2})).status,200);
+  const assignment={subject_id:a.subjects.find(s=>s.name==='Redes I'&&s.career_id===1).id,module_id:a.modules.find(m=>m.year_id===y.id).id,shift_id:1,teacher_id:2,career_id:1};
+  assert.equal((await request('offerings',{...assignment,career_id:2})).status,400);
+  assert.equal((await request('offerings',assignment)).status,200);
+  assert.equal((await request('offerings',{...assignment,career_id:2,subject_id:a.subjects.find(s=>s.name==='Redes I'&&s.career_id===2).id})).status,200);
   assert.equal((await request('offerings',{subject_id:1,module_id:1,shift_id:1,teacher_id:4})).status,400);
 });
 test('la interfaz y sus recursos se sirven con encabezados de seguridad',async()=>{

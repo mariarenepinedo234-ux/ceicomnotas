@@ -116,11 +116,26 @@ function userForm(role){const fields=field('Nombre completo','name','text','','m
 function offeringForm(teacherId=''){
   const teacher=teacherId?data.teachers.find(t=>String(t.id)===String(teacherId)):null;
   if(teacherId&&!teacher){toast('No se encontró el docente seleccionado.',true);return;}
-  const fields=select('Materia','subject_id',data.subjects.map(s=>({...s,label:`${s.name} · ${s.career} · ${s.level}º`})),'id','label')+
+  const fields=select('Carrera','career_id',data.careers)+
+    select('Materia','subject_id',[])+
     select('Módulo','module_id',data.modules.map(m=>({...m,label:`${m.name} · ${m.year}`})),'id','label')+
     select('Turno','shift_id',data.shifts)+
     (teacher?'':select('Docente','teacher_id',data.teachers));
   formModal('Asignar materia a docente',fields,'offerings',teacher?{teacher_id:teacher.id}:{},teacher?`Docente: ${teacher.name}`:'');
+  const form=$('#dialog-form'),careerSelect=form.elements.career_id,subjectSelect=form.elements.subject_id;
+  const hint=document.createElement('small');hint.className='muted';hint.id='subject-hint';hint.setAttribute('role','status');
+  subjectSelect.setAttribute('aria-describedby',hint.id);subjectSelect.parentElement.append(hint);
+  function updateSubjects(){
+    const careerId=careerSelect.value;
+    const subjects=data.subjects.filter(s=>String(s.career_id)===careerId)
+      .sort((a,b)=>a.name.localeCompare(b.name,'es')||a.level-b.level)
+      .map(s=>({...s,label:`${s.name} · ${s.level}º año`}));
+    subjectSelect.innerHTML=`<option value="">${!careerId?'Selecciona primero una carrera':subjects.length?'Selecciona una materia':'Sin materias registradas'}</option>`+opts(subjects,'id','label');
+    subjectSelect.disabled=!careerId||!subjects.length;
+    form.querySelector('.primary').disabled=subjectSelect.disabled;
+    hint.textContent=!careerId?'Elige una carrera para ver sus materias.':subjects.length?`${subjects.length} materias disponibles para esta carrera.`:'Registra las materias de esta carrera antes de asignarlas.';
+  }
+  careerSelect.addEventListener('change',updateSubjects);updateSubjects();
 }
 function enrollForm(){formModal('Inscribir estudiante en materia',select('Estudiante','student_id',data.students.map(s=>({...s,label:`${s.name} · ${s.career} · ${s.shift} · ${s.level}º`})),'user_id','label')+select('Materia asignada','offering_id',data.offerings.map(o=>({...o,label:`${o.subject} · ${o.module} ${o.year} · ${o.shift}`})),'id','label'),'enrollments',{},'La carrera, el turno y el año deben coincidir. El registro inicial del estudiante no lo inscribe automáticamente en materias.');}
 function passwordModal(requiredChange){modal(requiredChange?'Protejamos tu cuenta':'Cambiar mi contraseña',`<form id="password-form"><div class="notice">${icon('shield')}<p>${requiredChange?'Antes de continuar, cambia tu contraseña inicial. Tu carnet seguirá siendo tu usuario.':'Usa una contraseña exclusiva para tu cuenta académica.'}</p></div>${field('Contraseña actual','current','password','','autocomplete="current-password"')}${field('Nueva contraseña','password','password','','minlength="10" maxlength="160" autocomplete="new-password"')}${field('Confirmar nueva contraseña','confirm','password','','minlength="10" maxlength="160" autocomplete="new-password"')}<small class="muted">Mínimo 10 caracteres. Debe ser distinta del CI y de la contraseña anterior.</small><p class="form-error" role="alert"></p><button class="btn primary wide">${icon('shield')} Actualizar contraseña</button></form>`);if(requiredChange){$('.modal-close').hidden=true;$('#modal').oncancel=e=>e.preventDefault();}else $('#modal').oncancel=null;
