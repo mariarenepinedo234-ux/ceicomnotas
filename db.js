@@ -51,6 +51,7 @@ export async function openDatabase(options={}) {
     },
     async close(){await pool.end();},
   };
+  Object.defineProperty(db,'backupConfig',{value:Object.freeze({connectionString,schema})});
   try {
     if(options.createSchema)await db.exec(`CREATE SCHEMA "${schema}"`);
     if(options.migrate!==false)await migrateDatabase(db);

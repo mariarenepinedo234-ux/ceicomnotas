@@ -1,4 +1,7 @@
 import http from 'node:http';
+import {createReadStream} from 'node:fs';
+import {pipeline} from 'node:stream/promises';
+import {createBackupStore} from './backups.js';
 import { readFile } from 'node:fs/promises';
 import pathTools, { resolve, extname } from 'node:path';
 import { randomBytes, createHash } from 'node:crypto';
@@ -24,8 +27,9 @@ export function staticFileTarget(pathname, paths = pathTools) {
   return target;
 }
 
-export function createApp(db) {
+export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MODE==='docker'?false:'auto'}={}) {
   if(!db)throw new Error('Se requiere una conexión PostgreSQL inicializada.');
+  const backups=createBackupStore({...db.backupConfig,directory:backupDirectory,native:backupNative});
   const attempts = new Map();
   const audit=async(id,action,detail)=>(await db.prepare('INSERT INTO audit(actor_id,action,detail) VALUES (?,?,?)').run(id,action,detail));
   const transaction=fn=>db.transaction(fn);
@@ -147,6 +151,18 @@ export function createApp(db) {
         }});return send({ok:true});
       }
       if(user.role!=='admin') fail('Acceso restringido.',403);
+      if(path==='/api/backups'&&req.method==='GET')return send({backups:await backups.list()});
+      if(path==='/api/backups'&&req.method==='POST'){
+        const backup=await backups.create();
+        await audit(user.id,'Copia de seguridad creada',`${backup.filename} · ${backup.size} bytes`);
+        return send(backup,201);
+      }
+      if(path.startsWith('/api/backups/')&&req.method==='GET'){
+        const backup=await backups.file(path.slice('/api/backups/'.length));
+        await audit(user.id,'Copia de seguridad descargada',backup.filename);
+        res.writeHead(200,{'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${backup.filename}"`,'Cache-Control':'no-store','Content-Length':backup.size});
+        await pipeline(createReadStream(backup.path),res);return;
+      }
       if(req.method!=='POST') fail('Ruta no encontrada.',404);
       const b=body;
       if(path==='/api/rosters'){
@@ -267,6 +283,7 @@ export function createApp(db) {
       }
       fail('Ruta no encontrada.',404);
     } catch(e) {
+      if(res.headersSent){res.destroy();return;}
       if(['23505','23503','23514','23P01','22007','22008'].includes(e.code)) return send({error:e.code==='23505'?'Este registro ya existe. Revisa los datos.':'La operación no es válida. Revisa las relaciones y los datos seleccionados.'},409);
       if(!e.status) console.error('Error interno del servidor',{code:e.code||'INTERNAL'});
       send({error:e.status?e.message:'Ocurrió un error interno.'},e.status||500);

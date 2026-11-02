@@ -6,6 +6,7 @@
 @media(max-width:760px){.topbar .theme-toggle{padding:8px;min-width:36px}.topbar .theme-toggle span{display:none}.auth-page{padding-top:75px}.topbar-right{gap:9px}}
 @media screen{
 html[data-theme=dark]{color-scheme:dark;--wine:#e0a4b6;--wine-dark:#40121d;--wine-soft:#382733;--bg:#14161d;--ink:#ebe9ef;--muted:#b4afbc;--line:#363741;--cream:#332e2b;--green:#83c6aa;--shadow:0 3px 14px #0002;--surface:#1e2029;--surface-raised:#282a35;--text-secondary:#b9b4c2}
+html[data-theme=dark] .ceicom-wordmark{background:#fff}
 html[data-theme=dark] body{background:var(--bg);color:var(--ink)}
 html[data-theme=dark] .app-layout :is(.sidebar,.topbar,.panel,.stat-card,.teacher-card,.blocked-card,.quick-action){background:var(--surface);border-color:var(--line)}
 html[data-theme=dark] .app-layout :is(.help-card,.deadline-note,.academic-note,.note,.panel-foot,.activity-icon,.quick-icon,.teacher-subjects>span,.count-tag){background:var(--surface-raised);border-color:var(--line);color:var(--text-secondary)}
@@ -20,7 +21,7 @@ html[data-theme=dark] :is(.app-layout,dialog) :is(input,select,textarea){backgro
 html[data-theme=dark] :is(.app-layout,dialog) input::placeholder,html[data-theme=dark] dialog textarea::placeholder{color:#aaa3b2}
 html[data-theme=dark] :is(.app-layout,dialog) :is(input,select,textarea):focus{outline-color:#e0a4b655}
 html[data-theme=dark] .app-layout th,html[data-theme=dark] dialog:not(.planilla-modal) th{background:var(--surface-raised);color:#c8c1d0}
-html[data-theme=dark] .app-layout :is(th,.activity,.app-footer){border-color:var(--line)}
+html[data-theme=dark] dialog:not(.planilla-modal) th,html[data-theme=dark] .app-layout :is(th,.activity,.app-footer){border-color:var(--line)}
 html[data-theme=dark] .app-layout td,html[data-theme=dark] dialog:not(.planilla-modal) td{color:var(--ink);border-color:var(--line)}
 html[data-theme=dark] :is(.app-layout,dialog) .btn.primary{background:#81334f;color:#fff}
 html[data-theme=dark] :is(.app-layout,dialog) .btn.primary:hover{background:#98405f}

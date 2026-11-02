@@ -122,6 +122,18 @@ Las listas reales de este entorno no se publican en el ZIP de GitHub. En tu comp
 
 ### Respaldar o recuperar PostgreSQL
 
+Desde el panel **Administración**, abre **Copias de seguridad** en el menú lateral y pulsa **Crear copia de seguridad**. Al finalizar, pulsa **Descargar**. El respaldo también queda en `backups/` en la carpeta del proyecto que ejecuta Node; si usas un servidor remoto, esa carpeta estará en el servidor. Cada archivo tiene un nombre distinto y puedes volver a descargarlo desde la lista.
+
+Con PostgreSQL instalado en Windows, el sistema busca sus herramientas en `C:/Program Files/PostgreSQL/<versión>/bin`. Si indica que falta `pg_dump`, agrega a tu `.env` la ruta de la versión que tienes instalada, por ejemplo:
+
+```dotenv
+PG_BIN_DIR="C:/Program Files/PostgreSQL/17/bin"
+```
+
+Reinicia con `npm run dev`. No reemplaces las demás variables de tu `.env`. Las herramientas deben tener una versión compatible con tu servidor. El archivo descargado es un respaldo de PostgreSQL `.dump`, no un Excel.
+
+Para aplicar esta actualización debes copiar también los archivos `server.js`, `db.js`, `backups.js`, las carpetas `scripts` y `public`; conserva `.env`, `backups` y tus archivos privados. No necesitas importar tablas ni modificar la base existente.
+
 Con el PostgreSQL de Docker, para generar un respaldo privado:
 
 ```sh
@@ -151,11 +163,11 @@ npm run db:backup -- backups/ceicom-respaldo.dump --native
 npm run db:restore -- backups/ceicom-respaldo.dump --native
 ```
 
-Las herramientas deben estar en PATH. El cliente PostgreSQL debe ser de una versión compatible con el servidor (17 en la instalación recomendada). Los respaldos son manuales por ahora: antes de producción programa su ejecución periódica y prueba la restauración en un destino separado.
+Las herramientas deben estar en PATH o en la carpeta indicada mediante `PG_BIN_DIR`. El cliente PostgreSQL debe ser de una versión compatible con el servidor (17 en la instalación recomendada). Los respaldos son manuales por ahora: antes de producción programa su ejecución periódica y prueba la restauración en un destino separado.
 
 ## Pruebas y problemas frecuentes
 
-Configura `TEST_DATABASE_URL` con una conexión **de desarrollo** cuyo usuario pueda crear esquemas. El archivo generado para Docker apunta al mismo servidor local y las pruebas crean y eliminan exclusivamente esquemas aleatorios `ceicom_test_*`; no usan las tablas de `public`. No apuntes las pruebas a producción.
+Configura `TEST_DATABASE_URL` con una conexión **de desarrollo** cuyo usuario pueda crear esquemas y bases temporales. El archivo generado para Docker apunta al mismo servidor local y las pruebas crean y eliminan exclusivamente esquemas aleatorios `ceicom_test_*`; no usan las tablas de `public`. La prueba de restauración crea y elimina una base temporal `ceicom_restore_*` y usa las herramientas del compose de desarrollo. No apuntes las pruebas a producción.
 
 ```sh
 npm test
