@@ -74,7 +74,7 @@ Tus registros se conservan en `data/ceicom.sqlite`. No borres esa carpeta si des
 npm test
 ```
 
-La versión entregada tiene 11 pruebas. Usan bases temporales y no modifican tu base de trabajo.
+La versión entregada tiene 12 pruebas. Usan bases temporales y no modifican tu base de trabajo.
 
 ## Problemas frecuentes
 

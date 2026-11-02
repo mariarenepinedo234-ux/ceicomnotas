@@ -1,6 +1,6 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { resolve, extname } from 'node:path';
+import pathTools, { resolve, extname } from 'node:path';
 import { randomBytes, createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { openDatabase } from './db.js';
@@ -13,6 +13,14 @@ const required = (v,label) => { if(typeof v!=='string' || !v.trim() || v.length>
 const number = v => { const n=Number(v); if(!Number.isInteger(n)||n<1) fail('Selecciona una opción válida.'); return n; };
 const level = v => { const n=number(v); if(n>3) fail('El año debe estar entre 1 y 3.'); return n; };
 const date = v => { if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v)||Number.isNaN(Date.parse(v))||new Date(v).toISOString().slice(0,10)!==v) fail('Fecha inválida.'); return v; };
+
+export function staticFileTarget(pathname, paths = pathTools) {
+  const root=paths.resolve('public');
+  const target=paths.resolve(root,pathname==='/'?'index.html':'.'+pathname);
+  const relative=paths.relative(root,target);
+  if(!relative || relative==='..' || relative.startsWith('..'+paths.sep) || paths.isAbsolute(relative)) return null;
+  return target;
+}
 
 export function createApp(db = openDatabase()) {
   const attempts = new Map();
@@ -28,8 +36,8 @@ export function createApp(db = openDatabase()) {
       const path=url.pathname;
       if(!path.startsWith('/api/')) {
         if(req.method!=='GET') fail('Método no permitido.',405);
-        const target=resolve('public', path==='/'?'index.html':'.'+path);
-        if(!target.startsWith(resolve('public')+'/')) fail('Ruta inválida.',403);
+        const target=staticFileTarget(path);
+        if(!target) fail('Ruta inválida.',403);
         try { const content=await readFile(target); res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml'})[extname(target)]||'application/octet-stream'});res.end(content); } catch { fail('Archivo no encontrado.',404); }
         return;
       }

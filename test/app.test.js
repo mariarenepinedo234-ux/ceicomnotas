@@ -2,9 +2,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, posix, win32 } from 'node:path';
 import { openDatabase } from '../db.js';
-import { createApp } from '../server.js';
+import { createApp, staticFileTarget } from '../server.js';
 import { deadlineFor, canGrade, validGrade } from '../lib.js';
 
 let server, db, base, directory;
@@ -28,6 +28,15 @@ test('72 horas excluyen fines de semana y respetan el límite exacto',()=>{
   assert.equal(canGrade('2026-10-26',null,new Date('2026-10-30T04:00:00Z')),false);
   assert.equal(canGrade('2026-10-26','2026-11-01T00:00:00Z',new Date('2026-10-31T00:00:00Z')),true);
   assert.equal(validGrade(0),false);assert.equal(validGrade(101),false);assert.equal(validGrade(61),true);
+});
+test('las rutas de la interfaz funcionan en Windows y POSIX y rechazan salir de public',()=>{
+  for(const paths of [posix,win32]) {
+    for(const [url,file] of [['/','index.html'],['/app.js','app.js'],['/style.css','style.css'],['/planilla.js','planilla.js']]) {
+      assert.equal(staticFileTarget(url,paths),paths.resolve('public',file));
+    }
+    for(const url of ['/../server.js','/../public-extra/archivo.txt','/..']) assert.equal(staticFileTarget(url,paths),null);
+  }
+  assert.equal(staticFileTarget('/..\\server.js',win32),null);
 });
 test('flujo académico completo y permisos por rol',async()=>{
   assert.equal((await request('data')).status,401);

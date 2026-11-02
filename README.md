@@ -64,7 +64,7 @@ Rutas: `GET /api/reports/:offeringId` devuelve la vista previa; `?format=pdf` y 
 npm test
 ```
 
-Las 11 pruebas usan bases temporales aisladas y el servidor real: autenticación, cambio inicial obligatorio, permisos por rol, notas y transacciones, vencimientos, reapertura, suspensión de consulta, conservación del expediente tras traslado, catálogos, fechas, entrega de recursos web, cálculo por dimensiones, borradores, migración de datos anteriores, autorización de exportaciones, estructura PDF carta y multipágina, y lectura del Excel generado para comprobar fórmulas, validaciones y formato condicional. Se comprobó además en Chromium el registro dimensional, la vista previa, las descargas reales y la interfaz móvil.
+Las 12 pruebas usan bases temporales aisladas y el servidor real: autenticación, cambio inicial obligatorio, permisos por rol, notas y transacciones, vencimientos, reapertura, suspensión de consulta, conservación del expediente tras traslado, catálogos, fechas, entrega de recursos web, cálculo por dimensiones, borradores, migración de datos anteriores, autorización de exportaciones, estructura PDF carta y multipágina, y lectura del Excel generado para comprobar fórmulas, validaciones y formato condicional. Se comprobó además en Chromium el registro dimensional, la vista previa, las descargas reales y la interfaz móvil.
 
 ## Decisiones pendientes y alcance
 
