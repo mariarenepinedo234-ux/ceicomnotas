@@ -6,19 +6,21 @@ const WINE='#72283f', INK='#302a30', LINE='#bdb3b8', BLUE='#e7f0f3', CREAM='#f5e
 const widths=[27,244,47,47,47,48,68];
 const levelName={1:'PRIMERO',2:'SEGUNDO',3:'TERCERO'};
 export const statusFor=grade=>grade===null?'PENDIENTE':grade>=61?'APROBADO':'REPROBADO';
-export function reportData(db,id) {
-  const offering=db.prepare(`SELECT o.*,s.name subject,s.level,c.name career,m.name module,m.start_date,m.end_date,y.name year,sh.name shift,u.name teacher
+export async function reportData(db,id) {
+  return db.transaction(async()=>{
+  const offering=(await db.prepare(`SELECT o.*,s.name subject,s.level,c.name career,m.name module,m.start_date,m.end_date,y.name AS "year",sh.name shift,u.name teacher
     FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id
     JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id
-    JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id WHERE o.id=?`).get(id);
+    JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id WHERE o.id=?`).get(id));
   if(!offering) return null;
-  const rows=db.prepare('SELECT e.id,u.name student,u.ci,e.saber,e.hacer,e.ser,e.grade FROM enrollments e JOIN users u ON u.id=e.student_id WHERE e.offering_id=?').all(id)
+  const rows=(await db.prepare('SELECT e.id,u.name student,u.ci,e.saber,e.hacer,e.ser,e.grade FROM enrollments e JOIN users u ON u.id=e.student_id WHERE e.offering_id=?').all(id))
     .sort((a,b)=>a.student.localeCompare(b.student,'es',{sensitivity:'base'})||a.ci.localeCompare(b.ci))
     .map((row,index)=>({...row,number:index+1,status:statusFor(row.grade)}));
   return {offering:{...offering,course:levelName[offering.level]},rows,pending:rows.filter(r=>r.grade===null).length,
     legacy:rows.filter(r=>r.grade!==null && [r.saber,r.hacer,r.ser].some(v=>v===null)).length,
     needs_review:rows.filter(r=>dimensions.some(d=>r[d.key]!==null && (r[d.key]<0 || r[d.key]>d.max))).length,
     generated_at:new Date().toISOString()};
+  },{isolation:'REPEATABLE READ'});
 }
 export function reportFilename(report,extension) {
   const text=`planilla-${report.offering.career}-${report.offering.subject}-${report.offering.year}-${report.offering.module}-${report.offering.shift}`;

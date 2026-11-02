@@ -1,6 +1,6 @@
 {
   "name": "ceicom-academico",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Registro académico y seguimiento de notas del Instituto Tecnológico Ceicom",
@@ -8,13 +8,20 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "node --watch server.js",
-    "start": "node server.js",
-    "test": "node --test"
+    "dev": "node --env-file-if-exists=.env --watch server.js",
+    "start": "node --env-file-if-exists=.env server.js",
+    "test": "node --env-file-if-exists=.env --test test/*.test.js",
+    "configurar": "node scripts/configure.js",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.js",
+    "db:importar": "node --env-file-if-exists=.env scripts/import-sqlite.js",
+    "crear-admin": "node --env-file-if-exists=.env scripts/admin.js",
+    "db:backup": "node --env-file-if-exists=.env scripts/backup.js",
+    "db:restore": "node --env-file-if-exists=.env scripts/backup.js --restore"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
-    "pdfkit": "^0.20.2"
+    "pdfkit": "^0.20.2",
+    "pg": "^8.23.1"
   },
   "overrides": {
     "exceljs": {

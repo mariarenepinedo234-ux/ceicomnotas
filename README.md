@@ -1,79 +1,101 @@
-# Ceicom · Gestión académica
+# Ceicom · Gestión académica con PostgreSQL
 
-Primera versión web del registro académico del Instituto Tecnológico Ceicom. Node.js 24+, servidor HTTP y SQLite integrados, interfaz adaptable sin servicios externos. PDFKit genera PDF y ExcelJS genera libros Excel `.xlsx`.
+Sistema web de registro académico del Instituto Tecnológico Ceicom. **Node.js 24 + PostgreSQL 17**, con PDFKit para planillas carta y ExcelJS para Excel editable. Esta versión reemplaza SQLite como base de ejecución.
 
-## Iniciar
+La guía de instalación, actualización desde SQLite, respaldos y problemas de Windows está en [GUIA-PARA-PROBAR.md](GUIA-PARA-PROBAR.md).
+
+## Inicio institucional sin datos ficticios
+
+Instala Node.js 24 y Docker Desktop, y abre una terminal en el proyecto:
 
 ```sh
 npm install
+npm run configurar
+docker compose up -d --wait db
+npm run db:migrate
+npm run crear-admin
 npm run dev
 ```
 
-El servidor escucha en el puerto **3000**. `npm start` lo inicia sin recarga del servidor. El navegador se actualiza manualmente tras modificar la interfaz. La base se crea en `data/ceicom.sqlite` y persiste al reiniciar; no se versiona. `PORT`, `DB_PATH` y `COOKIE_SECURE` son variables opcionales del proceso (ver `.env.example`; el archivo `.env` no se carga automáticamente).
+Abre `http://localhost:3000`. El administrador se crea en la terminal con una contraseña elegida por ti. El primer acceso obliga a cambiarla. No existen contraseñas predeterminadas en modo institucional. El catálogo académico real se registra desde el panel.
 
-## Accesos de demostración
+Para una instalación de prueba nueva con datos ficticios, usa `npm run configurar -- --demo` en lugar de `npm run configurar`, y omite `crear-admin`. Los accesos de demostración están en la guía. No actives demostración sobre una base institucional. `configurar` nunca sobrescribe `.env`.
 
-| Rol | Usuario | Contraseña inicial |
-| --- | --- | --- |
-| Administrador | `admin` | `Ceicom2026!` |
-| Docente | `4567890` | `4567890` |
-| Estudiante | `7000001` | `7000001` |
+También se admite un servidor PostgreSQL propio o administrado, configurando `DATABASE_URL` y usando los mismos comandos de migración, administrador e inicio. No se necesita Docker si ya existe PostgreSQL.
 
-**Datos ficticios.** El primer ingreso obliga a cambiar la contraseña (mínimo 10 caracteres). Después se usa la nueva contraseña; los botones de demostración solo completan las credenciales iniciales. Los usuarios nuevos usan su CI como usuario y contraseña inicial según el requisito de la versión 1. La contraseña se guarda con scrypt y salt aleatorio, nunca en texto claro. Las sesiones duran ocho horas y usan cookie HttpOnly y SameSite. Hay límite de intentos de acceso por dirección de conexión.
+## Actualizar desde SQLite
 
-## Flujo disponible
+Detén la aplicación anterior y respalda su carpeta `data`. Prepara PostgreSQL vacío con `SEED_DEMO=false`; antes de crear usuarios, ejecuta:
 
-1. Administración crea carreras, turnos, gestiones y módulos (hasta cuatro por gestión, sin superposición), materias por carrera y año, docentes y estudiantes.
-2. Asigna una materia a un docente, módulo y turno. Primero selecciona la carrera: el selector de materias muestra únicamente las de esa carrera, con su año académico. Cambiar la carrera limpia la materia seleccionada; si no hay materias, debes registrarlas antes de asignar. Desde la ficha de un docente, ese docente se utiliza automáticamente. Las materias comunes se registran en cada carrera que las incluya, y sus asignaciones y planillas permanecen separadas. El servidor también comprueba que la materia pertenezca a la carrera elegida. Inscribe a los estudiantes en esas asignaciones, verificando carrera, año y turno. Registrar un estudiante no lo inscribe automáticamente en materias.
-3. El docente ve únicamente sus asignaciones y estudiantes agrupados por carrera. En una tabla registra Saber (0–40), Hacer (0–40) y Ser (0–20). La suma de las tres dimensiones calcula la nota final (1–100); desde 61 se aprueba. Puede guardar borradores incompletos, que no cuentan como reprobados.
-4. El estudiante consulta exclusivamente sus notas por gestión y módulo. Puede imprimir el expediente desde el navegador.
-5. Administración puede cambiar turno y año actual con motivo obligatorio. **Las inscripciones ya existentes permanecen con el turno cursado y sus notas**. Las futuras se hacen en el nuevo turno; esta versión no traslada automáticamente materias activas, no calcula equivalencias ni cambia la carrera del estudiante.
-6. Puede suspender manualmente la consulta por mensualidades pendientes, sin borrar notas ni impedir que el docente las registre. El bloqueo se aplica en el servidor y muestra un aviso al estudiante. No hay integración con cobros.
+```sh
+npm run db:importar -- "ruta/al/archivo/ceicom.sqlite"
+```
 
-El panel incluye resumen, actividad reciente, progreso de registro, catálogo de materias, calendario, expedientes y formularios funcionales. La identidad visual provisional usa vino y crema; el emblema es genérico, pendiente del logo oficial.
+El importador abre el origen en modo de solo lectura y mantiene IDs, relaciones, contraseñas, puntajes y auditoría. Compara conteos y valores dentro de una única transacción. Si falla, revierte toda la importación. No acepta una base de destino con registros. Las sesiones antiguas se excluyen intencionalmente. Conserva el archivo SQLite y su copia de respaldo después de importar.
 
-## Carreras y turnos iniciales
+## Flujos disponibles
 
-Contaduría General, Administración de Empresas, Comercio Internacional, Mercadotecnia, Secretariado Ejecutivo, Sistemas Informáticos, Diseño Gráfico, Electrónica y Diseño y Producción de Audiovisuales - Guionización.
+- Administración de estudiantes, docentes, carreras, turnos, gestiones, módulos y materias.
+- Asignación docente con selección **carrera → materias de esa carrera → módulo → turno**. Desde la ficha del docente no se vuelve a elegir a la persona. El servidor valida la relación carrera/materia. Las materias comunes pueden registrarse en distintas carreras sin mezclar sus planillas.
+- Inscripción en materias según carrera, turno y año académico.
+- Tabla docente **Saber 40 + Hacer 40 + Ser 20 = 100**, con dos decimales. Aprobación desde 61; borradores incompletos sin nota final.
+- Planillas por carrera, materia, módulo, gestión y turno: PDF carta con firmas y paginación, Excel con fórmulas, validaciones y formato condicional. Solo reprobados en rojo. Se exige guardar todas las notas finales antes de exportar. Editar Excel no modifica el portal.
+- Consulta del estudiante exclusivamente de su expediente, filtrado por gestión y módulo.
+- Cambios de turno y año actual con motivo, conservando inscripciones anteriores y notas. Las futuras inscripciones se hacen en el turno nuevo; no traslada automáticamente materias activas.
+- Suspensión manual de consulta por mensualidades pendientes, sin eliminar datos. No hay integración con cobros.
+- Actividad de notas, traslados, autorizaciones y exportaciones; contraseñas con scrypt y salt aleatorio; cambio inicial obligatorio; sesiones de ocho horas con cookie HttpOnly y SameSite.
 
-Turnos: Mañana, Tarde, Noche y Sábados. Los módulos de ejemplo son trimestres de 2026; sus fechas son ilustrativas y deben sustituirse al preparar una base institucional.
+Carreras indicadas: Contaduría General, Administración de Empresas, Comercio Internacional, Mercadotecnia, Secretariado Ejecutivo, Sistemas Informáticos, Diseño Gráfico, Electrónica y Diseño y Producción de Audiovisuales - Guionización. Turnos: Mañana, Tarde, Noche y Sábados. Estos catálogos se incluyen en demostración; la base institucional empieza vacía para registrar información real.
 
-## Regla de cierre
+## Reglas académicas
 
-Se interpreta **72 horas sin sábados ni domingos** como 72 horas transcurridas dentro de lunes a viernes, no como 72 horas de una jornada laboral de ocho horas. Se cuenta desde las 23:59:59 del último día del módulo, en `America/La_Paz` (UTC−4). Ejemplo: módulo terminado el viernes 30/10/2026 → cierre el miércoles 04/11/2026 a las 23:59:59. No excluye feriados. La administración puede autorizar una reapertura con motivo y vencimiento de 1 a 168 horas corridas; también puede corregir notas directamente. Cada nota, reapertura, traslado y suspensión queda registrado en la actividad.
+Hasta cuatro módulos sin superposición por gestión, con fechas dentro de esa gestión. El registro docente cierra **72 horas excluyendo sábados y domingos**, contadas desde las 23:59:59 de la fecha final en Bolivia (UTC−4). Ejemplo: viernes 30/10/2026 → miércoles 04/11/2026 a las 23:59:59. No se excluyen feriados; no son jornadas de ocho horas.
 
-## Planilla de notas para docentes
+Administración puede reabrir de 1 a 168 horas corridas con motivo o corregir notas directamente. El plazo cerrado no impide consultar o exportar notas completas. Las notas anteriores sin desglose conservan su total; valores de una escala anterior que excedan 40/40/20 requieren revisión antes de exportar.
 
-1. Abre **Mis materias y notas**. Filtra por gestión, módulo y carrera; las materias se presentan agrupadas por carrera, con su turno y año académico.
-2. Pulsa **Registrar notas**. Cada estudiante ocupa una fila. Ingresa los puntos obtenidos en **Saber (40), Hacer (40) y Ser (20)**, con hasta dos decimales. No son porcentajes: se suman directamente. Los topes suman 100. Los estudiantes aparecen en orden alfabético según el nombre completo registrado.
-3. Pulsa **Guardar calificaciones**. Si falta una dimensión, se guarda un borrador sin nota final. Para corregir una nota completa puedes volver a editarla mientras el plazo esté abierto. El servidor valida límites, calcula el total y guarda todos los cambios en una sola transacción.
-4. Pulsa **Generar planilla de notas**, desde la tabla o la tarjeta de la materia. La vista previa usa solo datos guardados. Si quedan cambios sin guardar, la interfaz pide guardarlos primero. El PDF y Excel final se habilitan cuando todos los estudiantes inscritos tienen nota final y existe al menos una inscripción.
-5. Descarga **PDF** o **Excel**. Cada planilla corresponde a una carrera, materia, módulo, gestión y turno; no mezcla estudiantes de otras asignaciones. El PDF es carta vertical (612 × 792 puntos), con 20 filas por página en grupos normales, encabezados repetidos, numeración, espacios para firmas y páginas adicionales para grupos grandes. Los nombres largos pueden reducir las filas que caben en una página. La vista previa divide en grupos de 20 filas; el PDF ajusta además la altura de los nombres.
+## Arquitectura de la base
 
-El diseño conserva la estructura de la muestra proporcionada y usa vino, crema y azules suaves. **Solo los estudiantes con nota final menor a 61 se resaltan en rojo**, con texto explícito «REPROBADO». Aprobados, pendientes y filas vacías no llevan ese resaltado. El emblema es provisional, pendiente de disponer del escudo oficial como archivo de buena calidad.
+- `db.js`: pool `pg` (hasta 10 conexiones), consultas parametrizadas y transacciones asíncronas con una conexión exclusiva por operación. `AsyncLocalStorage` mantiene las consultas en el cliente correcto, incluyendo rollback y auditoría.
+- `migrations/*.sql`: estructura versionada con checksum. La migración se ejecuta bajo bloqueo transaccional para evitar carreras entre instancias. No edites una migración aplicada; añade una nueva.
+- Claves foráneas, restricciones de integridad e índices por asignación, estudiante, carrera, módulo, docente y sesiones.
+- Bloqueos por fila al actualizar notas, inscribir, trasladar y crear módulos; orden estable al actualizar lotes de notas. Los reportes leen una instantánea consistente.
+- `scripts/import-sqlite.js`: importación explícita; no existe fallback automático a SQLite.
+- `seed.js`: datos de demostración opcionales. La base institucional no crea usuarios conocidos.
+- `test/fixtures/sqlite-legacy.js`: únicamente construye archivos antiguos para probar la importación; no se utiliza al iniciar el portal.
 
-El Excel contiene fórmulas de total y observación, validación de los límites por dimensión, formato condicional que se actualiza al editar, encabezados congelados y configuración de impresión en carta. No se protege la hoja para permitir edición. Las filas vacías no generan ceros ni reprobados. **Editar el Excel no modifica el sistema**; los cambios institucionales deben registrarse en el portal con los permisos y plazos correspondientes. No se incluye importación desde Excel en esta versión.
+Los límites 40/40/20 se aplican en la API. Las columnas permiten almacenar hasta 100 para preservar puntajes de escalas anteriores importadas sin truncarlos. Las exportaciones detectan los que necesitan revisión. Las fechas son DATE y los instantes se guardan como TIMESTAMPTZ; la interfaz los presenta en Bolivia.
 
-Al abrir una base de la primera versión se añaden las tres columnas de forma automática y aditiva, conservando los totales y todas las inscripciones. Las notas anteriores sin desglose muestran «—» en las dimensiones; sus totales no se distribuyen ni se inventan. Para sustituir un total anterior por un desglose, completa las tres dimensiones y guarda. Dejar un desglose nuevo incompleto y guardarlo reemplaza el total por un borrador pendiente. La API mantiene compatibilidad con notas finales directas de la primera versión y elimina el desglose al recibir una corrección de ese tipo, evitando inconsistencias.
+## Configuración privada
 
-Rutas: `GET /api/reports/:offeringId` devuelve la vista previa; `?format=pdf` y `?format=xlsx` descargan los documentos finales. Solo administración o el docente asignado pueden acceder. El cierre del plazo bloquea la edición del docente, pero permite consultar y exportar notas ya completas. Cada exportación queda registrada en la actividad.
+Node carga `.env` mediante los scripts npm. Consulta `.env.example`. Variables: `DATABASE_URL`, `TEST_DATABASE_URL` (solo desarrollo), `SEED_DEMO`, `PORT`, `COOKIE_SECURE`. Docker usa además `POSTGRES_PASSWORD` y `POSTGRES_PORT`. El configurador genera una contraseña aleatoria y no imprime su valor. No publiques `.env`, respaldos ni bases con datos personales.
 
-## Validar
+Conexiones remotas deben usar el TLS y CA indicados por el proveedor; no se desactiva la verificación de certificados. La configuración Docker publicada es para desarrollo local y expone PostgreSQL únicamente en loopback.
+
+## Pruebas
 
 ```sh
 npm test
 ```
 
-Las 12 pruebas usan bases temporales aisladas y el servidor real: autenticación, cambio inicial obligatorio, permisos por rol, notas y transacciones, vencimientos, reapertura, suspensión de consulta, conservación del expediente tras traslado, catálogos, fechas, entrega de recursos web, cálculo por dimensiones, borradores, migración de datos anteriores, autorización de exportaciones, estructura PDF carta y multipágina, y lectura del Excel generado para comprobar fórmulas, validaciones y formato condicional. Se comprobó además en Chromium el registro dimensional, la vista previa, las descargas reales y la interfaz móvil.
+Se requiere PostgreSQL real en `TEST_DATABASE_URL`; no se utiliza una simulación. Cada grupo crea un esquema temporal aleatorio y lo elimina al terminar. No apuntes las pruebas a producción.
 
-## Decisiones pendientes y alcance
+Se comprueban autenticación, permisos, notas, rollback, consultas y exportaciones PDF/Excel, traslados, restricciones de módulos con solicitudes simultáneas, migraciones repetibles y detección de cambios, administrador inicial, aislamiento de transacciones concurrentes, importación de SQLite íntegra y recuperación tras fallo. También se comprueba la resolución de rutas Windows y POSIX.
 
-- Máximos confirmados: Saber 40, Hacer 40 y Ser 20. Queda por definir si se necesitan subevaluaciones dentro de cada dimensión. Actualmente se registra un puntaje por dimensión.
-- Confirmar fechas institucionales y el significado de las 72 horas, así como feriados y procedimiento de traslado durante un módulo.
-- Logo oficial, nombres de materias y plan de estudios reales.
-- Esta es una base funcional para desarrollo, **no un despliegue de producción**. Antes de usar datos personales: crear base limpia sin usuarios de ejemplo, aprovisionar administrador de forma segura, retirar accesos de demostración, habilitar HTTPS con `COOKIE_SECURE=true`, respaldos y restauración, revisar acceso por red y política institucional de privacidad, y completar recuperación de contraseñas. No existe todavía recuperación de contraseña desde la interfaz.
-- SQLite está pensado para una única instancia local. No ejecutar varias réplicas que escriban el mismo archivo en almacenamiento de red.
-- Incluye exportación de planillas por carrera/materia en PDF y Excel basada en la muestra enviada. Queda pendiente la importación de planillas, así como confirmar detalles del formato y el escudo oficial. La impresión del expediente personal sigue siendo una vista básica del navegador.
-- Catálogos y usuarios pueden crearse y consultarse; la edición general, eliminación, equivalencias y cambio de carrera quedan para una siguiente iteración. La administración puede consultar y corregir todas las notas existentes.
+## Respaldos
 
-No eliminar una base existente para actualizar el sistema. Respaldar antes de cualquier migración. La carga inicial solo ocurre si no existen usuarios.
+```sh
+npm run db:backup
+npm run db:restore -- backups/archivo.dump
+```
+
+La restauración requiere un destino vacío configurado en `DATABASE_URL`. Para una conexión externa usa `--native` con `pg_dump`/`pg_restore` instalados. Consulta la guía antes de restaurar. El comando de respaldo no sobrescribe archivos y los guarda con permisos privados donde el sistema lo permite. Los respaldos del esquema `public` incluyen datos y migraciones. Se deben programar respaldos y probar su recuperación fuera del servidor principal antes de producción.
+
+## Alcance pendiente
+
+No se ha desplegado una instalación institucional de producción. Falta decidir alojamiento, configurar HTTPS, permisos mínimos para usuarios PostgreSQL, respaldos automáticos fuera del servidor, recuperación de contraseñas y revisión de privacidad. El limitador de intentos de acceso es local a cada proceso; varias instancias necesitan un limitador compartido o en el proxy.
+
+Pendientes funcionales: plan de estudios real, escudo oficial (actualmente provisional), edición general y bajas administrativas, recuperación de cuentas, importación Excel, equivalencias y cambio de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
+
+### Dependencias de exportación
+
+La auditoría npm actual señala avisos moderados en `minimatch`, transitivo de ExcelJS/archiver. La exportación del portal añade contenido generado en memoria y no recibe patrones glob del usuario. La sustitución directa por minimatch 11 rompe la API interna de glob 7; no debe forzarse sin actualizar la cadena de exportación y verificar compatibilidad. La actualización de esa cadena queda pendiente antes del despliegue de producción. Esta migración de base no constituye una certificación de seguridad del sistema.

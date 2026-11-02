@@ -1,42 +1,49 @@
-# Probar Ceicom en tu computadora
+# Ceicom con PostgreSQL · Instalación y pruebas
 
-Esta versión es para pruebas locales y contiene personas, materias y notas ficticias. Incluye las nueve carreras y los turnos Mañana, Tarde, Noche y Sábados. Las dimensiones son **Saber 40 + Hacer 40 + Ser 20 = 100**, con aprobación desde 61.
+Esta versión usa **PostgreSQL 17** como base principal. Ya no crea ni utiliza SQLite al iniciar el servidor. Se conserva una herramienta para importar los archivos SQLite de la versión anterior.
 
-## 1. Instala Node.js
+## Opción recomendada: PostgreSQL con Docker Desktop
 
-Descarga e instala **Node.js 24 LTS** desde https://nodejs.org/. Node.js incluye npm. Después de instalarlo, cierra y vuelve a abrir tu terminal.
+### 1. Requisitos
 
-Comprueba la instalación:
+- Instala **Node.js 24 LTS** desde https://nodejs.org/.
+- Instala **Docker Desktop** desde https://www.docker.com/products/docker-desktop/ y ábrelo. En Windows utiliza su motor Linux/WSL 2.
+- Extrae el ZIP completo del repositorio. Abre una terminal dentro de la carpeta que contiene `package.json`.
+- Comprueba `node --version` y `docker compose version`.
 
-```sh
-node --version
-npm --version
-```
+No necesitas MySQL, XAMPP ni instalar PostgreSQL por separado si utilizas Docker Desktop. La primera instalación requiere Internet para descargar paquetes e imagen.
 
-Node debe mostrar `v24` o una versión posterior. No necesitas instalar MySQL, XAMPP ni configurar una base de datos: el sistema crea una base SQLite automáticamente.
+### 2. Elige una base institucional o de demostración
 
-## 2. Extrae el ZIP
-
-Descomprime el archivo completo. Abre la carpeta **ceicomnotas**, donde se encuentran `package.json`, `server.js` y esta guía.
-
-En Windows puedes abrir esa carpeta con Visual Studio Code y seleccionar **Terminal → Nueva terminal**. También puedes abrir una terminal directamente en esa carpeta. No ejecutes los comandos dentro del ZIP sin extraerlo.
-
-## 3. Instala e inicia
-
-Con conexión a Internet, ejecuta:
+**Para comenzar sin personas, materias ni notas ficticias:**
 
 ```sh
 npm install
+npm run configurar
+docker compose up -d --wait db
+npm run db:migrate
+npm run crear-admin
 npm run dev
 ```
 
-Deja la terminal abierta. Cuando veas «Ceicom iniciado en el puerto 3000», abre en Chrome, Edge o Firefox:
+`crear-admin` solicita usuario, nombre y contraseña en la terminal. La contraseña no se muestra y debe tener al menos 12 caracteres. El primer acceso exige cambiarla. Anota tus credenciales; no hay recuperación de contraseña desde la interfaz todavía.
 
-**http://localhost:3000**
+**Para explorar con datos ficticios**, desde una carpeta y configuración nuevas:
 
-La instalación de paquetes se hace la primera vez. En las siguientes ocasiones basta con abrir la terminal en la carpeta del proyecto y ejecutar `npm run dev`.
+```sh
+npm install
+npm run configurar -- --demo
+docker compose up -d --wait db
+npm run dev
+```
 
-## 4. Accesos de prueba
+Abre **http://localhost:3000**. Mantén la terminal del servidor abierta. Para detenerlo, pulsa **Ctrl+C**. Las próximas veces basta con `docker compose up -d --wait db` y `npm run dev`.
+
+`configurar` genera una contraseña de PostgreSQL aleatoria en el archivo privado `.env`. Nunca sobrescribe un `.env` existente. Node y Docker Compose leen ese archivo. No lo publiques ni compartas. `SEED_DEMO=false` es el modo institucional; `true` permite la carga inicial de demostración en una base completamente vacía. Cambiarlo a false no borra datos que ya existan.
+
+Si cambias `POSTGRES_PORT`, modifica también el puerto en `DATABASE_URL` y `TEST_DATABASE_URL`. La contraseña de un volumen PostgreSQL existente no cambia por editar `.env`: conserva juntos la configuración y el volumen, o cambia la contraseña mediante las herramientas de PostgreSQL.
+
+### 3. Accesos solo de demostración
 
 | Rol | Usuario | Contraseña inicial |
 | --- | --- | --- |
@@ -44,46 +51,105 @@ La instalación de paquetes se hace la primera vez. En las siguientes ocasiones 
 | Docente | `4567890` | `4567890` |
 | Estudiante | `7000001` | `7000001` |
 
-El primer ingreso obliga a elegir una contraseña nueva de al menos 10 caracteres, diferente de la inicial y del CI. **Anota tu contraseña nueva**: será la que uses en los siguientes ingresos. Los botones de demostración solo completan la contraseña inicial; si ya la cambiaste, escríbela manualmente.
+Estos accesos no se crean en modo institucional. La primera vez debes cambiar cada contraseña por una diferente de al menos 10 caracteres. Después usa la nueva; los botones de demostración completan únicamente la contraseña inicial.
 
-Cada rol tiene su propio cambio de contraseña. Para pasar a otro rol, cierra sesión desde el menú. La versión actual no tiene recuperación de contraseñas desde la interfaz.
+El ejemplo tiene nueve carreras, cuatro turnos, materias y módulos de 2026. Selecciona **Gestión 2026 → Módulo 4** para probar Programación I. El docente ve las materias por carrera y registra **Saber 40 + Hacer 40 + Ser 20**. Ejemplos: 20+30+10=60 (reprobado), 20+30+11=61 (aprobado), 40+40+20=100. Guarda todas las notas finales para descargar la planilla PDF o Excel. El estudiante `7000001` corresponde a Valentina Rojas.
 
-## 5. Recorrido recomendado
+Si el módulo ya venció, el administrador puede autorizar una reapertura desde Materias y asignaciones. El cierre restringe la edición, pero permite consultar y descargar planillas completas.
 
-1. **Administrador:** revisa Estudiantes, Docentes, Materias y asignaciones, y Gestiones y módulos. Los datos iniciales corresponden a 2026; si estás probando en otro año, selecciona **Gestión 2026** en el filtro.
-2. **Docente:** entra a **Mis materias y notas**, selecciona Gestión 2026 y Módulo 4, y abre **Programación I → Registrar notas**. Verás cinco estudiantes de Sistemas Informáticos. Completa Saber, Hacer y Ser para cada uno. Ejemplos: `20 + 30 + 10 = 60` (reprobado), `20 + 30 + 11 = 61` (aprobado) y `40 + 40 + 20 = 100`.
-3. Pulsa **Guardar calificaciones** y luego **Generar planilla de notas**. Puedes descargar **PDF** en tamaño carta o **Excel** editable cuando todos los estudiantes de esa materia tengan una nota final guardada. El rojo se usa solo para reprobados. Los cambios en el Excel no actualizan el portal.
-4. **Estudiante:** entra con `7000001`, selecciona Gestión 2026 y consulta tus notas. Ese usuario corresponde a Valentina Rojas, una de las estudiantes de Programación I.
-5. **Administrador:** abre el expediente de un estudiante y prueba un cambio de turno o una suspensión de consulta. La suspensión es manual y no se conecta con cobros. El cambio de turno conserva las notas anteriores; las nuevas materias se inscriben por separado.
+## Conservar los datos de la versión SQLite
 
-Si estás probando después del cierre del módulo, la edición docente estará bloqueada. Entra como administrador, abre **Materias y asignaciones**, localiza Programación I del Módulo 4 de 2026 y usa el botón con candado para autorizar una reapertura con motivo. El administrador también puede editar las notas directamente.
+**No borres `data/ceicom.sqlite` ni tu carpeta anterior.** Antes de actualizar, detén el sistema anterior y guarda una copia completa de su carpeta `data`, incluidos los archivos `-wal` y `-shm` si existen. Conserva los respaldos en una ubicación privada.
 
-## 6. Cerrar y volver a abrir
-
-Para detener el servidor, pulsa **Ctrl+C** en la terminal. Para volver a iniciarlo:
+1. Extrae el proyecto nuevo en otra carpeta para conservar la versión anterior.
+2. Ejecuta `npm install`, `npm run configurar`, `docker compose up -d --wait db` y `npm run db:migrate`.
+3. No ejecutes `crear-admin` ni habilites demostración antes de importar: la base destino debe estar vacía.
+4. Ejecuta, ajustando la ruta del archivo y usando comillas si contiene espacios:
 
 ```sh
+npm run db:importar -- "C:/ruta/al/proyecto-anterior/data/ceicom.sqlite"
+```
+
+En macOS/Linux usa la ruta local correspondiente. También puedes copiar tu respaldo a `data/ceicom.sqlite` en el proyecto nuevo y ejecutar:
+
+```sh
+npm run db:importar -- ./data/ceicom.sqlite
 npm run dev
 ```
 
-Tus registros se conservan en `data/ceicom.sqlite`. No borres esa carpeta si deseas conservar lo que probaste. Para una prueba completamente nueva, extrae el ZIP en otra carpeta y repite la instalación; así mantienes intacta la copia anterior.
+La importación abre SQLite en modo de solo lectura y conserva identificadores, contraseñas ya cambiadas, expedientes, puntajes y actividad. Verifica cada valor importado y los conteos. Se ejecuta en una transacción: si hay un error, no se importa ninguna fila. Rechaza un destino con registros; no fusiona ni reemplaza bases existentes. Las sesiones antiguas no se importan: todos deben iniciar sesión de nuevo.
 
-## 7. Comprobar las pruebas
+Las notas anteriores sin desglose conservan su total. Si un puntaje de la escala anterior supera Hacer 40 o Ser 20, se conserva y exige revisión antes de exportar una nueva planilla. Si el origen contiene fechas o relaciones inválidas, se informa el fallo y debe corregirse antes de repetir la importación.
+
+Una base PostgreSQL ya usada, incluso si no tiene registros, conserva la posición de sus secuencias. La importación reajusta las secuencias para que los nuevos registros reciban identificadores disponibles.
+
+## Opción alternativa: PostgreSQL instalado o alojado
+
+Puedes usar un PostgreSQL 17 ya instalado, o un servicio administrado. Crea una base y un usuario propietario con contraseña propia. En `.env` configura:
+
+```dotenv
+DATABASE_URL=postgresql://USUARIO:CONTRASENA@SERVIDOR:5432/ceicom
+SEED_DEMO=false
+PORT=3000
+COOKIE_SECURE=false
+```
+
+Codifica los caracteres especiales de usuario/contraseña como parte de una URL. Para un servidor remoto, utiliza el TLS y certificado que exija el proveedor; no desactives su verificación. `npm run configurar` es un ayudante para Docker local, no aprovisiona servidores remotos.
+
+Ejecuta `npm install`, `npm run db:migrate`, `npm run crear-admin` y `npm run dev`. No necesitas los comandos Docker en esta opción. Para importar SQLite, sigue el procedimiento anterior antes de crear el administrador.
+
+## Respaldos y recuperación
+
+Con el PostgreSQL de Docker, para generar un respaldo privado:
+
+```sh
+npm run db:backup
+```
+
+O con nombre elegido:
+
+```sh
+npm run db:backup -- backups/ceicom-respaldo.dump
+```
+
+Se usa `pg_dump` en formato de respaldo PostgreSQL, con las tablas, índices, relaciones y migraciones del esquema `public`. El comando no sobrescribe un archivo existente. Conserva copias fuera de esa computadora, con acceso restringido: contienen datos personales y hashes de contraseñas.
+
+Para restaurar, crea una **base vacía**, configura `DATABASE_URL` para apuntar a ella, detén el portal y ejecuta:
+
+```sh
+npm run db:restore -- backups/ceicom-respaldo.dump
+```
+
+El destino debe estar dentro del PostgreSQL de Docker configurado; una base diferente requiere crearla primero. La restauración se niega si hay tablas en el destino. Después ejecuta `npm run db:migrate` y `npm run dev`. No borra ni reemplaza automáticamente la base original.
+
+Con un PostgreSQL externo o instalado, instala sus herramientas cliente `pg_dump`/`pg_restore` y usa `--native`:
+
+```sh
+npm run db:backup -- backups/ceicom-respaldo.dump --native
+npm run db:restore -- backups/ceicom-respaldo.dump --native
+```
+
+Las herramientas deben estar en PATH. El cliente PostgreSQL debe ser de una versión compatible con el servidor (17 en la instalación recomendada). Los respaldos son manuales por ahora: antes de producción programa su ejecución periódica y prueba la restauración en un destino separado.
+
+## Pruebas y problemas frecuentes
+
+Configura `TEST_DATABASE_URL` con una conexión **de desarrollo** cuyo usuario pueda crear esquemas. El archivo generado para Docker apunta al mismo servidor local y las pruebas crean y eliminan exclusivamente esquemas aleatorios `ceicom_test_*`; no usan las tablas de `public`. No apuntes las pruebas a producción.
 
 ```sh
 npm test
 ```
 
-La versión entregada tiene 12 pruebas. Usan bases temporales y no modifican tu base de trabajo.
+Las pruebas ejecutan PostgreSQL real, no simulaciones. Verifican roles, notas, reportes, importación, administrador, migraciones y transacciones simultáneas.
 
-## Problemas frecuentes
+- **Falta DATABASE_URL:** comprueba `.env`. Si venías de SQLite, el antiguo `DB_PATH` ya no configura la base; usa `DATABASE_URL`.
+- **ECONNREFUSED / no conecta:** abre Docker Desktop, ejecuta `docker compose up -d --wait db` y revisa `docker compose ps`. Si usas PostgreSQL instalado, comprueba que el servicio esté iniciado.
+- **Puerto 5432 ocupado:** elige otro `POSTGRES_PORT` en `.env` y actualiza las dos URL de conexión. Reinicia el servicio Docker sin eliminar el volumen.
+- **PowerShell bloquea npm.ps1:** usa `npm.cmd install` y `npm.cmd run dev`, o abre CMD. No cambies las políticas de seguridad de Windows.
+- **No encuentra package.json:** abre la terminal en la carpeta donde está ese archivo.
+- **Puerto 3000 ocupado:** detén la otra instancia o cambia `PORT=3001` en `.env` y abre `http://localhost:3001`.
+- **No hay usuarios ni materias:** es normal en modo institucional. Crea el administrador desde la terminal y registra los catálogos reales desde el panel. En demostración, elige Gestión 2026.
+- **Contraseña incorrecta:** si ya la cambiaste, escribe la nueva. Los accesos iniciales no sustituyen contraseñas actualizadas.
 
-- **«node» o «npm» no se reconoce:** instala Node.js 24 y vuelve a abrir la terminal. Si continúa, comprueba que Node está incluido en PATH durante la instalación.
-- **PowerShell bloquea npm.ps1:** ejecuta `npm.cmd install` y `npm.cmd run dev`, o utiliza Símbolo del sistema (CMD). No hace falta cambiar las políticas de seguridad de Windows.
-- **No encuentra package.json:** abre la terminal dentro de `ceicomnotas`, no en la carpeta que contiene el ZIP.
-- **Puerto 3000 ocupado / EADDRINUSE:** cierra la otra instancia que hayas iniciado. Alternativamente, usa otro puerto: en PowerShell, `$env:PORT=3001; npm.cmd run dev`; en CMD, `set PORT=3001` y después `npm run dev`; en macOS/Linux, `PORT=3001 npm run dev`. Abre `http://localhost:3001` en ese caso.
-- **No hay materias:** selecciona Gestión 2026 y Módulo 4. Comprueba que estás usando el docente de prueba indicado arriba.
-- **No permite exportar:** guarda las notas finales de todos los estudiantes. Un espacio vacío deja la nota pendiente. Si aparecen puntajes de una escala anterior por revisar, corrígelos dentro de los límites 40/40/20.
-- **No permite registrar notas:** revisa el plazo del módulo. La administración puede autorizar una reapertura.
+Los datos están en el volumen persistente `ceicom_postgres`, no en SQLite. `docker compose stop db` conserva los datos; `docker compose down` también conserva el volumen. **No ejecutes `docker compose down -v`** si deseas conservar la base. No pierdas el `.env` que corresponde al volumen.
 
-El paquete incluye código fuente, dependencias declaradas y su archivo de versiones, pruebas y documentación. No incluye `node_modules`, la base de datos del entorno, archivos `.env` privados ni historial Git. Los paquetes se descargan con `npm install`. El escudo es provisional. Esta entrega es para evaluación local; antes de usarla con datos reales se necesitan configuración de producción, HTTPS, respaldos y completar las funciones administrativas pendientes descritas en `README.md`.
+Esta es una base de desarrollo preparada para evolucionar hacia uso institucional. Antes de cargar expedientes reales: configurar alojamiento, HTTPS, usuarios PostgreSQL de privilegios mínimos, respaldos automáticos, recuperación de cuentas y revisión de privacidad. La instalación local de Docker usa un usuario propietario para facilitar migraciones; no es la política de permisos de producción.
