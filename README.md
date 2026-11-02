@@ -154,3 +154,9 @@ Pendientes funcionales: materias de las dos carreras incompletas, CI de los doce
 ### Dependencias de exportación
 
 La auditoría npm actual señala avisos moderados en `minimatch`, transitivo de ExcelJS/archiver. La exportación del portal añade contenido generado en memoria y no recibe patrones glob del usuario. La sustitución directa por minimatch 11 rompe la API interna de glob 7; no debe forzarse sin actualizar la cadena de exportación y verificar compatibilidad. La actualización de esa cadena queda pendiente antes del despliegue de producción. Esta migración de base no constituye una certificación de seguridad del sistema.
+
+## Identidad visual
+
+El acceso usa una tarjeta centrada sobre fondo vino oscuro, con campos de usuario/CI y contraseña, control para mostrar la clave y orientación para recuperar el acceso mediante secretaría. La interfaz incorpora el logotipo de texto en el acceso y la barra lateral, y fuentes más grandes en los paneles. El archivo `public/assets/ceicom-wordmark.png` es una reproducción de la referencia visual recibida; puede reemplazarse por el archivo original del instituto conservando ese nombre. El escudo original `public/assets/ceicom-logo.png` sigue reservado para las planillas, PDF y Excel. Estos cambios son visuales y no requieren migraciones de base de datos.
+
+Vista previa del nuevo acceso: [ver imagen](docs/login-preview.png).
