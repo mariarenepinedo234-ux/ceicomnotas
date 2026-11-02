@@ -1,0 +1,67 @@
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--ink);padding:8px 10px;min-height:36px;font-size:11px;white-space:nowrap;flex-shrink:0}
+.theme-toggle:hover{background:var(--wine-soft)}
+.theme-toggle:focus-visible{outline:2px solid var(--wine);outline-offset:3px}
+.auth-theme{position:absolute;top:18px;right:20px}.auth-theme .theme-toggle{color:#f8eaf0;border-color:#ffffff40;background:#ffffff08}.auth-theme .theme-toggle:hover{background:#ffffff16}
+@media(max-width:1100px){.topbar .theme-toggle span{display:none}}
+@media(max-width:760px){.topbar .theme-toggle{padding:8px;min-width:36px}.topbar .theme-toggle span{display:none}.auth-page{padding-top:75px}.topbar-right{gap:9px}}
+@media screen{
+html[data-theme=dark]{color-scheme:dark;--wine:#e0a4b6;--wine-dark:#40121d;--wine-soft:#382733;--bg:#14161d;--ink:#ebe9ef;--muted:#b4afbc;--line:#363741;--cream:#332e2b;--green:#83c6aa;--shadow:0 3px 14px #0002;--surface:#1e2029;--surface-raised:#282a35;--text-secondary:#b9b4c2}
+html[data-theme=dark] body{background:var(--bg);color:var(--ink)}
+html[data-theme=dark] .app-layout :is(.sidebar,.topbar,.panel,.stat-card,.teacher-card,.blocked-card,.quick-action){background:var(--surface);border-color:var(--line)}
+html[data-theme=dark] .app-layout :is(.help-card,.deadline-note,.academic-note,.note,.panel-foot,.activity-icon,.quick-icon,.teacher-subjects>span,.count-tag){background:var(--surface-raised);border-color:var(--line);color:var(--text-secondary)}
+html[data-theme=dark] .app-layout .welcome-banner{background:#302a2b;border-color:#493c40}
+html[data-theme=dark] .app-layout :is(p,small,time,.muted,.small,.cell-sub,.workspace-label,.sidebar-version,.breadcrumb,.demo-indicator,.stat-top,.stat-sub,.shift-label,.progress-label,.panel-foot,.deadline-note,.teacher-meta,.module-dates div>span,.module-deadline,.module-bottom,.info-strip,.offering-detail,.offering-deadline,.banner-tag,.app-footer){color:var(--text-secondary)}
+html[data-theme=dark] .app-layout :is(h1,h2,h3,.table-title,.person-cell strong,.profile strong,.breadcrumb strong,.module-dates strong,.help-card strong,.quick-action strong,.deadline-note strong,.activity strong){color:var(--ink)}
+html[data-theme=dark] .app-layout :is(.banner-copy h2,.banner-copy h2 em,.academic-note h2){color:#efd4dc}
+html[data-theme=dark] .app-layout :is(.banner-link,.text-button,.subtle-link,.subject-breakdown summary){color:var(--wine)}
+html[data-theme=dark] .app-layout .nav-link{color:#bbb6c5}
+html[data-theme=dark] .app-layout .nav-link:hover,html[data-theme=dark] .app-layout .nav-link.active{background:var(--wine-soft);color:#f0b9cd}
+html[data-theme=dark] :is(.app-layout,dialog) :is(input,select,textarea){background:#181b23;color:var(--ink);border-color:#494653;color-scheme:dark}
+html[data-theme=dark] :is(.app-layout,dialog) input::placeholder,html[data-theme=dark] dialog textarea::placeholder{color:#aaa3b2}
+html[data-theme=dark] :is(.app-layout,dialog) :is(input,select,textarea):focus{outline-color:#e0a4b655}
+html[data-theme=dark] .app-layout th,html[data-theme=dark] dialog:not(.planilla-modal) th{background:var(--surface-raised);color:#c8c1d0}
+html[data-theme=dark] .app-layout :is(th,.activity,.app-footer){border-color:var(--line)}
+html[data-theme=dark] .app-layout td,html[data-theme=dark] dialog:not(.planilla-modal) td{color:var(--ink);border-color:var(--line)}
+html[data-theme=dark] :is(.app-layout,dialog) .btn.primary{background:#81334f;color:#fff}
+html[data-theme=dark] :is(.app-layout,dialog) .btn.primary:hover{background:#98405f}
+html[data-theme=dark] :is(.app-layout,dialog) .btn.secondary{background:var(--surface-raised);border-color:#504653;color:var(--ink)}
+html[data-theme=dark] :is(.app-layout,dialog) .btn.secondary:hover{background:#38303d}
+html[data-theme=dark] :is(.app-layout,dialog) .icon-button{color:#c0b5c4}
+html[data-theme=dark] .app-layout :is(.avatar,.stat-icon,.quick-icon,.person-cell .avatar){background:#3b2936;color:#e4afc3}
+html[data-theme=dark] .app-layout .stat-icon.sand,html[data-theme=dark] .app-layout .stat-icon.amber{background:#3c3026;color:#e1bc83}
+html[data-theme=dark] .app-layout .stat-icon.gray{background:#2e3247;color:#bdc9ef}
+html[data-theme=dark] .app-layout .progress{background:#3b2c37}
+html[data-theme=dark] .app-layout .progress>span{background:#c88da6}
+html[data-theme=dark] :is(.app-layout,dialog) .badge{color:#cbc3d4;background:#35313f}
+html[data-theme=dark] :is(.app-layout,dialog) .badge.success{color:#a0dfbd;background:#203b31}
+html[data-theme=dark] :is(.app-layout,dialog) .badge.warning{color:#e8c48d;background:#423322}
+html[data-theme=dark] :is(.app-layout,dialog) .badge.danger{color:#ffb0ba;background:#492732}
+html[data-theme=dark] .app-layout .grade-value.pass{color:#a0dfbd}html[data-theme=dark] .app-layout .grade-value.fail{color:#ffb0ba}
+html[data-theme=dark] dialog{background:var(--surface);color:var(--ink);border-color:var(--line)}
+html[data-theme=dark] dialog::backdrop{background:#06070bb3}
+html[data-theme=dark] dialog :is(.modal-header p,.form-grid label,.grade-context,.gradebook-help,.gradebook-footer>p,.cell-sub,.computed-grade small,.dimension-table th small,.legacy-label){color:var(--text-secondary)}
+html[data-theme=dark] dialog :is(.notice,.record-info>span,.gradebook-summary>span){background:var(--surface-raised);color:#c7b8ca;border-color:var(--line)}
+html[data-theme=dark] dialog .notice strong{color:#e5c2d4}
+html[data-theme=dark] dialog .form-error{color:#ffacba}
+html[data-theme=dark] .dimension-table input:disabled{background:#242530;color:#b4a5b9}
+html[data-theme=dark] .dimension-table tr.is-failed td{background:#39232e}
+html[data-theme=dark] .dimension-table tr.is-failed .computed-grade{color:#ffb0ba}
+html[data-theme=dark] .dimension-table tr.is-failed input{color:#ffb0ba;background:#30202b;border-color:#885064}
+html[data-theme=dark] .planilla-modal :is(.modal-header,.planilla-actions){background:var(--surface);border-color:var(--line)}
+html[data-theme=dark] .planilla-modal .planilla-actions>div:first-child{color:var(--text-secondary)}
+html[data-theme=dark] .planilla-modal .planilla-excel-note{background:#322b25;color:#d6c0a3;border-color:#544637}
+html[data-theme=dark] .auth-card{background:var(--surface);border-color:#51404a}
+html[data-theme=dark] .auth-heading :is(h1,p),html[data-theme=dark] .auth-card form>label{color:var(--ink)}
+html[data-theme=dark] .auth-heading .eyebrow,html[data-theme=dark] :is(.auth-help,.auth-input button){color:#efb6cb}
+html[data-theme=dark] .auth-input{background:#171921;border-color:#554754}
+html[data-theme=dark] .auth-input input{color:var(--ink)}
+html[data-theme=dark] .auth-input input::placeholder,html[data-theme=dark] .auth-input>.icon{color:#b2a8b7}
+html[data-theme=dark] .auth-card button[type=submit]{background:#81334f;color:white}
+html[data-theme=dark] .auth-card button[type=submit]:hover{background:#98405f}
+html[data-theme=dark] .auth-security{color:#bdb2c2;border-color:var(--line)}
+html[data-theme=dark] .auth-card .demo-box{background:var(--surface-raised)}
+html[data-theme=dark] .auth-card .demo-box :is(p,small){color:var(--text-secondary)}
+html[data-theme=dark] .auth-card .demo-buttons button{color:var(--ink);background:#35303c;border-color:#655165}
+html[data-theme=dark] .auth-card .form-error{color:#ffacba}
+}
+@media print{.theme-toggle,.auth-theme{display:none!important}:root{color-scheme:light;--ink:#25262d;--wine:#631e30;--line:#ececf0}body{color:#25262d}}
