@@ -1,3 +1,4 @@
+import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
 import http from 'node:http';
 import {createReadStream} from 'node:fs';
 import {pipeline} from 'node:stream/promises';
@@ -12,7 +13,7 @@ import { reportData, renderPdf, renderExcel, reportFilename } from './reports.js
 import {parseCatalog,applyCatalog,activateTeacher} from './catalog.js';
 import {loadRosters,updateStudentProfile} from './rosters.js';
 
-const safeUser = u => ({ id:u.id, ci:u.ci, name:u.name, role:u.role, must_change:!!u.must_change, blocked:!!u.blocked });
+const safeUser = u => ({ id:u.id, ci:u.ci, name:academicUpper(u.name), role:u.role, must_change:!!u.must_change, blocked:!!u.blocked });
 const fail = (message, status=400) => { const e = new Error(message); e.status=status; throw e; };
 const required = (v,label) => { if(typeof v!=='string' || !v.trim() || v.length>160) fail(`${label}: valor requerido (máximo 160 caracteres).`); return v.trim(); };
 const number = v => { const n=Number(v); if(!Number.isInteger(n)||n<1) fail('Selecciona una opción válida.'); return n; };
@@ -91,7 +92,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
         const offerings=admin?(await db.prepare(offeringSql).all()):teacher?(await db.prepare(offeringSql+' WHERE o.teacher_id=?').all(user.id)):(await db.prepare(offeringSql+' WHERE o.id IN (SELECT offering_id FROM enrollments WHERE student_id=?)').all(user.id));
         const enrollmentSql=`SELECT e.*,u.name student,u.ci FROM enrollments e JOIN users u ON u.id=e.student_id`;
         const enrollments=admin?(await db.prepare(enrollmentSql).all()):teacher?(await db.prepare(enrollmentSql+' JOIN offerings o ON o.id=e.offering_id WHERE o.teacher_id=?').all(user.id)):(await db.prepare(enrollmentSql+' WHERE e.student_id=?').all(user.id));
-        return send({
+        return send(uppercaseAcademicData({
           offerings:offerings.map(o=>({...o,deadline:deadlineFor(o.end_date),can_grade:canGrade(o.end_date,o.unlocked_until)})),enrollments,
           careers:(await db.prepare('SELECT * FROM careers').all()),shifts:(await db.prepare('SELECT * FROM shifts').all()),years:(await db.prepare('SELECT * FROM years ORDER BY name DESC').all()),
           modules:(await db.prepare('SELECT m.*,y.name AS "year" FROM modules m JOIN years y ON y.id=m.year_id ORDER BY start_date').all()),
@@ -105,7 +106,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
             JOIN years ay ON ay.id=g.admission_year_id JOIN years y ON y.id=g.year_id JOIN shifts sh ON sh.id=g.shift_id
             LEFT JOIN offerings o ON o.id=g.offering_id LEFT JOIN users u ON u.id=o.teacher_id LEFT JOIN modules m ON m.id=o.module_id ORDER BY g.id`).all()):[],
           audit:admin?(await db.prepare('SELECT a.*,u.name actor FROM audit a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.id DESC LIMIT 30').all()):[],
-        });
+        }));
       }
       if(path.startsWith('/api/reports/') && req.method==='GET') {
         if(!['admin','teacher'].includes(user.role)) fail('Acceso restringido.',403);
@@ -198,7 +199,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
       }
       if(path==='/api/users') {
         if(!['student','teacher'].includes(b.role)) fail('Rol inválido.');
-        const ci=b.role==='student'&&(!b.ci||!String(b.ci).trim())?null:required(b.ci,'CI'); const name=required(b.name,'Nombre');
+        const ci=b.role==='student'&&(!b.ci||!String(b.ci).trim())?null:required(b.ci,'CI'); const name=academicUpper(required(b.name,'Nombre'));
         if(ci&&ci.length<5) fail('El CI debe tener al menos 5 caracteres.');
         await transaction(async()=>{const r=(await db.prepare('INSERT INTO users(ci,name,role,password) VALUES (?,?,?,?)').run(ci,name,b.role,ci?hashPassword(ci):null));
           if(b.role==='student') (await db.prepare('INSERT INTO students(user_id,career_id,shift_id,admission_year_id,level,name_pending) VALUES (?,?,?,?,?,?)').run(r.lastInsertRowid,number(b.career_id),number(b.shift_id),number(b.admission_year_id),level(b.level),b.name_pending===true||b.name_pending==='true'));
@@ -206,14 +207,14 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
         });return send({ok:true});
       }
       if(path==='/api/catalog') {
-        const name=required(b.name,'Nombre');
+        const name=academicUpper(required(b.name,'Nombre'));
         const tables={career:'careers',shift:'shifts',year:'years'};
         if(!tables[b.type]) fail('Catálogo inválido.');
         if(b.type==='year' && !/^20\d{2}$/.test(name)) fail('La gestión debe ser un año entre 2000 y 2099.');
         await transaction(async()=>{(await db.prepare(`INSERT INTO ${tables[b.type]}(name) VALUES (?)`).run(name));await audit(user.id,'Catálogo actualizado',name);});return send({ok:true});
       }
       if(path==='/api/subjects') {
-        const name=required(b.name,'Materia'),careerId=number(b.career_id),yearLevel=level(b.level);
+        const name=academicUpper(required(b.name,'Materia')),careerId=number(b.career_id),yearLevel=level(b.level);
         const code=typeof b.code==='string'&&b.code.trim()?b.code.trim().toUpperCase():null;
         if(code&&!/^[A-Z0-9][A-Z0-9._/-]{0,39}$/.test(code))fail('Código inválido (máximo 40 letras, números, guion, punto o barra).');
         const active=b.active===undefined||b.active===true||b.active==='true';
@@ -237,7 +238,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
           if(!year||start.slice(0,4)!==year.name||end.slice(0,4)!==year.name)fail('Las fechas deben pertenecer a la gestión.');
           if((await db.prepare('SELECT count(*) n FROM modules WHERE year_id=?').get(yearId)).n>=4)fail('Cada gestión admite hasta cuatro módulos.');
           if(await db.prepare('SELECT id FROM modules WHERE year_id=? AND start_date<=? AND end_date>=?').get(yearId,end,start))fail('El módulo se superpone con otro de la misma gestión.');
-          await db.prepare('INSERT INTO modules(name,year_id,start_date,end_date) VALUES (?,?,?,?)').run(required(b.name,'Módulo'),yearId,start,end);
+          await db.prepare('INSERT INTO modules(name,year_id,start_date,end_date) VALUES (?,?,?,?)').run(academicUpper(required(b.name,'Módulo')),yearId,start,end);
           await audit(user.id,'Módulo creado',b.name);
         });return send({ok:true});
       }

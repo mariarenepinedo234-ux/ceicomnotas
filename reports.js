@@ -1,3 +1,4 @@
+import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
 import {readFileSync} from 'node:fs';
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
@@ -18,10 +19,10 @@ export async function reportData(db,id) {
   const rows=(await db.prepare('SELECT e.id,u.name student,u.ci,e.saber,e.hacer,e.ser,e.grade FROM enrollments e JOIN users u ON u.id=e.student_id WHERE e.offering_id=?').all(id))
     .sort((a,b)=>a.student.localeCompare(b.student,'es',{sensitivity:'base'})||a.ci.localeCompare(b.ci))
     .map((row,index)=>({...row,number:index+1,status:statusFor(row.grade)}));
-  return {offering:{...offering,course:levelName[offering.level]},rows,pending:rows.filter(r=>r.grade===null).length,
+  return uppercaseAcademicData({offering:{...offering,course:levelName[offering.level]},rows,pending:rows.filter(r=>r.grade===null).length,
     legacy:rows.filter(r=>r.grade!==null && [r.saber,r.hacer,r.ser].some(v=>v===null)).length,
     needs_review:rows.filter(r=>dimensions.some(d=>r[d.key]!==null && (r[d.key]<0 || r[d.key]>d.max))).length,
-    generated_at:new Date().toISOString()};
+    generated_at:new Date().toISOString()});
   },{isolation:'REPEATABLE READ'});
 }
 export function reportFilename(report,extension) {
@@ -31,6 +32,7 @@ export function reportFilename(report,extension) {
 const dateLabel=iso=>new Intl.DateTimeFormat('es-BO',{day:'numeric',month:'long',year:'numeric',timeZone:'America/La_Paz'}).format(new Date(iso));
 
 export function renderPdf(report) {
+  report=uppercaseAcademicData(report);
   return new Promise((resolve,reject)=>{
     const doc=new PDFDocument({size:'LETTER',margins:{top:42,right:42,bottom:20,left:42},info:{Title:'Planilla de notas · Ceicom',Author:'Instituto Tecnológico Ceicom',Subject:report.offering.subject},autoFirstPage:false});
     const chunks=[];doc.on('data',c=>chunks.push(c));doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.on('error',reject);
@@ -52,14 +54,14 @@ export function renderPdf(report) {
         doc.font('Helvetica').fontSize(12).fillColor(INK).text(o.year,310,78,{width:260,align:'right'});
         doc.moveTo(42,104).lineTo(570,104).strokeColor('#d8c7cf').lineWidth(.7).stroke();
         doc.font('Helvetica-Bold').fontSize(16).fillColor(WINE).text('PLANILLA DE NOTAS',42,116,{width:528,align:'center'});
-        doc.font('Helvetica-Oblique').fontSize(8).fillColor('#8f8089').text(`Elaborado el ${dateLabel(report.generated_at)}`,42,137,{width:528,align:'center'});
+        doc.font('Helvetica-Oblique').fontSize(8).fillColor('#8f8089').text(academicUpper(`Elaborado el ${dateLabel(report.generated_at)}`),42,137,{width:528,align:'center'});
         if(report.draft)doc.font('Helvetica-Bold').fontSize(7).fillColor('#96753f').text('BORRADOR · NOTAS PENDIENTES / DOCUMENTO PARA REVISIÓN',42,149,{width:528,align:'center'});
         const meta=(label,value,y,width=450)=>{doc.font('Helvetica-Bold').fontSize(8).fillColor(INK).text(label,43,y,{width:65});doc.font('Helvetica').fontSize(8).text(value,108,y,{width});};
         meta('CARRERA:',o.career.toLocaleUpperCase('es'),160);
         meta('MATERIA:',`${o.subject}${o.subject_code?' ('+o.subject_code+')':''}`.toLocaleUpperCase('es'),186);
         meta('CURSO:',o.course,204,130);
         doc.font('Helvetica-Bold').text('TURNO:',270,204,{width:45});doc.font('Helvetica').text(o.shift,315,204,{width:245});
-        meta('PERÍODO:',`${o.module} · Gestión ${o.year}`,220);
+        meta('PERÍODO:',`${o.module} · GESTIÓN ${o.year}`,220);
         const x=[42];widths.forEach(w=>x.push(x.at(-1)+w));let y=241;
         const cell=(col,top,w,h,text,fill=BLUE,font='Helvetica-Bold',size=7,align='center',color=INK)=>{
           doc.rect(col,top,w,h).fillAndStroke(fill,LINE);
@@ -69,7 +71,7 @@ export function renderPdf(report) {
         };
         cell(x[0],y,widths[0],48,'Nº');cell(x[1],y,widths[1],48,'APELLIDOS Y NOMBRES');
         cell(x[2],y,widths[2]+widths[3]+widths[4],17,'DIMENSIONES',CREAM);
-        ['SABER\n40 pts','HACER\n40 pts','SER\n20 pts'].forEach((t,i)=>cell(x[i+2],y+17,widths[i+2],31,t,i===0?'#f8eee3':BLUE));
+        ['SABER\n40 PTS','HACER\n40 PTS','SER\n20 PTS'].forEach((t,i)=>cell(x[i+2],y+17,widths[i+2],31,t,i===0?'#f8eee3':BLUE));
         cell(x[5],y,widths[5],48,'NOTA\nFINAL');cell(x[6],y,widths[6],48,'OBSERVACIÓN');y+=48;
         let rendered=0;
         for(const row of rows){
@@ -79,14 +81,14 @@ export function renderPdf(report) {
           y+=row.height;rendered++;
         }
         while(rendered<20 && y+18<=650){[pageIndex*20+rendered+1,'','','','','',''].forEach((v,i)=>cell(x[i],y,widths[i],18,v,'#fff','Helvetica',7));y+=18;rendered++;}
-        doc.font('Helvetica').fontSize(7).fillColor('#8f8089').text('Escala: 1 a 100 puntos · Aprobación desde 61 · Rojo: estudiante reprobado',43,Math.max(y+11,661),{width:528});
-        if(report.legacy)doc.fontSize(6.5).text('—: desglose no registrado en notas anteriores. La nota final original se conserva.',43,676,{width:528});
+        doc.font('Helvetica').fontSize(7).fillColor('#8f8089').text('ESCALA: 1 A 100 PUNTOS · APROBACIÓN DESDE 61 · ROJO: ESTUDIANTE REPROBADO',43,Math.max(y+11,661),{width:528});
+        if(report.legacy)doc.fontSize(6.5).text('—: DESGLOSE NO REGISTRADO EN NOTAS ANTERIORES. LA NOTA FINAL ORIGINAL SE CONSERVA.',43,676,{width:528});
         doc.moveTo(49,717).lineTo(267,717).moveTo(345,717).lineTo(563,717).strokeColor(INK).lineWidth(.5).stroke();
         doc.font('Helvetica-Bold').fontSize(8).fillColor(INK).text(o.teacher.toLocaleUpperCase('es'),49,725,{width:218,align:'center'});
         doc.font('Helvetica').fontSize(7).text('DOCENTE',49,740,{width:218,align:'center'});
         doc.font('Helvetica-Bold').fontSize(8).text('DIRECCIÓN ACADÉMICA',345,725,{width:218,align:'center'});
-        doc.font('Helvetica').fontSize(7).fillColor('#998b94').text(`Ceicom · Registro académico · Planilla ${o.id}`,43,760,{width:390});
-        doc.text(`Página ${pageIndex+1} de ${pages.length}`,450,760,{width:120,align:'right'});
+        doc.font('Helvetica').fontSize(7).fillColor('#998b94').text(`CEICOM · REGISTRO ACADÉMICO · PLANILLA ${o.id}`,43,760,{width:390});
+        doc.text(`PÁGINA ${pageIndex+1} DE ${pages.length}`,450,760,{width:120,align:'right'});
       });
       doc.end();
     } catch(error) {doc.destroy();reject(error);}
@@ -94,6 +96,7 @@ export function renderPdf(report) {
 }
 
 export async function renderExcel(report){
+  report=uppercaseAcademicData(report);
   const workbook=new ExcelJS.Workbook();workbook.creator='Instituto Tecnológico Ceicom';workbook.created=new Date(report.generated_at);
   const sheet=workbook.addWorksheet('PLANILLA DE NOTAS',{pageSetup:{paperSize:1,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,horizontalCentered:true,margins:{left:.4,right:.3,top:.2,bottom:.3,header:0,footer:.15},printTitlesRow:'1:14'},views:[{state:'frozen',ySplit:14,showGridLines:false}]});
   const o=report.offering;
@@ -105,7 +108,7 @@ export async function renderExcel(report){
   merge('H4:J4','CEICOM',18,true,'center');merge('H5:J5',o.year,14,true,'center');
   if(report.draft)merge('F6:J6','BORRADOR · PARA REVISIÓN',9,true,'right');
   merge('A7:J7','PLANILLA DE NOTAS',16,true,'center');sheet.getRow(7).height=23;
-  merge('D8:J8',`Elaborado el ${dateLabel(report.generated_at)}`,10,false,'center');sheet.getRow(8).height=19;
+  merge('D8:J8',academicUpper(`Elaborado el ${dateLabel(report.generated_at)}`),10,false,'center');sheet.getRow(8).height=19;
   merge('B9:C9','CARRERA:',10,true);merge('D9:J9',o.career.toLocaleUpperCase('es'),10);sheet.getRow(9).height=27;
   merge('B10:C10','MATERIA:',10,true);merge('D10:J10',`${o.subject}${o.subject_code?' ('+o.subject_code+')':''}`.toLocaleUpperCase('es'),10);sheet.getRow(10).height=28;
   merge('B11:C11','CURSO:',10,true);merge('D11:E11',o.course,10);merge('F11:J11',`${o.module} · ${o.year} · ${o.shift}`,8,false,'right');sheet.getRow(11).height=20;
@@ -142,6 +145,8 @@ export async function renderExcel(report){
   merge(`B${note+1}:J${note+1}`,report.legacy?'—: nota anterior sin desglose; se conserva su total original.':'Excel editable: cambiar puntajes recalcula la nota final. No modifica el portal.',8);sheet.getRow(note+1).height=15;
   const signature=last+6;merge(`B${signature}:E${signature}`,o.teacher.toLocaleUpperCase('es'),9,true,'center');merge(`G${signature}:J${signature}`,'FIRMA DIRECCIÓN ACADÉMICA',9,true,'center');sheet.getRow(signature).height=25;
   for(const cell of [sheet.getCell(signature,2),sheet.getCell(signature,7)])cell.border={top:{style:'thin'}};
-  sheet.pageSetup.printArea=`A1:J${signature+1}`;sheet.headerFooter.oddFooter=report.draft?'&LBORRADOR · Registro académico&RPágina &P de &N':'&LCeicom · Registro académico&RPágina &P de &N';
+  sheet.pageSetup.printArea=`A1:J${signature+1}`;sheet.headerFooter.oddFooter=report.draft?'&LBORRADOR · Registro académico&RPÁGINA &P de &N':'&LCeicom · Registro académico&RPÁGINA &P de &N';
+  sheet.eachRow(row=>row.eachCell(cell=>{if(typeof cell.value==='string')cell.value=academicUpper(cell.value);}));
+  sheet.headerFooter.oddFooter=academicUpper(sheet.headerFooter.oddFooter);
   workbook.calcProperties.fullCalcOnLoad=true;return Buffer.from(await workbook.xlsx.writeBuffer());
 }

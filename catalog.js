@@ -1,3 +1,4 @@
+import {academicUpper} from './public/academic-text.js';
 import ExcelJS from 'exceljs';
 import {hashPassword} from './lib.js';
 
@@ -38,7 +39,7 @@ export async function parseCatalog(buffer){
   }
   if(!careers.length)throw new Error('No se encontró la lista de carreras en la columna B.');
   for(let row=1;row<=sheet.rowCount;row++)for(let column=4;column<=sheet.columnCount;column++){
-    const name=text(sheet.getCell(row,column));if(!name)continue;
+    const name=academicUpper(text(sheet.getCell(row,column)));if(!name)continue;
     if(keyOf(text(sheet.getCell(row,column+1)))==='CODIGO'){
       const match=keyOf(name).match(/^(.*?)\s+(1ER|2DO|3ER|PRIMER|PRIMERO|SEGUNDO|TERCER|TERCERO)\s+ANO$/);
       if(!match)throw new Error(`No se reconoce carrera/año en ${sheet.getCell(row,column).address}.`);
@@ -75,7 +76,8 @@ export async function applyCatalog(db,payload,actorId=null,{withinTransaction=fa
       else if(career.name!==name){await db.prepare('UPDATE careers SET name=? WHERE id=?').run(name,career.id);result.careers_renamed++;}
       ids.set(careerKey(name),career.id);
     }
-    for(const s of payload.subjects){
+    for(const source of payload.subjects){
+      const s={...source,name:academicUpper(source.name)};
       const careerId=ids.get(careerKey(s.career));
       const byCode=await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=? AND upper(code)=? FOR UPDATE').get(careerId,s.level,s.code);
       const candidates=byCode?[byCode]:(await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=? AND code IS NULL FOR UPDATE').all(careerId,s.level)).filter(old=>keyOf(old.name)===keyOf(s.name));

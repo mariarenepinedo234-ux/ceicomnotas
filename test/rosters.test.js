@@ -20,7 +20,7 @@ test('grupos separados por carrera, ingreso 2024 y cursada 2026; sin duplicar es
   const db=await setup();t.after(()=>db.cleanup());
   const result=await loadRosters(db,payload);assert.equal(result.students_created,4);assert.equal(result.groups_created,3);assert.equal(result.enrollments_created,7);
   const groups=await db.prepare('SELECT * FROM academic_groups ORDER BY id').all();assert.equal(groups.length,3);
-  const counts=[];for(const group of groups){const report=await reportData(db,group.offering_id);counts.push(report.rows.length);assert.equal(report.offering.year,'2026');assert.equal(report.offering.end_date,'2026-09-25');assert.equal(report.offering.shift,'Mañana');assert.ok(report.rows.every(row=>row.grade===null&&row.ci===null));}
+  const counts=[];for(const group of groups){const report=await reportData(db,group.offering_id);counts.push(report.rows.length);assert.equal(report.offering.year,'2026');assert.equal(report.offering.end_date,'2026-09-25');assert.equal(report.offering.shift,'MAÑANA');assert.ok(report.rows.every(row=>row.grade===null&&row.ci===null));}
   assert.deepEqual(counts,[3,1,3]);
   const identities=await db.prepare('SELECT u.* FROM users u JOIN students s ON s.user_id=u.id WHERE u.ci IS NULL').all();assert.equal(identities.length,4);assert.ok(identities.every(u=>u.password===null));
   const repeat=await loadRosters(db,payload);assert.equal(repeat.students_created,0);assert.equal(repeat.enrollments_created,0);assert.equal(repeat.groups_created,0);
@@ -32,7 +32,7 @@ test('grupos separados por carrera, ingreso 2024 y cursada 2026; sin duplicar es
 });
 test('completar nombre y CI conserva inscripciones y notas; un error de carga revierte el lote',async t=>{
   const db=await setup();t.after(()=>db.cleanup());await loadRosters(db,payload);
-  const s=await db.prepare("SELECT s.* FROM students s JOIN users u ON u.id=s.user_id WHERE u.name='Pendiente'").get();
+  const s=await db.prepare("SELECT s.* FROM students s JOIN users u ON u.id=s.user_id WHERE u.name='PENDIENTE'").get();
   await assert.rejects(updateStudentProfile(db,{student_id:s.user_id,ci:'11112222'},null),/nombre/);
   await db.prepare('UPDATE enrollments SET grade=75 WHERE student_id=?').run(s.user_id);
   await updateStudentProfile(db,{student_id:s.user_id,name:'Nombre Completo Confirmado',ci:'11112222',name_pending:false},null);
@@ -40,7 +40,7 @@ test('completar nombre y CI conserva inscripciones y notas; un error de carga re
   const grades=await db.prepare('SELECT grade FROM enrollments WHERE student_id=?').all(s.user_id);assert.equal(grades.length,2);assert.ok(grades.every(g=>g.grade===75));
   const count=(await db.prepare('SELECT COUNT(*) n FROM users').get()).n;
   await assert.rejects(loadRosters(db,{...payload,groups:[{...payload.groups[0],subject:'Materia que debe revertirse',students:['Repetido','Repetido']}]}),/dos veces/);
-  assert.equal((await db.prepare('SELECT COUNT(*) n FROM users').get()).n,count);assert.equal(await db.prepare('SELECT id FROM subjects WHERE name=?').get('Materia que debe revertirse'),undefined);
+  assert.equal((await db.prepare('SELECT COUNT(*) n FROM users').get()).n,count);assert.equal(await db.prepare('SELECT id FROM subjects WHERE name=?').get('MATERIA QUE DEBE REVERTIRSE'),undefined);
 });
 test('exportación de borradores explícitos y bloqueo de acceso para perfiles sin CI',async()=>{
   const db=await setup();await db.exec('UPDATE users SET must_change=0');const result=await loadRosters(db,payload),group=await db.prepare('SELECT * FROM academic_groups WHERE id=?').get(result.group_ids[0]);

@@ -1,3 +1,4 @@
+import {academicUpper} from './public/academic-text.js';
 import {keyOf,teacherKey} from './catalog.js';
 
 const careerKey=name=>keyOf(name)==='COMERCIO INTERNACIONAL'?'COMERCIO INTERNACIONAL Y ADMINISTRACION ADUANERA':keyOf(name);
@@ -51,7 +52,7 @@ export async function loadRosters(db,input,actorId=null){
     for(const group of input.groups){
       const career=careers.filter(c=>careerKey(c.name)===careerKey(required(group.career,'Carrera')));if(career.length!==1)throw new Error('La carrera debe coincidir con un único registro.');
       if(!Array.isArray(group.students)||!group.students.length||group.students.length>200)throw new Error('Cada grupo requiere de 1 a 200 estudiantes.');
-      const subjectName=required(group.subject,'Materia'),code=group.code?required(group.code,'Código').toUpperCase():null;
+      const subjectName=academicUpper(required(group.subject,'Materia')),code=group.code?required(group.code,'Código').toUpperCase():null;
       if(code&&!/^[A-Z0-9][A-Z0-9._/-]{0,39}$/.test(code))throw new Error('Código de materia inválido.');
       const subjects=(await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=?').all(career[0].id,input.level)).filter(s=>keyOf(s.name)===keyOf(subjectName)||(code&&s.code===code));
       if(subjects.length>1)throw new Error('Hay varias materias equivalentes. Revisa sus códigos.');
@@ -68,7 +69,7 @@ export async function loadRosters(db,input,actorId=null){
       const existing=await db.prepare('SELECT s.*,u.name FROM students s JOIN users u ON u.id=s.user_id WHERE s.career_id=? AND s.admission_year_id=?').all(career[0].id,admissionId);
       const inGroup=new Set();
       for(const entry of group.students){
-        const name=required(typeof entry==='string'?entry:entry.name,'Nombre del estudiante'),namePending=typeof entry==='object'&&entry.name_pending===true,key=keyOf(name);
+        const name=academicUpper(required(typeof entry==='string'?entry:entry.name,'Nombre del estudiante')),namePending=typeof entry==='object'&&entry.name_pending===true,key=keyOf(name);
         if(inGroup.has(key))throw new Error('El mismo nombre aparece dos veces en un grupo. Revisa los CI para distinguirlos.');inGroup.add(key);
         const found=existing.filter(s=>keyOf(s.name)===key);
         if(found.length>1)throw new Error('Hay estudiantes homónimos. Completa sus CI antes de vincularlos.');
@@ -93,7 +94,7 @@ export async function updateStudentProfile(db,input,actorId){
     const student=await db.prepare('SELECT * FROM students WHERE user_id=? FOR UPDATE').get(input.student_id);
     if(!student)throw new Error('Estudiante no encontrado.');
     const user=await db.prepare('SELECT * FROM users WHERE id=? FOR UPDATE').get(student.user_id);
-    const name=required(input.name??user.name,'Nombre completo'),namePending=input.name_pending??student.name_pending;
+    const name=academicUpper(required(input.name??user.name,'Nombre completo')),namePending=input.name_pending??student.name_pending;
     if(typeof namePending!=='boolean')throw new Error('Estado del nombre inválido.');
     const ci=typeof input.ci==='string'&&input.ci.trim()?input.ci.trim():user.ci;
     if(ci&&(ci.length<5||ci.length>40))throw new Error('Ingresa un CI de 5 a 40 caracteres.');

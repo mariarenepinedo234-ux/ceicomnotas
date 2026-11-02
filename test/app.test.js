@@ -80,7 +80,7 @@ test('flujo académico completo y permisos por rol',async()=>{
   assert.equal((await request('student-status',{student_id:student.user_id,blocked:false})).status,200);
   assert.equal((await request('transfer',{student_id:student.user_id,shift_id:4,level:2,reason:'Cambio por trabajo'})).status,200);
   s=(await request('data',null,'student')).body;
-  assert.equal(s.enrollments[0].grade,61);assert.equal(s.offerings[0].shift,'Mañana');
+  assert.equal(s.enrollments[0].grade,61);assert.equal(s.offerings[0].shift,'MAÑANA');
   assert.equal((await db.prepare('SELECT shift_id FROM students WHERE user_id=?').get(student.user_id)).shift_id,4);
   assert.ok((await request('data')).body.audit.some(a=>a.action==='Traslado / actualización académica'));
   assert.equal((await request('logout',{},'student')).status,200);
@@ -95,10 +95,10 @@ test('creación de catálogos, módulos y asignaciones, con validación de perí
   assert.equal((await request('subjects',{name:'Redes I',career_id:1,level:1})).status,200);
   assert.equal((await request('subjects',{name:'Redes I',career_id:2,level:1})).status,200);
   const a=(await request('data')).body;
-  const assignment={subject_id:a.subjects.find(s=>s.name==='Redes I'&&s.career_id===1).id,module_id:a.modules.find(m=>m.year_id===y.id).id,shift_id:1,teacher_id:2,career_id:1};
+  const assignment={subject_id:a.subjects.find(s=>s.name==='REDES I'&&s.career_id===1).id,module_id:a.modules.find(m=>m.year_id===y.id).id,shift_id:1,teacher_id:2,career_id:1};
   assert.equal((await request('offerings',{...assignment,career_id:2})).status,400);
   assert.equal((await request('offerings',assignment)).status,200);
-  assert.equal((await request('offerings',{...assignment,career_id:2,subject_id:a.subjects.find(s=>s.name==='Redes I'&&s.career_id===2).id})).status,200);
+  assert.equal((await request('offerings',{...assignment,career_id:2,subject_id:a.subjects.find(s=>s.name==='REDES I'&&s.career_id===2).id})).status,200);
   assert.equal((await request('offerings',{subject_id:1,module_id:1,shift_id:1,teacher_id:4})).status,400);
   assert.equal((await request('catalog',{type:'year',name:'2028'})).status,200);
   const concurrentYear=(await request('data')).body.years.find(y=>y.name==='2028');
