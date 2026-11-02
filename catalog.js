@@ -102,10 +102,18 @@ export async function activateTeacher(db,{directory_id,ci},actorId){
   if(typeof ci!=='string'||ci.trim().length<5||ci.trim().length>40)throw new Error('Ingresa un CI válido (entre 5 y 40 caracteres).');
   return db.transaction(async()=>{
     const entry=await db.prepare('SELECT * FROM teacher_directory WHERE id=? FOR UPDATE').get(directory_id);
-    if(!entry)throw new Error('Docente no encontrado.');if(entry.user_id)throw new Error('Este docente ya tiene cuenta.');
-    const created=await db.prepare("INSERT INTO users(ci,name,role,password) VALUES (?,?,'teacher',?)").run(ci.trim(),entry.name,hashPassword(ci.trim()));
-    await db.prepare('UPDATE teacher_directory SET user_id=? WHERE id=?').run(created.lastInsertRowid,entry.id);
+    if(!entry)throw new Error('Docente no encontrado.');
+    let userId=entry.user_id;
+    if(userId){
+      const user=await db.prepare('SELECT ci FROM users WHERE id=? FOR UPDATE').get(userId);
+      if(user?.ci)throw new Error('Este docente ya tiene cuenta.');
+      await db.prepare('UPDATE users SET ci=?,password=?,must_change=1 WHERE id=?').run(ci.trim(),hashPassword(ci.trim()),userId);
+    }else{
+      const created=await db.prepare("INSERT INTO users(ci,name,role,password) VALUES (?,?,'teacher',?)").run(ci.trim(),entry.name,hashPassword(ci.trim()));
+      userId=created.lastInsertRowid;
+      await db.prepare('UPDATE teacher_directory SET user_id=? WHERE id=?').run(userId,entry.id);
+    }
     await db.prepare('INSERT INTO audit(actor_id,action,detail) VALUES (?,?,?)').run(actorId,'Cuenta docente habilitada',`Registro docente ${entry.id}; CI completado por administración.`);
-    return created.lastInsertRowid;
+    return userId;
   });
 }

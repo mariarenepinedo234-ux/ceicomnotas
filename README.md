@@ -70,6 +70,38 @@ Carreras indicadas: Contaduría General, Administración de Empresas, Comercio I
 
 ## Reglas académicas
 
+### Grupos reales y CI pendientes
+
+En **Estudiantes → Registrar grupo** se eligen carrera, materia, año académico, gestión de ingreso, gestión cursada, turno, módulo, fechas confirmadas y docente; se pegan los nombres (uno por línea). El formulario sugiere materias de esa carrera/año y permite registrar una materia complementaria sin inventar código. Los docentes se pueden seleccionar del directorio del Excel o de los registros existentes.
+
+Una misma materia se registra por carrera para conservar grupos y planillas independientes. Los estudiantes de la misma carrera/promoción se reutilizan por nombre normalizado cuando hay una única coincidencia; los homónimos ambiguos se rechazan para completar sus datos antes. Una segunda carga idéntica no duplica alumnos ni inscripciones. Un cambio de turno/año preexistente no se sobrescribe automáticamente: debe realizarse desde su trámite de traslado.
+
+Los estudiantes pueden tener **CI pendiente**. Se conserva su identidad académica, pero no tienen contraseña ni pueden iniciar sesión. **Completar datos** permite confirmar nombre y CI sin cambiar sus IDs, inscripciones o notas. Los nombres incompletos se señalan para revisión; no se completan por inferencia. Cuando se registra un CI confirmado se exige cambiar la contraseña inicial al ingresar.
+
+Un docente del directorio puede quedar vinculado a una asignación con CI pendiente, sin habilitar acceso. Su ficha mostrará **Completar CI y habilitar**. Completar el CI conserva las materias que ya tiene asignadas. No se generan carnets ni credenciales ficticios para preparar el expediente.
+
+Las gestiones son distintas: por ejemplo, una promoción que ingresó en 2024 puede cursar tercero en la gestión 2026. El módulo y la materia se vinculan a la gestión cursada, sin reemplazar la de ingreso. Las fechas confirmadas del módulo actualizan su calendario y dejan auditoría.
+
+**Grupos académicos** muestra las listas separadas por materia y carrera. Antes de registrar notas se pueden descargar **PDF borrador** y **Excel borrador**, marcados claramente como BORRADOR y con nombres de archivo distintos. Las filas pendientes no se convierten en reprobados. La exportación final sigue exigiendo todas las notas guardadas; los plazos docentes no se reabren automáticamente por cargar un grupo.
+
+Para cargas locales privadas también existe `npm run grupos:importar -- archivo-privado.json --aplicar`. Sin `--aplicar` solo informa el contexto. El formato es:
+
+```json
+{
+  "admission_year": "2024", "academic_year": "2026", "level": 3,
+  "shift": "Mañana", "teacher": "Nombre del docente registrado",
+  "module": {"name": "Tercer trimestre", "start_date": "2026-07-01", "end_date": "2026-09-25"},
+  "groups": [{
+    "career": "Carrera registrada", "subject": "Materia complementaria", "code": null,
+    "students": ["Nombre completo de ejemplo", {"name": "Nombre por completar", "name_pending": true}]
+  }]
+}
+```
+
+No subas esos archivos, listas reales o planillas con estudiantes a GitHub. La carga real de este entorno permanece en PostgreSQL y archivos privados fuera del checkout; descargar el código no la copia a una computadora diferente. En una instalación local usa el formulario con tus listas privadas.
+
+### Plazos de registro
+
 Hasta cuatro módulos sin superposición por gestión, con fechas dentro de esa gestión. El registro docente cierra **72 horas excluyendo sábados y domingos**, contadas desde las 23:59:59 de la fecha final en Bolivia (UTC−4). Ejemplo: viernes 30/10/2026 → miércoles 04/11/2026 a las 23:59:59. No se excluyen feriados; no son jornadas de ocho horas.
 
 Administración puede reabrir de 1 a 168 horas corridas con motivo o corregir notas directamente. El plazo cerrado no impide consultar o exportar notas completas. Las notas anteriores sin desglose conservan su total; valores de una escala anterior que excedan 40/40/20 requieren revisión antes de exportar.

@@ -22,7 +22,7 @@ test('base institucional vacía, administrador seguro y migraciones repetibles',
   const db=await testDatabase({demo:false});t.after(()=>db.cleanup());
   for(const table of applicationTables)assert.equal((await db.prepare(`SELECT COUNT(*) n FROM ${table}`).get()).n,0);
   await migrateDatabase(db);await migrateDatabase(db);
-  assert.equal((await db.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n,2);
+  assert.equal((await db.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n,3);
   await createAdmin(db,{ci:'administracion',name:'Administrador institucional',password:'ClaveDePrueba2026!'});
   const admin=await db.prepare('SELECT * FROM users').get();assert.equal(admin.must_change,1);assert.equal(admin.role,'admin');assert.ok(verifyPassword('ClaveDePrueba2026!',admin.password));
   await assert.rejects(createAdmin(db,{ci:'otro',name:'Otro',password:'ClaveDePrueba2026!'}),/Ya existe/);

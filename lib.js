@@ -5,6 +5,7 @@ export function hashPassword(password) {
   return `${salt}:${scryptSync(password, salt, 64).toString('hex')}`;
 }
 export function verifyPassword(password, hash) {
+  if(typeof password!=='string'||typeof hash!=='string'||!/^\w+:[a-f0-9]{128}$/i.test(hash))return false;
   const [salt, key] = hash.split(':');
   const actual = scryptSync(password, salt, 64);
   return timingSafeEqual(actual, Buffer.from(key, 'hex'));

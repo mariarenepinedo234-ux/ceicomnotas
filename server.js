@@ -7,6 +7,7 @@ import { openDatabase } from './db.js';
 import { hashPassword, verifyPassword, canGrade, deadlineFor, validGrade, dimensionGrades } from './lib.js';
 import { reportData, renderPdf, renderExcel, reportFilename } from './reports.js';
 import {parseCatalog,applyCatalog,activateTeacher} from './catalog.js';
+import {loadRosters,updateStudentProfile} from './rosters.js';
 
 const safeUser = u => ({ id:u.id, ci:u.ci, name:u.name, role:u.role, must_change:!!u.must_change, blocked:!!u.blocked });
 const fail = (message, status=400) => { const e = new Error(message); e.status=status; throw e; };
@@ -54,7 +55,7 @@ export function createApp(db) {
       }
       const token=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('ceicom_session='))?.slice(15);
       const tokenHash=token?createHash('sha256').update(token).digest('hex'):'';
-      let user=(await db.prepare('SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires>?').get(tokenHash,Date.now()));
+      let user=(await db.prepare('SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires>? AND u.ci IS NOT NULL AND u.password IS NOT NULL').get(tokenHash,Date.now()));
       if(path==='/api/login' && req.method==='POST') {
         const key=req.socket.remoteAddress;
         const a=attempts.get(key); if(a && a.count>=15 && a.until>Date.now()) fail('Demasiados intentos. Intenta en 15 minutos.',429);
@@ -94,6 +95,11 @@ export function createApp(db) {
           students:admin?(await db.prepare('SELECT s.*,u.name,u.ci,u.blocked,c.name career,sh.name shift,y.name admission_year FROM students s JOIN users u ON u.id=s.user_id JOIN careers c ON c.id=s.career_id JOIN shifts sh ON sh.id=s.shift_id JOIN years y ON y.id=s.admission_year_id').all()):[],
           teachers:admin?(await db.prepare("SELECT id,name,ci FROM users WHERE role='teacher'").all()):[],
           teacher_directory:admin?(await db.prepare('SELECT id,name,user_id FROM teacher_directory ORDER BY name').all()):[],
+          academic_groups:admin?(await db.prepare(`SELECT g.*,s.name subject,c.name career,ay.name admission_year,y.name AS "year",sh.name shift,o.teacher_id,u.name teacher,m.name module,
+            (SELECT COUNT(*) FROM academic_group_students gs WHERE gs.group_id=g.id) student_count
+            FROM academic_groups g JOIN subjects s ON s.id=g.subject_id JOIN careers c ON c.id=s.career_id
+            JOIN years ay ON ay.id=g.admission_year_id JOIN years y ON y.id=g.year_id JOIN shifts sh ON sh.id=g.shift_id
+            LEFT JOIN offerings o ON o.id=g.offering_id LEFT JOIN users u ON u.id=o.teacher_id LEFT JOIN modules m ON m.id=o.module_id ORDER BY g.id`).all()):[],
           audit:admin?(await db.prepare('SELECT a.*,u.name actor FROM audit a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.id DESC LIMIT 30').all()):[],
         });
       }
@@ -106,10 +112,12 @@ export function createApp(db) {
         const format=url.searchParams.get('format')||'json';
         if(format==='json') return send(report);
         if(!['pdf','xlsx'].includes(format)) fail('Formato no disponible.');
-        if(!report.rows.length || report.pending) fail('Completa y guarda las notas finales de todos los estudiantes antes de exportar la planilla.',409);
+        const draft=url.searchParams.get('draft')==='true';
+        if(!report.rows.length || (report.pending&&!draft)) fail('Completa y guarda las notas finales de todos los estudiantes antes de exportar la planilla.',409);
         if(report.needs_review) fail('Hay notas de una escala anterior fuera de los límites actuales (40/40/20). Revísalas antes de exportar.',409);
+        report.draft=draft;
         const buffer=await (format==='pdf'?renderPdf(report):renderExcel(report));
-        await audit(user.id,'Planilla exportada',`${report.offering.subject} · ${report.offering.career} · ${format.toUpperCase()} · ${report.rows.length} estudiantes`);
+        await audit(user.id,draft?'Borrador de planilla exportado':'Planilla exportada',`${report.offering.subject} · ${report.offering.career} · ${format.toUpperCase()} · ${report.rows.length} estudiantes`);
         res.writeHead(200,{'Content-Type':format==='pdf'?'application/pdf':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':`attachment; filename="${reportFilename(report,format)}"`,'Cache-Control':'no-store','Content-Length':buffer.length});
         return res.end(buffer);
       }
@@ -141,6 +149,13 @@ export function createApp(db) {
       if(user.role!=='admin') fail('Acceso restringido.',403);
       if(req.method!=='POST') fail('Ruta no encontrada.',404);
       const b=body;
+      if(path==='/api/rosters'){
+        try{return send(await loadRosters(db,b,user.id));}catch(error){if(error.code)throw error;fail(error.message);}
+      }
+      if(path==='/api/student-profile'){
+        try{await updateStudentProfile(db,{student_id:number(b.student_id),name:b.name,ci:b.ci,name_pending:b.name_pending===undefined?undefined:b.name_pending===true||b.name_pending==='true'},user.id);}catch(error){if(error.code)throw error;fail(error.message);}
+        return send({ok:true});
+      }
       if(path==='/api/catalog-excel/preview'){
         if(typeof b.file!=='string'||!b.file.length)fail('Selecciona un archivo Excel.');
         let payload;
@@ -167,10 +182,10 @@ export function createApp(db) {
       }
       if(path==='/api/users') {
         if(!['student','teacher'].includes(b.role)) fail('Rol inválido.');
-        const ci=required(b.ci,'CI'); const name=required(b.name,'Nombre');
-        if(ci.length<5) fail('El CI debe tener al menos 5 caracteres.');
-        await transaction(async()=>{const r=(await db.prepare('INSERT INTO users(ci,name,role,password) VALUES (?,?,?,?)').run(ci,name,b.role,hashPassword(ci)));
-          if(b.role==='student') (await db.prepare('INSERT INTO students VALUES (?,?,?,?,?)').run(r.lastInsertRowid,number(b.career_id),number(b.shift_id),number(b.admission_year_id),level(b.level)));
+        const ci=b.role==='student'&&(!b.ci||!String(b.ci).trim())?null:required(b.ci,'CI'); const name=required(b.name,'Nombre');
+        if(ci&&ci.length<5) fail('El CI debe tener al menos 5 caracteres.');
+        await transaction(async()=>{const r=(await db.prepare('INSERT INTO users(ci,name,role,password) VALUES (?,?,?,?)').run(ci,name,b.role,ci?hashPassword(ci):null));
+          if(b.role==='student') (await db.prepare('INSERT INTO students(user_id,career_id,shift_id,admission_year_id,level,name_pending) VALUES (?,?,?,?,?,?)').run(r.lastInsertRowid,number(b.career_id),number(b.shift_id),number(b.admission_year_id),level(b.level),b.name_pending===true||b.name_pending==='true'));
           await audit(user.id,'Usuario creado',`${name} · ${b.role==='student'?'Estudiante':'Docente'}`);
         });return send({ok:true});
       }

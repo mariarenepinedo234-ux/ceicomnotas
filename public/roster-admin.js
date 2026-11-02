@@ -1,0 +1,31 @@
+const $=selector=>document.querySelector(selector);
+export function groupsHTML(data,{escape:esc,icon}){
+  const groups=data.academic_groups||[];if(!groups.length)return '';
+  return `<section class="panel spaced"><div class="panel-heading"><div><h2>Grupos académicos</h2><p>Una planilla por materia, carrera, gestión y turno.</p></div><span class="count-tag">${groups.length}</span></div><div class="table-wrap"><table><thead><tr><th>MATERIA / CARRERA</th><th>INGRESO / GESTIÓN CURSADA</th><th>PERÍODO / DOCENTE</th><th>ESTUDIANTES</th><th>PLANILLA</th></tr></thead><tbody>${groups.map(g=>`<tr><td><strong>${esc(g.subject)}</strong><small class="cell-sub">${esc(g.career)} · ${esc(g.shift)}</small></td><td>Ingreso ${esc(g.admission_year)}<small class="cell-sub">Cursada ${esc(g.year)}</small></td><td>${esc(g.module||'Pendiente')}<small class="cell-sub">${esc(g.teacher||'Docente pendiente')}</small></td><td>${g.student_count}</td><td>${g.offering_id?`<div class="row-actions"><button class="btn secondary compact" data-grade="${g.offering_id}">${icon('book')} Notas</button><button class="btn secondary compact" data-report="${g.offering_id}">${icon('file')} Planilla</button></div>`:'Por confirmar'}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+export function profileForm(ctx,student){
+  const fields=ctx.field('Nombre completo','name','text',student.name)+
+    (student.ci?`<div class="notice"><p>CI ${ctx.escape(student.ci)} ya registrado. Se conservará.</p></div>`:`<label>Carnet de identidad (puede quedar pendiente)<input name="ci" minlength="5" maxlength="40" placeholder="Completar cuando se confirme"></label>`)+
+    ctx.select('Estado del nombre','name_pending',[{id:'false',name:'Nombre completo confirmado'},{id:'true',name:'Nombre por completar'}],'id','name',String(student.name_pending));
+  ctx.formModal('Completar datos del estudiante',fields,'student-profile',{student_id:student.user_id},'El registro académico conserva sus notas e inscripciones. El acceso se habilita cuando el nombre y CI estén confirmados; la contraseña inicial será el CI.');
+}
+export function openGroupForm(ctx){
+  const {data,select,field,modal,icon,escape:esc}=ctx;
+  const teachers=[...new Set([...(data.teacher_directory||[]).map(t=>t.name),...data.teachers.map(t=>t.name)])].map(name=>({id:name,name}));
+  modal('Registrar grupo académico',`<form id="roster-form"><div class="form-grid">${select('Carrera','career',data.careers,'name','name')}${select('Año académico','level',[{id:1,name:'1º año'},{id:2,name:'2º año'},{id:3,name:'3º año'}],'id','name',3)}<label>Materia<input name="subject" list="roster-subjects" maxlength="160" required placeholder="Elige o escribe el nombre"><datalist id="roster-subjects"></datalist></label>${select('Gestión de ingreso','admission_year',data.years,'name','name','2024')}${select('Gestión cursada','academic_year',data.years,'name','name',new Date().getFullYear())}${select('Turno','shift',data.shifts,'name','name')}${select('Módulo','module_id',[])}${select('Docente','teacher',teachers)}${field('Inicio confirmado del módulo','module_start','date')}${field('Fin confirmado del módulo','module_end','date')}</div><label class="spaced">Estudiantes (un nombre por línea)<textarea name="students" rows="9" maxlength="25000" required placeholder="Apellidos y nombres"></textarea></label><p class="gradebook-help">Sin CI se conservan como registros académicos pendientes, sin acceso. Los nombres de un solo término quedan marcados para revisión. Una materia nueva se crea sin inventar un código.</p><p class="form-error" role="alert"></p><div class="form-actions"><button class="btn primary">${icon('check')} Registrar grupo e inscripciones</button></div></form>`,'No se modifican notas existentes. Las listas se mantienen separadas por carrera.');
+  const form=$('#roster-form');
+  function subjects(){const career=data.careers.find(c=>c.name===form.elements.career.value);$('#roster-subjects').innerHTML=data.subjects.filter(s=>s.active&&s.career_id===career?.id&&s.level===Number(form.elements.level.value)).map(s=>`<option value="${esc(s.name)}">${esc(s.code||'')}</option>`).join('');form.elements.subject.value='';}
+  function modules(){form.elements.module_start.value='';form.elements.module_end.value='';form.elements.module_id.innerHTML='<option value="">Selecciona un módulo</option>'+data.modules.filter(m=>m.year===form.elements.academic_year.value).map(m=>`<option value="${m.id}">${esc(m.name)} (${esc(m.start_date)} a ${esc(m.end_date)})</option>`).join('');}
+  form.elements.module_id.onchange=()=>{const m=data.modules.find(m=>m.id===Number(form.elements.module_id.value));form.elements.module_start.value=m?.start_date||'';form.elements.module_end.value=m?.end_date||'';};
+  form.elements.career.onchange=subjects;form.elements.level.onchange=subjects;form.elements.academic_year.onchange=modules;modules();
+  form.onsubmit=async event=>{
+    event.preventDefault();const button=form.querySelector('button');button.disabled=true;
+    const values=Object.fromEntries(new FormData(form)),module=data.modules.find(m=>m.id===Number(values.module_id)),career=data.careers.find(c=>c.name===values.career);
+    const subject=data.subjects.find(s=>s.career_id===career?.id&&s.level===Number(values.level)&&s.name===values.subject);
+    try{
+      const payload={admission_year:values.admission_year,academic_year:values.academic_year,level:Number(values.level),shift:values.shift,teacher:values.teacher,module:{name:module.name,start_date:values.module_start,end_date:values.module_end},groups:[{career:values.career,subject:values.subject,code:subject?.code||null,students:values.students.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(name=>({name,name_pending:name.split(/\s+/).length<2}))}]};
+      const result=await ctx.api('rosters',payload);$('#modal').close();await ctx.refresh();ctx.toast(`Grupo guardado: ${result.students_created} estudiantes nuevos y ${result.enrollments_created} inscripciones nuevas.`);
+    }catch(error){form.querySelector('.form-error').textContent=error.message;button.disabled=false;}
+  };
+}
+export function bindRosters(ctx){document.querySelectorAll('[data-student-profile]').forEach(button=>button.onclick=()=>profileForm(ctx,ctx.data.students.find(s=>s.user_id===Number(button.dataset.studentProfile))));}

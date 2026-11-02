@@ -110,7 +110,17 @@ Los 23 docentes del archivo no incluyen CI. Aparecerán en **Docentes → Docent
 
 Importante: descargar la nueva versión de GitHub no descarga la base ni los nombres de docentes. Debes importar tu Excel en tu instalación. El archivo original se conserva y no se publica en GitHub. El escudo institucional sí está incorporado al diseño de la aplicación y las planillas.
 
-### Crear y restaurar un respaldo
+### Registrar grupos y completar datos pendientes
+
+Antes de ingresar listas reales, ejecuta las migraciones de la versión actual con `npm run db:migrate`. En **Estudiantes → Registrar grupo**, selecciona la carrera y materia, gestión de ingreso y gestión cursada por separado, año académico, turno, módulo y docente. Revisa las fechas del módulo y pega los estudiantes uno por línea. Repite el registro para cada carrera y materia. El sistema no duplica a un estudiante ya registrado en la misma carrera/promoción cuando su nombre coincide de forma inequívoca.
+
+Los CI pueden quedar pendientes sin inventar números. Se registran materias e inscripciones, pero no se habilita el ingreso del estudiante. Usa **Completar datos** cuando tengas nombre y CI confirmados. Un docente del Excel que todavía no tenga CI puede figurar académicamente en sus materias; completa su CI desde su ficha para habilitar el acceso.
+
+En la tabla **Grupos académicos**, el botón **Planilla** permite revisar cada lista y descargarla como borrador PDF/Excel. Se marca BORRADOR mientras falten notas; las filas vacías no son reprobados. Los documentos finales requieren todas las notas. Cargar grupos de un período ya terminado no abre el plazo del docente: administración registra las notas o autoriza una reapertura.
+
+Las listas reales de este entorno no se publican en el ZIP de GitHub. En tu computadora debes registrar tus listas en el formulario o importar un archivo JSON privado según README.md. Conserva tus bases y archivos de respaldo.
+
+### Respaldar o recuperar PostgreSQL
 
 Con el PostgreSQL de Docker, para generar un respaldo privado:
 
