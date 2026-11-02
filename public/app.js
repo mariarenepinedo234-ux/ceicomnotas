@@ -145,9 +145,13 @@ function offeringForm(teacherId=''){
   function updateSubjects(){
     const careerId=careerSelect.value;
     const subjects=data.subjects.filter(s=>s.active&&String(s.career_id)===careerId)
-      .sort((a,b)=>a.name.localeCompare(b.name,'es')||a.level-b.level)
+      .sort((a,b)=>a.level-b.level||a.id-b.id)
       .map(s=>({...s,label:`${s.code?s.code+' · ':''}${s.name} · ${s.level}º año`}));
-    subjectSelect.innerHTML=`<option value="">${!careerId?'Selecciona primero una carrera':subjects.length?'Selecciona una materia':'Sin materias registradas'}</option>`+opts(subjects,'id','label');
+    const groups=[1,2,3].map(year=>{
+      const items=subjects.filter(s=>s.level===year);
+      return items.length?`<optgroup label="${year}º año">${opts(items,'id','label')}</optgroup>`:'';
+    }).join('');
+    subjectSelect.innerHTML=`<option value="">${!careerId?'Selecciona primero una carrera':subjects.length?'Selecciona una materia':'Sin materias registradas'}</option>`+groups;
     subjectSelect.disabled=!careerId||!subjects.length;
     form.querySelector('.primary').disabled=subjectSelect.disabled;
     hint.textContent=!careerId?'Elige una carrera para ver sus materias.':subjects.length?`${subjects.length} materias disponibles para esta carrera.`:'Registra las materias de esta carrera antes de asignarlas.';
