@@ -45,6 +45,27 @@ El importador abre el origen en modo de solo lectura y mantiene IDs, relaciones,
 - Suspensión manual de consulta por mensualidades pendientes, sin eliminar datos. No hay integración con cobros.
 - Actividad de notas, traslados, autorizaciones y exportaciones; contraseñas con scrypt y salt aleatorio; cambio inicial obligatorio; sesiones de ocho horas con cookie HttpOnly y SameSite.
 
+## Catálogo desde la planilla institucional Excel
+
+Administración puede abrir **Materias y asignaciones → Importar Excel** (también disponible en Docentes), seleccionar la planilla `.xlsx` y revisar una vista previa antes de confirmar. Se utiliza exclusivamente la hoja **BASE DE DATOS**: lista de carreras y docentes en columna B, y bloques de materias/códigos encabezados por carrera y año. Las otras hojas no se usan para cargar estudiantes, notas ni asignaciones. No se ejecutan fórmulas del archivo. Límite: 2 MB comprimido y 40 MB expandido.
+
+La importación actualiza coincidencias por código, carrera y año, permite códigos compartidos entre carreras, conserva las materias ausentes y se ejecuta en una transacción. Una repetición del mismo catálogo no duplica los registros. Los nombres se conservan como fueron enviados, normalizando únicamente los espacios; posibles errores de redacción se corrigen desde **Editar**. La referencia revisada contiene 163 materias, nueve carreras y 23 docentes; faltan las materias de Electrónica y Diseño y Producción de Audiovisuales - Guionización.
+
+En el catálogo puedes **buscar por código/nombre**, filtrar por **carrera y año académico**, **crear** materias y **editar** nombre, código o estado. Una materia inactiva no puede asignarse nuevamente pero conserva su historial. Si ya tiene asignaciones, no se permite cambiar su carrera o año: crea otro registro para otro plan. Un código debe ser único dentro de una misma carrera y año.
+
+Los docentes que llegan solo con nombre se guardan en **Docentes pendientes de CI**. Desde **Completar CI y habilitar** se introduce su carnet real; recién entonces se crea su cuenta, usando CI como contraseña inicial según la regla vigente y exigiendo cambio al ingresar. No se inventan carnets ni se crean contraseñas para registros incompletos. Una coincidencia exacta de nombre normalizado con un único docente existente puede vincularse a su cuenta, conservando sus credenciales.
+
+También existe la herramienta local:
+
+```sh
+npm run catalogo:importar -- "PLANILLA DE NOTAS 2026.xlsx"
+npm run catalogo:importar -- "PLANILLA DE NOTAS 2026.xlsx" --aplicar
+```
+
+El primer comando solo revisa; el segundo guarda. El Excel original y los nombres de docentes no se incluyen en el repositorio. El catálogo real se carga en la base mediante el archivo que conserva la institución. La aplicación de este entorno recibió el catálogo; descargar el código en otra computadora no copia su base de datos.
+
+La exportación Excel reproduce la estructura de la hoja **PLANILLA DE NOTAS**: escudo, encabezado, gestión, fecha, carrera, materia/código y curso; tabla de 20 filas iniciales, dimensiones en F/G/H, nota final en I, observación en J, y firmas. Conserva fórmulas y validaciones, formato carta y páginas adicionales. El PDF y la vista previa usan los mismos datos y el escudo extraído de la plantilla. Solo los estudiantes reprobados se resaltan en rojo; las filas vacías quedan sin resultado.
+
 Carreras indicadas: Contaduría General, Administración de Empresas, Comercio Internacional, Mercadotecnia, Secretariado Ejecutivo, Sistemas Informáticos, Diseño Gráfico, Electrónica y Diseño y Producción de Audiovisuales - Guionización. Turnos: Mañana, Tarde, Noche y Sábados. Estos catálogos se incluyen en demostración; la base institucional empieza vacía para registrar información real.
 
 ## Reglas académicas
@@ -94,7 +115,7 @@ La restauración requiere un destino vacío configurado en `DATABASE_URL`. Para 
 
 No se ha desplegado una instalación institucional de producción. Falta decidir alojamiento, configurar HTTPS, permisos mínimos para usuarios PostgreSQL, respaldos automáticos fuera del servidor, recuperación de contraseñas y revisión de privacidad. El limitador de intentos de acceso es local a cada proceso; varias instancias necesitan un limitador compartido o en el proxy.
 
-Pendientes funcionales: plan de estudios real, escudo oficial (actualmente provisional), edición general y bajas administrativas, recuperación de cuentas, importación Excel, equivalencias y cambio de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
+Pendientes funcionales: materias de las dos carreras incompletas, CI de los docentes importados, edición general de otros registros y bajas administrativas, recuperación de cuentas, importación de notas desde Excel, equivalencias y cambio de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
 
 ### Dependencias de exportación
 

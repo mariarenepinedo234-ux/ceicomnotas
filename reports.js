@@ -1,14 +1,16 @@
+import {readFileSync} from 'node:fs';
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import { dimensions } from './lib.js';
 
+const logo=readFileSync(new URL('./public/assets/ceicom-logo.png',import.meta.url));
 const WINE='#72283f', INK='#302a30', LINE='#bdb3b8', BLUE='#e7f0f3', CREAM='#f5ecdd';
 const widths=[27,244,47,47,47,48,68];
 const levelName={1:'PRIMERO',2:'SEGUNDO',3:'TERCERO'};
 export const statusFor=grade=>grade===null?'PENDIENTE':grade>=61?'APROBADO':'REPROBADO';
 export async function reportData(db,id) {
   return db.transaction(async()=>{
-  const offering=(await db.prepare(`SELECT o.*,s.name subject,s.level,c.name career,m.name module,m.start_date,m.end_date,y.name AS "year",sh.name shift,u.name teacher
+  const offering=(await db.prepare(`SELECT o.*,s.name subject,s.code subject_code,s.level,c.name career,m.name module,m.start_date,m.end_date,y.name AS "year",sh.name shift,u.name teacher
     FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id
     JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id
     JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id WHERE o.id=?`).get(id));
@@ -44,11 +46,7 @@ export function renderPdf(report) {
       pages.forEach((rows,pageIndex)=>{
         doc.addPage();
         const o=report.offering;
-        // Identidad provisional vectorial; no sustituye al escudo oficial del instituto.
-        doc.roundedRect(43,34,45,53,9).lineWidth(1).strokeColor(WINE).stroke();
-        doc.moveTo(50,48).lineTo(65.5,41).lineTo(81,48).lineTo(65.5,55).closePath().strokeColor(WINE).stroke();
-        doc.moveTo(55,52).lineTo(55,63).quadraticCurveTo(65.5,72,76,63).lineTo(76,52).stroke();
-        doc.font('Helvetica-Bold').fontSize(6).fillColor(WINE).text('CEICOM',47,74,{width:37,align:'center'});
+        doc.image(logo,43,23,{fit:[64,82]});
         doc.font('Helvetica').fontSize(8).fillColor(INK).text('INSTITUTO TECNOLÓGICO',310,36,{width:260,align:'right'});
         doc.font('Helvetica-Bold').fontSize(23).fillColor(WINE).text('CEICOM',310,50,{width:260,align:'right'});
         doc.font('Helvetica').fontSize(12).fillColor(INK).text(o.year,310,78,{width:260,align:'right'});
@@ -57,7 +55,7 @@ export function renderPdf(report) {
         doc.font('Helvetica-Oblique').fontSize(8).fillColor('#8f8089').text(`Elaborado el ${dateLabel(report.generated_at)}`,42,137,{width:528,align:'center'});
         const meta=(label,value,y,width=450)=>{doc.font('Helvetica-Bold').fontSize(8).fillColor(INK).text(label,43,y,{width:65});doc.font('Helvetica').fontSize(8).text(value,108,y,{width});};
         meta('CARRERA:',o.career.toLocaleUpperCase('es'),160);
-        meta('MATERIA:',o.subject.toLocaleUpperCase('es'),186);
+        meta('MATERIA:',`${o.subject}${o.subject_code?' ('+o.subject_code+')':''}`.toLocaleUpperCase('es'),186);
         meta('CURSO:',o.course,204,130);
         doc.font('Helvetica-Bold').text('TURNO:',270,204,{width:45});doc.font('Helvetica').text(o.shift,315,204,{width:245});
         meta('PERÍODO:',`${o.module} · Gestión ${o.year}`,220);
@@ -94,49 +92,54 @@ export function renderPdf(report) {
   });
 }
 
-export async function renderExcel(report) {
+export async function renderExcel(report){
   const workbook=new ExcelJS.Workbook();workbook.creator='Instituto Tecnológico Ceicom';workbook.created=new Date(report.generated_at);
-  const sheet=workbook.addWorksheet('Planilla de notas',{pageSetup:{paperSize:1,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.45,right:.45,top:.45,bottom:.45,header:.2,footer:.2},printTitlesRow:'1:10'},views:[{state:'frozen',ySplit:10}]});
+  const sheet=workbook.addWorksheet('PLANILLA DE NOTAS',{pageSetup:{paperSize:1,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,horizontalCentered:true,margins:{left:.4,right:.3,top:.2,bottom:.3,header:0,footer:.15},printTitlesRow:'1:14'},views:[{state:'frozen',ySplit:14,showGridLines:false}]});
   const o=report.offering;
-  sheet.columns=[{width:5},{width:46},{width:10},{width:10},{width:10},{width:11},{width:20}];
-  const merge=(range,text,size=10,bold=false)=>{sheet.mergeCells(range);const c=sheet.getCell(range.split(':')[0]);c.value=text;c.font={name:'Arial',size,bold,color:{argb:'FF302A30'}};c.alignment={vertical:'middle',wrapText:true};};
-  merge('A1:G1','INSTITUTO TECNOLÓGICO CEICOM',16,true);sheet.getCell('A1').alignment={horizontal:'center',vertical:'middle'};sheet.getRow(1).height=30;
-  merge('A2:G2',`PLANILLA DE NOTAS · GESTIÓN ${o.year}`,13,true);sheet.getCell('A2').alignment={horizontal:'center',vertical:'middle'};sheet.getRow(2).height=26;
-  merge('A3:G3',`Elaborado el ${dateLabel(report.generated_at)}`,9);sheet.getCell('A3').alignment={horizontal:'center',vertical:'middle'};sheet.getRow(3).height=21;
-  merge('A4:G4',`CARRERA: ${o.career.toLocaleUpperCase('es')}`,9,true);sheet.getRow(4).height=30;
-  merge('A5:G5',`MATERIA: ${o.subject.toLocaleUpperCase('es')}`,9,true);sheet.getRow(5).height=28;
-  merge('A6:G6',`CURSO: ${o.course}     TURNO: ${o.shift}     ${o.module} · ${o.year}`,9);sheet.getRow(6).height=22;
-  merge('A7:G7',`DOCENTE: ${o.teacher}`,9);sheet.getRow(7).height=22;sheet.getRow(8).height=8;
-  merge('A9:A10','Nº',9,true);merge('B9:B10','APELLIDOS Y NOMBRES',9,true);merge('C9:E9','DIMENSIONES',9,true);merge('F9:F10','NOTA FINAL',9,true);merge('G9:G10','OBSERVACIÓN',9,true);
-  ['SABER (40 pts)','HACER (40 pts)','SER (20 pts)'].forEach((v,i)=>{sheet.getCell(10,i+3).value=v;});
-  for(let r=9;r<=10;r++){sheet.getRow(r).height=25;for(let c=1;c<=7;c++){const cell=sheet.getCell(r,c);cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:r===9&&c>=3&&c<=5?'FFF5ECDD':'FFE7F0F3'}};cell.font={name:'Arial',size:9,bold:true};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};}}
-  const count=Math.max(20,report.rows.length);
-  for(let i=0;i<count;i++) {
-    const r=11+i,item=report.rows[i],row=sheet.getRow(r);row.height=item?Math.max(21,Math.ceil(item.student.length/40)*12+7):19;
-    row.values=[i+1,item?.student.toLocaleUpperCase('es')||'',item?.saber??null,item?.hacer??null,item?.ser??null,null,null];
-    if(item) {
-      const complete=[item.saber,item.hacer,item.ser].every(v=>v!==null);
-      if(complete)sheet.getCell(r,6).value={formula:`IF(COUNT(C${r}:E${r})=3,ROUND(SUM(C${r}:E${r}),2),"")`,result:item.grade};
-      else if(item.grade!==null)sheet.getCell(r,6).value=item.grade;
-      sheet.getCell(r,7).value={formula:`IF(ISNUMBER(F${r}),IF(F${r}>=61,"APROBADO","REPROBADO"),"PENDIENTE")`,result:item.status};
-    }
-    for(let c=1;c<=7;c++){const cell=sheet.getCell(r,c);cell.font={name:'Arial',size:9,bold:c>=6};cell.alignment={horizontal:c===2?'left':'center',vertical:'middle',wrapText:true};cell.numFmt=c>=3&&c<=6?'0.##':'General';cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:c===3?'FFFCF5ED':c===4||c===5?'FFF0F6F8':'FFFFFFFF'}};}
-    for(let c=3;c<=5;c++)sheet.getCell(r,c).dataValidation={type:'decimal',operator:'between',allowBlank:true,formulae:[0,[40,40,20][c-3]],showErrorMessage:true,errorTitle:'Nota fuera de rango',error:`Ingresa de 0 a ${[40,40,20][c-3]} puntos.`};
+  sheet.columns=[{width:2},{width:4},{width:12},{width:14},{width:14},{width:9},{width:9},{width:9},{width:9},{width:17}];
+  const merge=(range,text,size=10,bold=false,align='left')=>{sheet.mergeCells(range);const cell=sheet.getCell(range.split(':')[0]);cell.value=text;cell.font={name:'Times New Roman',size,bold,color:{argb:'FF302A30'}};cell.alignment={horizontal:align,vertical:'middle',wrapText:true};};
+  const image=workbook.addImage({buffer:logo,extension:'png'});sheet.addImage(image,{tl:{col:1,row:0},ext:{width:78,height:100}});
+  for(let r=1;r<=6;r++)sheet.getRow(r).height=15;
+  merge('F3:J3','INSTITUTO TECNOLÓGICO',11,true,'right');
+  merge('H4:J4','CEICOM',18,true,'center');merge('H5:J5',o.year,14,true,'center');
+  merge('A7:J7','PLANILLA DE NOTAS',16,true,'center');sheet.getRow(7).height=23;
+  merge('D8:J8',`Elaborado el ${dateLabel(report.generated_at)}`,10,false,'center');sheet.getRow(8).height=19;
+  merge('B9:C9','CARRERA:',10,true);merge('D9:J9',o.career.toLocaleUpperCase('es'),10);sheet.getRow(9).height=27;
+  merge('B10:C10','MATERIA:',10,true);merge('D10:J10',`${o.subject}${o.subject_code?' ('+o.subject_code+')':''}`.toLocaleUpperCase('es'),10);sheet.getRow(10).height=28;
+  merge('B11:C11','CURSO:',10,true);merge('D11:E11',o.course,10);merge('F11:J11',`${o.module} · ${o.year} · ${o.shift}`,8,false,'right');sheet.getRow(11).height=20;
+  merge('B12:B14','Nº',10,true,'center');merge('C12:E14','APELLIDOS Y NOMBRES',10,true,'center');merge('F12:H12','DIMENSIONES',10,true,'center');merge('I12:I14','NOTA FINAL',9,true,'center');merge('J12:J14','OBSERVACIONES',9,true,'center');
+  sheet.getRow(12).height=17;sheet.getRow(13).height=45;sheet.getRow(14).height=18;
+  ['SABER','HACER','SER'].forEach((name,i)=>{const cell=sheet.getCell(13,i+6);cell.value=name;cell.alignment={horizontal:'center',vertical:'middle',textRotation:90};sheet.getCell(14,i+6).value=[40,40,20][i]+' PTS';});
+  for(let r=12;r<=14;r++)for(let c=2;c<=10;c++){
+    const cell=sheet.getCell(r,c);cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:r===12&&c>=6&&c<=8?'FFFFF2B3':'FFDAEEF3'}};
+    cell.font={name:'Times New Roman',size:9,bold:true};cell.alignment={...cell.alignment,horizontal:'center',vertical:'middle',wrapText:true};
   }
-  const last=10+count;
-  for(let r=9;r<=last;r++)for(let c=1;c<=7;c++)sheet.getCell(r,c).border={top:{style:'thin',color:{argb:'FFBDB3B8'}},bottom:{style:'thin',color:{argb:'FFBDB3B8'}},left:{style:'thin',color:{argb:'FFBDB3B8'}},right:{style:'thin',color:{argb:'FFBDB3B8'}}};
-  // La regla se recalcula al editar: solo filas con nota numérica inferior a 61.
-  sheet.addConditionalFormatting({ref:`A11:G${last}`,rules:[{type:'expression',formulae:['AND(ISNUMBER($F11),$F11<61)'],priority:1,style:{fill:{type:'pattern',pattern:'solid',bgColor:{argb:'FFFBE8EB'},fgColor:{argb:'FFFBE8EB'}},font:{color:{argb:'FFB22740'}}}}]});
-  const note=last+2;
-  merge(`A${note}:G${note}`,'Escala: 1 a 100 puntos. Aprobación desde 61. Rojo: estudiante reprobado.',8);sheet.getRow(note).height=19;
-  merge(`A${note+1}:G${note+1}`,report.legacy?'Desglose vacío: nota final anterior sin detalle. No se han inventado puntajes por dimensión.':'Excel editable: al modificar Saber, Hacer o Ser se recalculan la nota final y el resultado.',8);sheet.getRow(note+1).height=25;
-  merge(`A${note+2}:G${note+2}`,'Los cambios en este archivo no modifican el sistema académico.',8);sheet.getRow(note+2).height=18;
-  const signature=note+5;
-  merge(`A${signature}:D${signature}`,o.teacher.toLocaleUpperCase('es'),9,true);merge(`E${signature}:G${signature}`,'DIRECCIÓN ACADÉMICA',9,true);
-  for(const c of [sheet.getCell(signature,1),sheet.getCell(signature,5)]){c.border={top:{style:'thin'}};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};}
-  sheet.getRow(signature).height=30;
-  sheet.pageSetup.printArea=`A1:G${signature+1}`;
-  sheet.headerFooter.oddFooter='&LCeicom · Registro académico&RPágina &P de &N';
-  workbook.calcProperties.fullCalcOnLoad=true;
-  return Buffer.from(await workbook.xlsx.writeBuffer());
+  const count=Math.max(20,report.rows.length);
+  for(let i=0;i<count;i++){
+    const r=15+i,item=report.rows[i],row=sheet.getRow(r);row.height=item?Math.max(16,Math.ceil(item.student.length/45)*11+5):16;
+    sheet.mergeCells(`C${r}:E${r}`);
+    sheet.getCell(r,2).value=i+1;sheet.getCell(r,3).value=item?.student.toLocaleUpperCase('es')||'';
+    for(let d=0;d<3;d++)sheet.getCell(r,d+6).value=item?.[['saber','hacer','ser'][d]]??null;
+    if(item){
+      const complete=[item.saber,item.hacer,item.ser].every(v=>v!==null);
+      sheet.getCell(r,9).value=complete?{formula:`IF(COUNT(F${r}:H${r})=3,ROUND(SUM(F${r}:H${r}),2),"")`,result:item.grade}:item.grade;
+      sheet.getCell(r,10).value={formula:`IF(ISNUMBER(I${r}),IF(I${r}>=61,"APROBADO","REPROBADO"),"PENDIENTE")`,result:item.status};
+    }
+    for(let c=2;c<=10;c++){
+      const cell=sheet.getCell(r,c);cell.font={name:'Times New Roman',size:9,bold:c>=9};
+      cell.alignment={horizontal:c>=3&&c<=5?'left':'center',vertical:'middle',wrapText:true};
+      cell.numFmt=c>=6&&c<=9?'0.##':'General';cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:c===6?'FFFCE9D9':c===7?'FFDAEEF3':c===8?'FFE4DFEC':'FFFFFFFF'}};
+    }
+    for(let c=6;c<=8;c++)sheet.getCell(r,c).dataValidation={type:'decimal',operator:'between',allowBlank:true,formulae:[0,[40,40,20][c-6]],showErrorMessage:true,errorTitle:'Nota fuera de rango',error:`Ingresa de 0 a ${[40,40,20][c-6]} puntos.`};
+    if((i+1)%20===0&&i+1<count)row.addPageBreak();
+  }
+  const last=14+count;
+  for(let r=12;r<=last;r++)for(let c=2;c<=10;c++)sheet.getCell(r,c).border={top:{style:'thin',color:{argb:'FF858085'}},bottom:{style:'thin',color:{argb:'FF858085'}},left:{style:'thin',color:{argb:'FF858085'}},right:{style:'thin',color:{argb:'FF858085'}}};
+  sheet.addConditionalFormatting({ref:`B15:J${last}`,rules:[{type:'expression',formulae:['AND(ISNUMBER($I15),$I15<61)'],priority:1,style:{fill:{type:'pattern',pattern:'solid',bgColor:{argb:'FFFBE8EB'},fgColor:{argb:'FFFBE8EB'}},font:{color:{argb:'FFB22740'}}}}]});
+  const note=last+2;merge(`B${note}:J${note}`,'Escala 1–100 · Aprobación desde 61 · Rojo: estudiante reprobado.',8);sheet.getRow(note).height=15;
+  merge(`B${note+1}:J${note+1}`,report.legacy?'—: nota anterior sin desglose; se conserva su total original.':'Excel editable: cambiar puntajes recalcula la nota final. No modifica el portal.',8);sheet.getRow(note+1).height=15;
+  const signature=last+6;merge(`B${signature}:E${signature}`,o.teacher.toLocaleUpperCase('es'),9,true,'center');merge(`G${signature}:J${signature}`,'FIRMA DIRECCIÓN ACADÉMICA',9,true,'center');sheet.getRow(signature).height=25;
+  for(const cell of [sheet.getCell(signature,2),sheet.getCell(signature,7)])cell.border={top:{style:'thin'}};
+  sheet.pageSetup.printArea=`A1:J${signature+1}`;sheet.headerFooter.oddFooter='&LCeicom · Registro académico&RPágina &P de &N';
+  workbook.calcProperties.fullCalcOnLoad=true;return Buffer.from(await workbook.xlsx.writeBuffer());
 }

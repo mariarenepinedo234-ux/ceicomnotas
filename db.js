@@ -70,8 +70,8 @@ export async function migrateDatabase(db) {
     }
   });
 }
-export const applicationTables=['users','careers','shifts','years','subjects','modules','students','offerings','enrollments','audit','sessions'];
-export const identityTables=applicationTables.filter(t=>!['students','sessions'].includes(t));
+export const applicationTables=['users','careers','shifts','years','subjects','modules','students','offerings','enrollments','audit','sessions','teacher_directory','catalog_import_batches'];
+export const identityTables=applicationTables.filter(t=>!['students','sessions','catalog_import_batches'].includes(t));
 export async function resetSequences(db){
   for(const table of identityTables)await db.query(`SELECT setval(pg_get_serial_sequence($1,'id'),COALESCE((SELECT MAX(id) FROM ${table}),1),(SELECT COUNT(*)>0 FROM ${table}))`,[table]);
 }

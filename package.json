@@ -1,6 +1,6 @@
 {
   "name": "ceicom-academico",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "Registro académico y seguimiento de notas del Instituto Tecnológico Ceicom",
@@ -16,7 +16,8 @@
     "db:importar": "node --env-file-if-exists=.env scripts/import-sqlite.js",
     "crear-admin": "node --env-file-if-exists=.env scripts/admin.js",
     "db:backup": "node --env-file-if-exists=.env scripts/backup.js",
-    "db:restore": "node --env-file-if-exists=.env scripts/backup.js --restore"
+    "db:restore": "node --env-file-if-exists=.env scripts/backup.js --restore",
+    "catalogo:importar": "node --env-file-if-exists=.env scripts/catalog-excel.js"
   },
   "dependencies": {
     "exceljs": "^4.4.0",

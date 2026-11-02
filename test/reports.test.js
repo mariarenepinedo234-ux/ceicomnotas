@@ -60,11 +60,11 @@ test('las descargas son archivos reales, con carta y fórmulas editables en Exce
   const buffer=Buffer.from(await pdf.arrayBuffer());assert.equal(buffer.subarray(0,5).toString(),'%PDF-');assert.match(buffer.toString('latin1'),/\/MediaBox \[0 0 612 792\]/);
   const excel=await call('reports/1?format=xlsx');assert.equal(excel.status,200);assert.match(excel.headers.get('content-type'),/spreadsheetml/);
   const workbook=new ExcelJS.Workbook();await workbook.xlsx.load(Buffer.from(await excel.arrayBuffer()));
-  const sheet=workbook.worksheets[0];assert.equal(sheet.pageSetup.paperSize,1);assert.equal(sheet.pageSetup.orientation,'portrait');assert.match(sheet.getCell('A4').value,/SISTEMAS INFORMÁTICOS/);
-  assert.match(sheet.getCell('F11').value.formula,/ROUND\(SUM\(C11:E11\),2\)/);assert.equal(typeof sheet.getCell('F11').value.result,'number');
-  assert.match(sheet.getCell('G11').value.formula,/>=61/);assert.equal(sheet.getCell('C11').dataValidation.formulae[1],40);assert.equal(sheet.getCell('D11').dataValidation.formulae[1],40);assert.equal(sheet.getCell('E11').dataValidation.formulae[1],20);
-  assert.equal(sheet.getCell('F30').value,null); // No se calcula cero ni reprobado en filas vacías.
-  assert.equal(sheet.conditionalFormattings[0].rules[0].formulae[0],'AND(ISNUMBER($F11),$F11<61)');
+  const sheet=workbook.worksheets[0];assert.equal(sheet.pageSetup.paperSize,1);assert.equal(sheet.pageSetup.orientation,'portrait');assert.match(sheet.getCell('D9').value,/SISTEMAS INFORMÁTICOS/);
+  assert.match(sheet.getCell('I15').value.formula,/ROUND\(SUM\(F15:H15\),2\)/);assert.equal(typeof sheet.getCell('I15').value.result,'number');
+  assert.match(sheet.getCell('J15').value.formula,/>=61/);assert.equal(sheet.getCell('F15').dataValidation.formulae[1],40);assert.equal(sheet.getCell('G15').dataValidation.formulae[1],40);assert.equal(sheet.getCell('H15').dataValidation.formulae[1],20);
+  assert.equal(sheet.getCell('I34').value,null); // No se calcula cero ni reprobado en filas vacías.
+  assert.equal(sheet.conditionalFormattings[0].rules[0].formulae[0],'AND(ISNUMBER($I15),$I15<61)');
   assert.ok((await db.prepare("SELECT id FROM audit WHERE action='Planilla exportada'").all()).length>=2);
 });
 
@@ -86,5 +86,5 @@ test('solo administración o el docente asignado pueden ver o descargar la plani
 test('planillas largas conservan a todos los estudiantes y repiten encabezados en páginas carta',async()=>{
   const report=await reportData(db,1);report.rows=Array.from({length:43},(_,i)=>({...report.rows[i%5],number:i+1,student:`Estudiante ${String(i+1).padStart(2,'0')} ${'Apellido compuesto '.repeat(i===0?6:1)}`}));
   const pdf=await renderPdf(report);assert.equal((pdf.toString('latin1').match(/\/Type \/Page\b/g)||[]).length,3);
-  const book=new ExcelJS.Workbook();await book.xlsx.load(await renderExcel(report));const sheet=book.worksheets[0];assert.match(sheet.getCell('B53').value,/43/);assert.match(sheet.pageSetup.printTitlesRow,/1.*10/);
+  const book=new ExcelJS.Workbook();await book.xlsx.load(await renderExcel(report));const sheet=book.worksheets[0];assert.match(sheet.getCell('C57').value,/43/);assert.match(sheet.pageSetup.printTitlesRow,/1.*14/);
 });

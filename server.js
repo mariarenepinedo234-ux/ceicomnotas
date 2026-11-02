@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { openDatabase } from './db.js';
 import { hashPassword, verifyPassword, canGrade, deadlineFor, validGrade, dimensionGrades } from './lib.js';
 import { reportData, renderPdf, renderExcel, reportFilename } from './reports.js';
+import {parseCatalog,applyCatalog,activateTeacher} from './catalog.js';
 
 const safeUser = u => ({ id:u.id, ci:u.ci, name:u.name, role:u.role, must_change:!!u.must_change, blocked:!!u.blocked });
 const fail = (message, status=400) => { const e = new Error(message); e.status=status; throw e; };
@@ -39,7 +40,7 @@ export function createApp(db) {
         if(req.method!=='GET') fail('Método no permitido.',405);
         const target=staticFileTarget(path);
         if(!target) fail('Ruta inválida.',403);
-        try { const content=await readFile(target); res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml'})[extname(target)]||'application/octet-stream'});res.end(content); } catch { fail('Archivo no encontrado.',404); }
+          try { const content=await readFile(target); res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png'})[extname(target)]||'application/octet-stream'});res.end(content); } catch { fail('Archivo no encontrado.',404); }
         return;
       }
       if(!['GET','POST'].includes(req.method)) fail('Método no permitido.',405);
@@ -47,7 +48,7 @@ export function createApp(db) {
       if(req.method==='POST' && req.headers.origin && req.headers.origin!==`${req.headers['x-forwarded-proto']||'http'}://${req.headers.host}`) fail('Origen no permitido.',403);
       let body={};
       if(req.method==='POST') {
-        let raw=''; for await(const chunk of req) { raw+=chunk; if(Buffer.byteLength(raw)>100000) fail('Solicitud demasiado grande.',413); }
+        let raw=''; for await(const chunk of req) { raw+=chunk; if(Buffer.byteLength(raw)>3*1024*1024) fail('Solicitud demasiado grande.',413); }
         try { body=JSON.parse(raw||'{}'); } catch { fail('JSON inválido.'); }
         if(!body || typeof body!=='object' || Array.isArray(body)) fail('Solicitud inválida.');
       }
@@ -81,7 +82,7 @@ export function createApp(db) {
       if(path==='/api/data' && req.method==='GET') {
         if(user.role==='student' && user.blocked) return send({blocked:true});
         const admin=user.role==='admin'; const teacher=user.role==='teacher';
-        const offeringSql=`SELECT o.*, s.name subject, s.career_id, s.level, c.name career, m.name module, m.start_date, m.end_date, m.year_id, y.name AS "year", sh.name shift, u.name teacher FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id`;
+        const offeringSql=`SELECT o.*, s.name subject, s.code subject_code, s.career_id, s.level, c.name career, m.name module, m.start_date, m.end_date, m.year_id, y.name AS "year", sh.name shift, u.name teacher FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id`;
         const offerings=admin?(await db.prepare(offeringSql).all()):teacher?(await db.prepare(offeringSql+' WHERE o.teacher_id=?').all(user.id)):(await db.prepare(offeringSql+' WHERE o.id IN (SELECT offering_id FROM enrollments WHERE student_id=?)').all(user.id));
         const enrollmentSql=`SELECT e.*,u.name student,u.ci FROM enrollments e JOIN users u ON u.id=e.student_id`;
         const enrollments=admin?(await db.prepare(enrollmentSql).all()):teacher?(await db.prepare(enrollmentSql+' JOIN offerings o ON o.id=e.offering_id WHERE o.teacher_id=?').all(user.id)):(await db.prepare(enrollmentSql+' WHERE e.student_id=?').all(user.id));
@@ -92,6 +93,7 @@ export function createApp(db) {
           subjects:admin?(await db.prepare('SELECT s.*,c.name career FROM subjects s JOIN careers c ON c.id=s.career_id').all()):[],
           students:admin?(await db.prepare('SELECT s.*,u.name,u.ci,u.blocked,c.name career,sh.name shift,y.name admission_year FROM students s JOIN users u ON u.id=s.user_id JOIN careers c ON c.id=s.career_id JOIN shifts sh ON sh.id=s.shift_id JOIN years y ON y.id=s.admission_year_id').all()):[],
           teachers:admin?(await db.prepare("SELECT id,name,ci FROM users WHERE role='teacher'").all()):[],
+          teacher_directory:admin?(await db.prepare('SELECT id,name,user_id FROM teacher_directory ORDER BY name').all()):[],
           audit:admin?(await db.prepare('SELECT a.*,u.name actor FROM audit a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.id DESC LIMIT 30').all()):[],
         });
       }
@@ -139,6 +141,30 @@ export function createApp(db) {
       if(user.role!=='admin') fail('Acceso restringido.',403);
       if(req.method!=='POST') fail('Ruta no encontrada.',404);
       const b=body;
+      if(path==='/api/catalog-excel/preview'){
+        if(typeof b.file!=='string'||!b.file.length)fail('Selecciona un archivo Excel.');
+        let payload;
+        try{payload=await parseCatalog(Buffer.from(b.file,'base64'));}catch(error){fail(error.message);}
+        const token=randomBytes(24).toString('hex'),digest=createHash('sha256').update(token).digest('hex');
+        await db.prepare('DELETE FROM catalog_import_batches WHERE actor_id=? AND (expires_at<CURRENT_TIMESTAMP OR applied_at IS NOT NULL)').run(user.id);
+        if((await db.prepare('SELECT COUNT(*) n FROM catalog_import_batches WHERE actor_id=?').get(user.id)).n>=5)fail('Tienes varias vistas previas abiertas. Espera 15 minutos o confirma una de ellas.');
+        await db.prepare("INSERT INTO catalog_import_batches(token,actor_id,payload,expires_at) VALUES (?,?,?,CURRENT_TIMESTAMP+interval '15 minutes')").run(digest,user.id,JSON.stringify(payload));
+        return send({token,...payload});
+      }
+      if(path==='/api/catalog-excel/apply'){
+        const token=required(b.token,'Vista previa'),digest=createHash('sha256').update(token).digest('hex');
+        let result;
+        await transaction(async()=>{
+          const batch=await db.prepare('SELECT * FROM catalog_import_batches WHERE token=? AND actor_id=? AND expires_at>CURRENT_TIMESTAMP FOR UPDATE').get(digest,user.id);
+          if(!batch||batch.applied_at)fail('La vista previa venció o ya fue aplicada. Selecciona el archivo de nuevo.');
+          try{result=await applyCatalog(db,batch.payload,user.id,{withinTransaction:true});}catch(error){if(error.code)throw error;fail(error.message);}
+          await db.prepare('UPDATE catalog_import_batches SET applied_at=CURRENT_TIMESTAMP WHERE token=?').run(digest);
+        });return send(result);
+      }
+      if(path==='/api/teacher-directory/activate'){
+        try{await activateTeacher(db,{directory_id:number(b.directory_id),ci:b.ci},user.id);}catch(error){if(error.code)throw error;fail(error.message);}
+        return send({ok:true});
+      }
       if(path==='/api/users') {
         if(!['student','teacher'].includes(b.role)) fail('Rol inválido.');
         const ci=required(b.ci,'CI'); const name=required(b.name,'Nombre');
@@ -156,7 +182,21 @@ export function createApp(db) {
         await transaction(async()=>{(await db.prepare(`INSERT INTO ${tables[b.type]}(name) VALUES (?)`).run(name));await audit(user.id,'Catálogo actualizado',name);});return send({ok:true});
       }
       if(path==='/api/subjects') {
-        await transaction(async()=>{(await db.prepare('INSERT INTO subjects(name,career_id,level) VALUES (?,?,?)').run(required(b.name,'Materia'),number(b.career_id),level(b.level)));await audit(user.id,'Materia creada',b.name);});return send({ok:true});
+        const name=required(b.name,'Materia'),careerId=number(b.career_id),yearLevel=level(b.level);
+        const code=typeof b.code==='string'&&b.code.trim()?b.code.trim().toUpperCase():null;
+        if(code&&!/^[A-Z0-9][A-Z0-9._/-]{0,39}$/.test(code))fail('Código inválido (máximo 40 letras, números, guion, punto o barra).');
+        const active=b.active===undefined||b.active===true||b.active==='true';
+        await transaction(async()=>{
+          if(b.id){
+            const old=await db.prepare('SELECT * FROM subjects WHERE id=? FOR UPDATE').get(number(b.id));if(!old)fail('Materia no encontrada.');
+            if((old.career_id!==careerId||old.level!==yearLevel)&&await db.prepare('SELECT id FROM offerings WHERE subject_id=? LIMIT 1').get(old.id))fail('La materia tiene asignaciones. Conserva su carrera y año; crea una nueva para otro plan de estudios.');
+            await db.prepare('UPDATE subjects SET name=?,code=?,career_id=?,level=?,active=? WHERE id=?').run(name,code,careerId,yearLevel,active,old.id);
+            await audit(user.id,'Materia actualizada',`${old.id}: ${old.code||'sin código'} · ${old.name} → ${code||'sin código'} · ${name}; ${active?'activa':'inactiva'}`);
+          }else{
+            await db.prepare('INSERT INTO subjects(name,career_id,level,code,active) VALUES (?,?,?,?,?)').run(name,careerId,yearLevel,code,active);
+            await audit(user.id,'Materia creada',`${code||'Sin código'} · ${name}`);
+          }
+        });return send({ok:true});
       }
       if(path==='/api/modules') {
         const start=date(b.start_date),end=date(b.end_date);if(start>end) fail('El fin debe ser posterior al inicio.');
@@ -173,8 +213,9 @@ export function createApp(db) {
       if(path==='/api/offerings') {
         const teacher=number(b.teacher_id);if(!(await db.prepare("SELECT id FROM users WHERE id=? AND role='teacher'").get(teacher))) fail('Docente inválido.');
         const subjectId=number(b.subject_id),careerId=number(b.career_id);
-        const subject=(await db.prepare('SELECT career_id FROM subjects WHERE id=?').get(subjectId));
+        const subject=(await db.prepare('SELECT career_id,active FROM subjects WHERE id=?').get(subjectId));
         if(!subject||subject.career_id!==careerId) fail('La materia debe pertenecer a la carrera seleccionada.');
+        if(!subject.active)fail('La materia está inactiva. Habilítala en el catálogo para asignarla.');
         await transaction(async()=>{(await db.prepare('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES (?,?,?,?)').run(subjectId,number(b.module_id),number(b.shift_id),teacher));await audit(user.id,'Asignación docente creada',`Docente ${teacher} · carrera ${careerId} · materia ${subjectId}`);});return send({ok:true});
       }
       if(path==='/api/enrollments') {

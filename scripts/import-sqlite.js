@@ -5,7 +5,7 @@ import {openDatabase,applicationTables,resetSequences,requireEmptyDatabase} from
 
 export async function importSqlite(db,filename){
   const source=new DatabaseSync(resolve(filename),{readOnly:true});
-  const tables=applicationTables.filter(t=>t!=='sessions');
+  const tables=applicationTables.filter(t=>!['sessions','teacher_directory','catalog_import_batches'].includes(t));
   try {
     source.exec('PRAGMA query_only=ON; BEGIN');
     if(source.prepare('PRAGMA foreign_key_check').all().length)throw new Error('SQLite contiene relaciones inválidas. Corrígelas antes de importar.');

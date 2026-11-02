@@ -100,6 +100,18 @@ Ejecuta `npm install`, `npm run db:migrate`, `npm run crear-admin` y `npm run de
 
 ## Respaldos y recuperación
 
+### Cargar carreras, materias y docentes desde el Excel institucional
+
+Actualiza los archivos del proyecto conservando `.env`, SQLite y el volumen PostgreSQL. Ejecuta `npm install`, `npm run db:migrate` y `npm run dev`. Entra como administrador, abre **Materias y asignaciones → Importar Excel**, elige tu archivo `PLANILLA DE NOTAS 2026.xlsx`, revisa el resumen y pulsa **Confirmar importación**.
+
+El catálogo real de este archivo tiene 163 materias con códigos por carrera/año. Las materias de Electrónica y Diseño y Producción de Audiovisuales - Guionización quedan pendientes; puedes agregarlas en **Crear materia** o completar el archivo e importarlo nuevamente. Usa **Editar** en el catálogo para corregir nombres, códigos o desactivar registros. Cambiar de carrera/año una materia que ya se dictó está restringido para conservar el historial.
+
+Los 23 docentes del archivo no incluyen CI. Aparecerán en **Docentes → Docentes pendientes de CI**. Completa cada carnet con **Completar CI y habilitar** para crear su acceso. No se importan los estudiantes ni las notas de ejemplo de otras hojas.
+
+Importante: descargar la nueva versión de GitHub no descarga la base ni los nombres de docentes. Debes importar tu Excel en tu instalación. El archivo original se conserva y no se publica en GitHub. El escudo institucional sí está incorporado al diseño de la aplicación y las planillas.
+
+### Crear y restaurar un respaldo
+
 Con el PostgreSQL de Docker, para generar un respaldo privado:
 
 ```sh
