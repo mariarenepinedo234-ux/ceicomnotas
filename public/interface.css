@@ -21,3 +21,12 @@
 .backup-status{font-size:12px;line-height:1.8;margin:15px 0}.backup-status:empty{display:none}.backup-help{font-size:11px;line-height:1.8;color:var(--muted);margin-top:20px}.backup-filename{overflow-wrap:anywhere;white-space:normal;max-width:330px}#backup-manager .btn{gap:6px}
 
 #backup-manager>.table-wrap{margin-top:20px}
+
+/* Acciones de cuenta y pies informativos ampliados. */
+.sidebar-bottom{padding-top:24px;flex-shrink:0}
+.sidebar-bottom>.nav-link{font-size:14px;line-height:1.5;min-height:48px;padding:12px 10px;color:#4d4c58}
+.sidebar-bottom>.nav-link .icon{width:20px;height:20px;color:currentColor}
+.panel-foot{font-size:13px;line-height:1.7;color:#66616d;align-items:flex-start}
+.panel-foot .icon{width:16px;height:16px;margin-top:3px;color:currentColor}
+.app-footer{font-size:13px;line-height:1.7;color:#66616d;gap:16px;flex-wrap:wrap}
+@media(max-width:760px){.app-footer{font-size:12px;gap:8px;align-items:flex-start}.app-footer>span{flex-basis:100%}.app-footer span:last-child{max-width:none;text-align:left}}
