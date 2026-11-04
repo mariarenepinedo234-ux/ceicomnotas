@@ -187,3 +187,23 @@ Las pruebas ejecutan PostgreSQL real, no simulaciones. Verifican roles, notas, r
 Los datos están en el volumen persistente `ceicom_postgres`, no en SQLite. `docker compose stop db` conserva los datos; `docker compose down` también conserva el volumen. **No ejecutes `docker compose down -v`** si deseas conservar la base. No pierdas el `.env` que corresponde al volumen.
 
 Esta es una base de desarrollo preparada para evolucionar hacia uso institucional. Antes de cargar expedientes reales: configurar alojamiento, HTTPS, usuarios PostgreSQL de privilegios mínimos, respaldos automáticos, recuperación de cuentas y revisión de privacidad. La instalación local de Docker usa un usuario propietario para facilitar migraciones; no es la política de permisos de producción.
+
+## Subir y consultar planes de estudio
+
+Actualiza el proyecto completo conservando tu `.env`, la carpeta `backups` y tus archivos privados. Detén el servidor con Ctrl + C y ejecuta desde la carpeta del proyecto:
+
+```sh
+npm install
+npm run db:migrate
+npm run dev
+```
+
+La nueva migración crea la tabla de planes y conserva tu información anterior. Al abrir el portal, presiona Ctrl + F5.
+
+1. Ingresa como administrador y abre **Planes de estudio** en el menú.
+2. Pulsa **Subir plan PDF**. Selecciona carrera y año académico (1º, 2º o 3º), indica el título y elige el PDF (máximo 20 MB).
+3. Pulsa **Publicar plan**. Aparecerá dentro de su carrera y año.
+4. Como docente, abre **Planes de estudio**. Puedes buscar por título, archivo o carrera y filtrar por carrera/año. **Ver PDF** abre otra pestaña; **Descargar** guarda el archivo en tu computadora.
+5. Para actualizar un documento, el administrador puede pulsar **Eliminar**, confirmar y luego subir el PDF actualizado. El docente no tiene controles de carga o eliminación. Los estudiantes no acceden a este apartado.
+
+Los PDF se guardan en PostgreSQL y se incluyen en las copias de seguridad de la base. Una restauración recupera tanto la información académica como los planes que existían al generar esa copia.

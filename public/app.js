@@ -1,3 +1,4 @@
+import {mountStudyPlans} from './study-plans.js';
 import {bindUppercaseInputs} from './academic-text.js';
 bindUppercaseInputs();
 import {openBackups} from './backups-admin.js';
@@ -41,7 +42,8 @@ const roleLabel={admin:'Administración',teacher:'Docente',student:'Estudiante'}
 let user=null,data=null,page='dashboard',search='',selectedYear=null,selectedModule='';
 let filters={career:'',shift:''};
 async function api(path,body) {
-  const r=await fetch('/api/'+path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
+  const multipart=body instanceof FormData;
+  const r=await fetch('/api/'+path,{method:body?'POST':'GET',headers:body&&!multipart?{'Content-Type':'application/json'}:{},body:body?(multipart?body:JSON.stringify(body)):undefined});
   const d=await r.json();if(!r.ok) { if(r.status===401 && path!=='login') {user=null;login();} throw new Error(d.error||'No se pudo completar la operación.'); }return d;
 }
 let toastTimer;
@@ -59,8 +61,8 @@ function login(){
 }
 function fillLogin(ci,pw){$('#login-form [name=ci]').value=ci;$('#login-form [name=password]').value=pw;$('#login-form [name=ci]').focus();}
 async function load(){if(user.must_change){shell();passwordModal(true);return;} data=await api('data');if(selectedYear===null){const year=new Intl.DateTimeFormat('en',{year:'numeric',timeZone:'America/La_Paz'}).format(new Date());selectedYear=String(data.years?.find(y=>y.name===year)?.id||data.years?.[0]?.id||'');}render();}
-const navAdmin=[['dashboard','grid','Resumen general'],['students','students','Estudiantes'],['teachers','people','Docentes'],['subjects','book','Materias y asignaciones'],['modules','calendar','Gestiones y módulos']];
-const navTeacher=[['dashboard','grid','Mi resumen'],['grades','book','Mis materias y notas'],['modules','calendar','Calendario académico']];
+const navAdmin=[['dashboard','grid','Resumen general'],['students','students','Estudiantes'],['teachers','people','Docentes'],['subjects','book','Materias y asignaciones'],['plans','file','Planes de estudio'],['modules','calendar','Gestiones y módulos']];
+const navTeacher=[['dashboard','grid','Mi resumen'],['grades','book','Mis materias y notas'],['plans','file','Planes de estudio'],['modules','calendar','Calendario académico']];
 const navStudent=[['dashboard','grid','Mi resumen'],['results','book','Mis calificaciones'],['modules','calendar','Calendario académico']];
 function shell(){
   const nav=user.role==='admin'?navAdmin:user.role==='teacher'?navTeacher:navStudent;
@@ -72,7 +74,7 @@ function shell(){
   $('.mobile-menu').onclick=()=>$('.sidebar').classList.toggle('open');
   $('.notifications').onclick=()=>modal('Avisos académicos',`<div class="notice">${icon('clock')}<div><strong>Plazo de registro de notas</strong><p>Los docentes tienen 72 horas excluyendo sábados y domingos después del cierre de cada módulo. Las reaperturas deben autorizarlas desde Administración.</p></div></div>${demoMode?`<div class="notice">${icon('shield')}<div><strong>Datos de demostración</strong><p>Esta versión contiene personas y registros ficticios. Cambia las credenciales y prepara una base limpia antes de usar información real.</p></div></div>`:''}`);
 }
-function render(){shell();const c=$('#content');if(data?.blocked){c.innerHTML=`<div class="blocked-card">${icon('lock')}<span class="eyebrow">CONSULTA TEMPORALMENTE SUSPENDIDA</span><h1>Tu expediente sigue seguro.</h1><p>La administración ha suspendido la consulta de tus notas por mensualidades pendientes. Regulariza tus pagos y comunícate con secretaría para habilitar el acceso.</p><div class="note">Este portal no recibe pagos. La habilitación la realiza la administración de forma manual.</div></div>`;return;}const views={dashboard,students,teachers,subjects,modules,grades,results};c.innerHTML=(views[page]||dashboard)();bindPage();}
+function render(){shell();const c=$('#content');if(data?.blocked){c.innerHTML=`<div class="blocked-card">${icon('lock')}<span class="eyebrow">CONSULTA TEMPORALMENTE SUSPENDIDA</span><h1>Tu expediente sigue seguro.</h1><p>La administración ha suspendido la consulta de tus notas por mensualidades pendientes. Regulariza tus pagos y comunícate con secretaría para habilitar el acceso.</p><div class="note">Este portal no recibe pagos. La habilitación la realiza la administración de forma manual.</div></div>`;return;}if(page==='plans'){mountStudyPlans({container:c,user,data,api,modal,icon,escape,toast,dateTime,heading});return;}const views={dashboard,students,teachers,subjects,modules,grades,results};c.innerHTML=(views[page]||dashboard)();bindPage();}
 function heading(kicker,title,sub,action=''){return `<div class="page-heading"><div><div class="eyebrow">${kicker}</div><h1>${title}</h1><p>${sub}</p></div>${action}</div>`;}
 const btn=(text,action,i='plus',secondary=false)=>`<button class="btn ${secondary?'secondary':'primary'}" data-action="${action}">${icon(i)}${text}</button>`;
 const badge=(text,type='neutral')=>`<span class="badge ${type}"><span></span>${escape(text)}</span>`;

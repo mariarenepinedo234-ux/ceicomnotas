@@ -1,3 +1,4 @@
+import {readPlanUpload,listStudyPlans,createStudyPlan,studyPlanFile,deleteStudyPlan} from './study-plans.js';
 import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
 import http from 'node:http';
 import {createReadStream} from 'node:fs';
@@ -53,7 +54,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
       if(path==='/api/config'&&req.method==='GET')return send({demo:process.env.SEED_DEMO==='true'});
       if(req.method==='POST' && req.headers.origin && req.headers.origin!==`${req.headers['x-forwarded-proto']||'http'}://${req.headers.host}`) fail('Origen no permitido.',403);
       let body={};
-      if(req.method==='POST') {
+      if(req.method==='POST'&&path!=='/api/study-plans/upload') {
         let raw=''; for await(const chunk of req) { raw+=chunk; if(Buffer.byteLength(raw)>3*1024*1024) fail('Solicitud demasiado grande.',413); }
         try { body=JSON.parse(raw||'{}'); } catch { fail('JSON inválido.'); }
         if(!body || typeof body!=='object' || Array.isArray(body)) fail('Solicitud inválida.');
@@ -85,6 +86,29 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
         return send({ok:true});
       }
       if(user.must_change) fail('Cambia tu contraseña inicial para continuar.',403);
+      if(path==='/api/study-plans'||path.startsWith('/api/study-plans/')){
+        if(!['admin','teacher'].includes(user.role))fail('Acceso restringido.',403);
+        if(path==='/api/study-plans'&&req.method==='GET')return send({plans:await listStudyPlans(db,url.searchParams)});
+        if(path==='/api/study-plans/upload'&&req.method==='POST'){
+          if(user.role!=='admin')fail('Solo administración puede subir planes.',403);
+          return send(await createStudyPlan(db,await readPlanUpload(req),user.id),201);
+        }
+        const match=path.match(/^\/api\/study-plans\/([1-9]\d*)\/(file|delete)$/);
+        if(match){
+          const id=number(match[1]);if(id>2147483647)fail('Plan no encontrado.',404);
+          if(match[2]==='file'&&req.method==='GET'){
+            const plan=await studyPlanFile(db,id);
+            const filename=`PLAN-${id}-${plan.title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9-]+/g,'-').slice(0,80)}.pdf`;
+            res.writeHead(200,{'Content-Type':'application/pdf','Content-Length':plan.size_bytes,'Content-Disposition':`${url.searchParams.get('download')==='1'?'attachment':'inline'}; filename="${filename}"`,'Cache-Control':'no-store'});
+            res.end(plan.content);return;
+          }
+          if(match[2]==='delete'&&req.method==='POST'){
+            if(user.role!=='admin')fail('Solo administración puede eliminar planes.',403);
+            await deleteStudyPlan(db,id,user.id);return send({ok:true});
+          }
+        }
+        fail('Ruta no encontrada.',404);
+      }
       if(path==='/api/data' && req.method==='GET') {
         if(user.role==='student' && user.blocked) return send({blocked:true});
         const admin=user.role==='admin'; const teacher=user.role==='teacher';

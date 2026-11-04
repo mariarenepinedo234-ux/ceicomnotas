@@ -1,3 +1,4 @@
+import {createStudyPlan} from '../study-plans.js';
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir,rm,writeFile,symlink} from 'node:fs/promises';
@@ -39,6 +40,8 @@ test('el respaldo es restaurable, conserva notas y contraseñas, se descarga ín
   const enrollments=await db.prepare('SELECT * FROM enrollments ORDER BY id').all();
   const passwords=await db.prepare('SELECT id,password FROM users ORDER BY id').all();
   const schema=(await db.query('SELECT current_schema() AS name')).rows[0].name;
+  const planBytes=Buffer.from(await (await request('/api/reports/1?format=pdf&draft=true')).arrayBuffer());
+  const plan=await createStudyPlan(db,{title:'Plan de prueba',career_id:1,level:1,mimeType:'application/pdf',filename:'plan.pdf',content:planBytes},1);
   const response=await request('/api/backups',{body:{filename:'../../no-usar.dump',schema:'public'}});assert.equal(response.status,201);
   const backup=await response.json();assert.match(backup.filename,/^ceicom-\d{8}T\d{6}Z-[a-f0-9]{12}\.dump$/);assert.equal(backup.saved_path,`backups/${backup.filename}`);
   assert.equal(Object.hasOwn(backup,'path'),false);
@@ -55,7 +58,7 @@ test('el respaldo es restaurable, conserva notas y contraseñas, se descarga ín
   child.stderr.resume();const restored=new Promise((resolve,reject)=>{child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(new Error('No se pudo restaurar el respaldo de prueba.')));});child.stdin.end(bytes);await restored;
   const url=new URL(process.env.TEST_DATABASE_URL);url.pathname='/'+destination;
   const target=await openDatabase({connectionString:url.href,schema,migrate:false});
-  try{assert.deepEqual(await target.prepare('SELECT * FROM enrollments ORDER BY id').all(),enrollments);assert.deepEqual(await target.prepare('SELECT id,password FROM users ORDER BY id').all(),passwords);assert.ok((await target.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n>0);}finally{await target.close();}
+  try{assert.deepEqual((await target.prepare('SELECT content FROM study_plans WHERE id=?').get(plan.id)).content,planBytes);assert.deepEqual(await target.prepare('SELECT * FROM enrollments ORDER BY id').all(),enrollments);assert.deepEqual(await target.prepare('SELECT id,password FROM users ORDER BY id').all(),passwords);assert.ok((await target.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n>0);}finally{await target.close();}
   assert.equal((await request('/'+backup.saved_path)).status,404);
   assert.equal((await request('/api/backups/no-existe.dump')).status,404);
   assert.equal((await request('/api/backups/..%5C.env')).status,404);

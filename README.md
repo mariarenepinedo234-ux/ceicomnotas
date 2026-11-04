@@ -178,3 +178,21 @@ Al asignar materias a docentes, el selector filtra la carrera elegida y agrupa l
 ## Mayúsculas en los datos académicos
 
 Los nombres de estudiantes y materias se convierten a mayúsculas al escribir y se guardan así desde los formularios, la edición, la carga de grupos y la importación de materias. Los datos existentes se presentan en mayúsculas en todos los paneles y selectores, sin modificar sus identificadores ni reescribir el historial. Las planillas, PDF y Excel usan mayúsculas también para turno, módulo, fecha y textos impresos; conservan las fórmulas, notas, colores de reprobados y formato carta. Los carnets y contraseñas mantienen su contenido exacto. No requiere migraciones. Para actualizar, copia `public`, `server.js`, `reports.js`, `rosters.js` y `catalog.js`; conserva `.env`, `backups` y tus datos.
+
+## Planes de estudio y avance en PDF
+
+Administración tiene el apartado **Planes de estudio** con **Subir plan PDF**: indica título, carrera, año académico (1º, 2º o 3º) y un PDF de hasta 20 MB. Puedes subir varios planes para cada carrera/año. La lista se agrupa por carrera y año; los filtros y el buscador permiten encontrar títulos, nombres de archivos o carreras, sin distinguir mayúsculas ni tildes.
+
+Los docentes registrados pueden consultar la biblioteca completa, abrir el PDF en otra pestaña y descargarlo. Los estudiantes y visitantes no tienen acceso a la lista ni a los documentos. Los controles y endpoints de subida y eliminación exigen sesión administrativa y cambio de contraseña inicial. Solo administración puede eliminar, con confirmación, para después subir una versión actualizada. La eliminación retira tanto el registro como el contenido del PDF y queda registrada en auditoría, igual que la publicación.
+
+El PDF se almacena como `BYTEA` en PostgreSQL junto con sus datos de clasificación. La lista no carga el contenido de los archivos. Los documentos no se guardan dentro de `public`, no tienen enlaces públicos y quedan incluidos en los respaldos `.dump` existentes. Se verificó la restauración de un PDF desde un respaldo en una base temporal. Se admite un archivo por carga; se comprueban extensión, tipo, encabezado, final de PDF y tamaño máximo. No se modifica el archivo original ni las notas.
+
+Para instalar esta actualización, detén el servidor y actualiza el proyecto completo, conservando `.env`, `backups` y tus archivos privados. Incluye los nuevos módulos `study-plans.js` (servidor y cliente), los estilos y `migrations/004_study_plans.sql`. Ejecuta:
+
+```sh
+npm install
+npm run db:migrate
+npm run dev
+```
+
+La migración agrega la tabla `study_plans`; conserva los estudiantes, docentes, materias y notas existentes. No edites las migraciones anteriores. Actualiza el navegador con Ctrl + F5. Vista previa con datos de prueba: [planes de estudio](docs/study-plans-preview.png).
