@@ -1,3 +1,4 @@
+import {saveRegisteredGroup,academicImpact,offeringRosterReview,updateOfferingRoster,editStudent,resetStudentPassword,deleteStudent,editModule,deleteModule} from './academic-admin.js';
 import {readPlanUpload,listStudyPlans,createStudyPlan,studyPlanFile,deleteStudyPlan} from './study-plans.js';
 import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
 import http from 'node:http';
@@ -12,7 +13,7 @@ import { openDatabase } from './db.js';
 import { hashPassword, verifyPassword, canGrade, deadlineFor, validGrade, dimensionGrades } from './lib.js';
 import { reportData, renderPdf, renderExcel, reportFilename } from './reports.js';
 import {parseCatalog,applyCatalog,activateTeacher} from './catalog.js';
-import {loadRosters,updateStudentProfile} from './rosters.js';
+import {updateStudentProfile} from './rosters.js';
 
 const safeUser = u => ({ id:u.id, ci:u.ci, name:academicUpper(u.name), role:u.role, must_change:!!u.must_change, blocked:!!u.blocked });
 const fail = (message, status=400) => { const e = new Error(message); e.status=status; throw e; };
@@ -124,6 +125,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
           students:admin?(await db.prepare('SELECT s.*,u.name,u.ci,u.blocked,c.name career,sh.name shift,y.name admission_year FROM students s JOIN users u ON u.id=s.user_id JOIN careers c ON c.id=s.career_id JOIN shifts sh ON sh.id=s.shift_id JOIN years y ON y.id=s.admission_year_id').all()):[],
           teachers:admin?(await db.prepare("SELECT id,name,ci FROM users WHERE role='teacher'").all()):[],
           teacher_directory:admin?(await db.prepare('SELECT id,name,user_id FROM teacher_directory ORDER BY name').all()):[],
+          group_memberships:admin?(await db.prepare('SELECT * FROM academic_group_students ORDER BY group_id,student_id').all()):[],
           academic_groups:admin?(await db.prepare(`SELECT g.*,s.name subject,c.name career,ay.name admission_year,y.name AS "year",sh.name shift,o.teacher_id,u.name teacher,m.name module,
             (SELECT COUNT(*) FROM academic_group_students gs WHERE gs.group_id=g.id) student_count
             FROM academic_groups g JOIN subjects s ON s.id=g.subject_id JOIN careers c ON c.id=s.career_id
@@ -159,7 +161,11 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
         if(!Array.isArray(body.grades)||!body.grades.length) fail('No hay notas para guardar.');
         const items=body.grades.map(item=>{if(!item||typeof item!=='object')fail('Nota inválida.');return {...item,id:number(item.id)};}).sort((a,b)=>a.id-b.id);
         if(new Set(items.map(item=>item.id)).size!==items.length)fail('Una inscripción aparece más de una vez.');
-        await transaction(async()=>{for(const item of items) {
+        await transaction(async()=>{
+          const current=await db.prepare('SELECT o.*,m.end_date FROM offerings o JOIN modules m ON m.id=o.module_id WHERE o.id=? FOR UPDATE OF o').get(offering.id);
+          if(!current)fail('Materia no encontrada.',404);
+          if(user.role==='teacher'&&(current.teacher_id!==user.id||!canGrade(current.end_date,current.unlocked_until)))fail('La asignación o el plazo cambiaron. Actualiza la página.',403);
+          for(const item of items) {
           if(!item || typeof item!=='object') fail('Nota inválida.');
           const e=(await db.prepare('SELECT * FROM enrollments WHERE id=? AND offering_id=? FOR UPDATE').get(number(item.id),offering.id));
           if(!e) fail('Inscripción inválida.');
@@ -188,10 +194,14 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
         res.writeHead(200,{'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${backup.filename}"`,'Cache-Control':'no-store','Content-Length':backup.size});
         await pipeline(createReadStream(backup.path),res);return;
       }
+      if(path==='/api/offering-roster'&&req.method==='GET')return send(await offeringRosterReview(db,number(url.searchParams.get('offering_id'))));
+      if(path==='/api/academic-impact'&&req.method==='GET')return send(await academicImpact(db,url.searchParams.get('type'),number(url.searchParams.get('id'))));
       if(req.method!=='POST') fail('Ruta no encontrada.',404);
       const b=body;
+      const administration={'/api/student-edit':editStudent,'/api/student-password-reset':resetStudentPassword,'/api/student-delete':deleteStudent,'/api/module-edit':editModule,'/api/module-delete':deleteModule,'/api/offering-roster':updateOfferingRoster};
+      if(administration[path])return send(await administration[path](db,b,user.id));
       if(path==='/api/rosters'){
-        try{return send(await loadRosters(db,b,user.id));}catch(error){if(error.code)throw error;fail(error.message);}
+        return send(await saveRegisteredGroup(db,b,user.id));
       }
       if(path==='/api/student-profile'){
         try{await updateStudentProfile(db,{student_id:number(b.student_id),name:b.name,ci:b.ci,name_pending:b.name_pending===undefined?undefined:b.name_pending===true||b.name_pending==='true'},user.id);}catch(error){if(error.code)throw error;fail(error.message);}
@@ -277,11 +287,14 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
       if(path==='/api/enrollments') {
         await transaction(async()=>{
           const studentId=number(b.student_id),offeringId=number(b.offering_id);
+          const o=await db.prepare('SELECT o.*,s.career_id,s.level FROM offerings o JOIN subjects s ON s.id=o.subject_id WHERE o.id=? FOR UPDATE OF o').get(offeringId);
           const s=await db.prepare('SELECT * FROM students WHERE user_id=? FOR UPDATE').get(studentId);
-          const o=await db.prepare('SELECT o.*,s.career_id,s.level FROM offerings o JOIN subjects s ON s.id=o.subject_id WHERE o.id=?').get(offeringId);
           if(!s||!o)fail('Estudiante o materia inválidos.');
           if(s.career_id!==o.career_id||s.shift_id!==o.shift_id||s.level!==o.level)fail('La materia debe coincidir con la carrera, turno y año actual del estudiante.');
+          const group=await db.prepare('SELECT * FROM academic_groups WHERE offering_id=?').get(o.id);
+          if(group&&group.admission_year_id!==s.admission_year_id)fail('El estudiante pertenece a otro ingreso. Revisa el grupo académico.');
           await db.prepare('INSERT INTO enrollments(student_id,offering_id) VALUES (?,?)').run(s.user_id,o.id);
+          if(group)await db.prepare('INSERT INTO academic_group_students(group_id,student_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(group.id,s.user_id);
           await audit(user.id,'Inscripción realizada',`Estudiante ${s.user_id} · asignación ${o.id}`);
         });return send({ok:true});
       }

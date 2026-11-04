@@ -112,7 +112,7 @@ Importante: descargar la nueva versión de GitHub no descarga la base ni los nom
 
 ### Registrar grupos y completar datos pendientes
 
-Antes de ingresar listas reales, ejecuta las migraciones de la versión actual con `npm run db:migrate`. En **Estudiantes → Registrar grupo**, selecciona la carrera y materia, gestión de ingreso y gestión cursada por separado, año académico, turno, módulo y docente. Revisa las fechas del módulo y pega los estudiantes uno por línea. Repite el registro para cada carrera y materia. El sistema no duplica a un estudiante ya registrado en la misma carrera/promoción cuando su nombre coincide de forma inequívoca.
+Antes de inscribir grupos, ejecuta `npm run db:migrate` y registra las personas con **Nuevo estudiante**. En **Estudiantes → Registrar grupo**, elige carrera y materia, ingreso, gestión cursada, año académico, turno, trimestre y docente. Marca a los estudiantes existentes que deseas incluir. Puedes buscar por nombre o CI y seleccionar todos los visibles. Repite para cada materia. Si el grupo ya existe, se agregan los marcados; para retirar inscritos usa **Editar inscritos**. Las fechas se corrigen desde **Gestiones y módulos → Editar trimestre**.
 
 Los CI pueden quedar pendientes sin inventar números. Se registran materias e inscripciones, pero no se habilita el ingreso del estudiante. Usa **Completar datos** cuando tengas nombre y CI confirmados. Un docente del Excel que todavía no tenga CI puede figurar académicamente en sus materias; completa su CI desde su ficha para habilitar el acceso.
 
@@ -207,3 +207,25 @@ La nueva migración crea la tabla de planes y conserva tu información anterior.
 5. Para actualizar un documento, el administrador puede pulsar **Eliminar**, confirmar y luego subir el PDF actualizado. El docente no tiene controles de carga o eliminación. Los estudiantes no acceden a este apartado.
 
 Los PDF se guardan en PostgreSQL y se incluyen en las copias de seguridad de la base. Una restauración recupera tanto la información académica como los planes que existían al generar esa copia.
+
+## Corregir estudiantes, listas y trimestres
+
+Actualiza el proyecto completo conservando `.env`, `backups` y tus archivos privados. Con el servidor detenido ejecuta:
+
+```sh
+npm install
+npm run db:migrate
+npm run dev
+```
+
+La migración 005 conserva tus registros y permite usar la misma materia en distintos trimestres. Pulsa Ctrl + F5 al abrir el portal.
+
+- **Inscribir un grupo:** Estudiantes → Registrar grupo. Elige carrera, año académico, materia, ingreso, gestión cursada, turno, trimestre y docente. Marca a las personas de la lista. Puedes buscar por nombre/CI y seleccionar todas las visibles. No se crean estudiantes desde aquí; usa Nuevo estudiante si falta alguno.
+- **Agregar o retirar inscritos:** pulsa Editar inscritos en el grupo o en la materia. Marca para agregar y desmarca para retirar. Si retiras a alguien con notas o borradores, debes confirmar que se eliminarán también esos registros. Las notas restantes se conservan.
+- **Corregir datos:** pulsa Editar o Completar datos en la fila del estudiante. Puedes corregir también el CI. Su historial conserva las inscripciones anteriores. Un CI corregido pasa a ser su usuario y conserva su contraseña.
+- **Contraseña olvidada:** pulsa Restablecer clave, escribe y repite una contraseña temporal de mínimo 8 caracteres, distinta del CI, y comunícala al estudiante. Al ingresar deberá cambiarla. Las sesiones anteriores quedan cerradas.
+- **Eliminar un registro erróneo:** pulsa Eliminar en la fila del estudiante, revisa identidad y cantidades y escribe ELIMINAR ESTUDIANTE. Se eliminarán sus inscripciones y notas de todas las gestiones. Los demás estudiantes no se eliminan.
+- **Corregir un trimestre:** Gestiones y módulos → Editar trimestre. Modifica nombre o fechas; las fechas no pueden superponerse con otro período. Si ya tiene asignaciones, conserva su gestión.
+- **Eliminar un trimestre:** pulsa Eliminar trimestre, revisa las cantidades y escribe ELIMINAR TRIMESTRE. Se eliminan ese período, sus asignaciones, grupos, inscripciones y notas. Las personas registradas, materias del catálogo y otros períodos se conservan.
+
+Si el sistema indica que la información cambió durante una revisión, cierra el diálogo y vuelve a abrirlo para consultar la lista actual antes de confirmar. Puedes crear una copia desde Copias de seguridad para conservar un estado recuperable antes de una eliminación permanente.

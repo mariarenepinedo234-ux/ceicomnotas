@@ -62,9 +62,9 @@ export async function loadRosters(db,input,actorId=null){
       let offering=await db.prepare('SELECT * FROM offerings WHERE subject_id=? AND module_id=? AND shift_id=? FOR UPDATE').get(subjectId,moduleId,shift.id);
       if(offering&&offering.teacher_id!==teacherId)throw new Error('La asignación ya pertenece a otro docente. No se reemplaza automáticamente.');
       if(!offering)offering=(await db.query('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES ($1,$2,$3,$4) RETURNING *',[subjectId,moduleId,shift.id,teacherId])).rows[0];
-      let record=await db.prepare('SELECT * FROM academic_groups WHERE subject_id=? AND year_id=? AND admission_year_id=? AND shift_id=?').get(subjectId,academicId,admissionId,shift.id);
+      let record=await db.prepare('SELECT * FROM academic_groups WHERE offering_id=?').get(offering.id);
       if(!record){record=(await db.query('INSERT INTO academic_groups(subject_id,year_id,admission_year_id,shift_id,offering_id) VALUES ($1,$2,$3,$4,$5) RETURNING *',[subjectId,academicId,admissionId,shift.id,offering.id])).rows[0];result.groups_created++;}
-      if(record.offering_id!==offering.id)throw new Error('El grupo ya está vinculado a otra asignación.');
+      if(record.offering_id!==offering.id||record.admission_year_id!==admissionId)throw new Error('El grupo ya está vinculado a otra asignación.');
       result.group_ids.push(record.id);
       const existing=await db.prepare('SELECT s.*,u.name FROM students s JOIN users u ON u.id=s.user_id WHERE s.career_id=? AND s.admission_year_id=?').all(career[0].id,admissionId);
       const inGroup=new Set();

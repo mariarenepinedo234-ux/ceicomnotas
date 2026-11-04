@@ -74,15 +74,15 @@ Carreras indicadas: Contaduría General, Administración de Empresas, Comercio I
 
 ### Grupos reales y CI pendientes
 
-En **Estudiantes → Registrar grupo** se eligen carrera, materia, año académico, gestión de ingreso, gestión cursada, turno, módulo, fechas confirmadas y docente; se pegan los nombres (uno por línea). El formulario sugiere materias de esa carrera/año y permite registrar una materia complementaria sin inventar código. Los docentes se pueden seleccionar del directorio del Excel o de los registros existentes.
+En **Estudiantes → Registrar grupo** se eligen carrera, materia registrada, año académico, gestión de ingreso, gestión cursada, turno, módulo y docente registrado. Se marcan estudiantes existentes en una lista con casillas, búsqueda y selección de visibles. Las personas y materias nuevas deben registrarse por separado; no se crean desde este formulario.
 
-Una misma materia se registra por carrera para conservar grupos y planillas independientes. Los estudiantes de la misma carrera/promoción se reutilizan por nombre normalizado cuando hay una única coincidencia; los homónimos ambiguos se rechazan para completar sus datos antes. Una segunda carga idéntica no duplica alumnos ni inscripciones. Un cambio de turno/año preexistente no se sobrescribe automáticamente: debe realizarse desde su trámite de traslado.
+Una misma materia se registra por carrera y trimestre para conservar grupos y planillas independientes. El formulario identifica estudiantes por sus IDs, sin confundir homónimos, y una repetición no duplica inscripciones. La importación histórica por CLI es un flujo separado que puede reutilizar nombres inequívocos o crear personas autorizadas en una carga inicial. Los cambios actuales de carrera/turno/año se realizan desde la edición del estudiante y conservan sus inscripciones anteriores.
 
 Los estudiantes pueden tener **CI pendiente**. Se conserva su identidad académica, pero no tienen contraseña ni pueden iniciar sesión. **Completar datos** permite confirmar nombre y CI sin cambiar sus IDs, inscripciones o notas. Los nombres incompletos se señalan para revisión; no se completan por inferencia. Cuando se registra un CI confirmado se exige cambiar la contraseña inicial al ingresar.
 
 Un docente del directorio puede quedar vinculado a una asignación con CI pendiente, sin habilitar acceso. Su ficha mostrará **Completar CI y habilitar**. Completar el CI conserva las materias que ya tiene asignadas. No se generan carnets ni credenciales ficticios para preparar el expediente.
 
-Las gestiones son distintas: por ejemplo, una promoción que ingresó en 2024 puede cursar tercero en la gestión 2026. El módulo y la materia se vinculan a la gestión cursada, sin reemplazar la de ingreso. Las fechas confirmadas del módulo actualizan su calendario y dejan auditoría.
+Las gestiones son distintas: por ejemplo, una promoción que ingresó en 2024 puede cursar tercero en la gestión 2026. El módulo y la materia se vinculan a la gestión cursada, sin reemplazar la de ingreso. Las fechas del módulo se corrigen en Gestiones y módulos → Editar trimestre, con auditoría.
 
 **Grupos académicos** muestra las listas separadas por materia y carrera. Antes de registrar notas se pueden descargar **PDF borrador** y **Excel borrador**, marcados claramente como BORRADOR y con nombres de archivo distintos. Las filas pendientes no se convierten en reprobados. La exportación final sigue exigiendo todas las notas guardadas; los plazos docentes no se reabren automáticamente por cargar un grupo.
 
@@ -149,7 +149,7 @@ La restauración requiere un destino vacío configurado en `DATABASE_URL`. Para 
 
 No se ha desplegado una instalación institucional de producción. Falta decidir alojamiento, configurar HTTPS, permisos mínimos para usuarios PostgreSQL, respaldos automáticos fuera del servidor, recuperación de contraseñas y revisión de privacidad. El limitador de intentos de acceso es local a cada proceso; varias instancias necesitan un limitador compartido o en el proxy.
 
-Pendientes funcionales: materias de las dos carreras incompletas, CI de los docentes importados, edición general de otros registros y bajas administrativas, recuperación de cuentas, importación de notas desde Excel, equivalencias y cambio de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
+Pendientes funcionales: materias de las dos carreras incompletas, CI de los docentes importados, edición y bajas de otros catálogos, recuperación de cuentas sin intervención administrativa, importación de notas desde Excel, equivalencias y validación de convalidaciones al cambiar de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
 
 ### Dependencias de exportación
 
@@ -196,3 +196,17 @@ npm run dev
 ```
 
 La migración agrega la tabla `study_plans`; conserva los estudiantes, docentes, materias y notas existentes. No edites las migraciones anteriores. Actualiza el navegador con Ctrl + F5. Vista previa con datos de prueba: [planes de estudio](docs/study-plans-preview.png).
+
+## Administración de estudiantes, inscritos y trimestres
+
+**Registrar grupo**, en Estudiantes, inscribe únicamente personas ya registradas. Elige carrera, año académico, materia del catálogo, ingreso, gestión cursada, turno, trimestre existente y docente registrado. La lista de casillas muestra a los estudiantes que coinciden con esos datos; permite buscar por nombre o CI y seleccionar/desmarcar los visibles. Cambiar carrera, año, ingreso o turno reinicia la selección. No se crean estudiantes, docentes, materias ni trimestres desde este formulario. Primero registra cualquier persona que falte con **Nuevo estudiante**. El guardado agrega inscripciones y conserva las notas existentes.
+
+**Editar inscritos** está disponible en Grupos académicos y en Materias y asignaciones. Muestra una lista actualizada con los inscritos marcados y otros estudiantes registrados elegibles. Puedes agregar y retirar personas. Los inscritos anteriores siguen visibles aunque después hayan cambiado de carrera/turno/año. Las notas de quienes permanecen se conservan. Retirar estudiantes con notas o borradores exige marcar una confirmación específica; se eliminan esas inscripciones y sus notas. Si la lista o las notas cambiaron mientras se revisaba, el servidor rechaza la operación y exige reabrirla.
+
+En cada estudiante, **Editar / Completar datos** permite corregir nombre, CI, carrera, turno, ingreso y año actual. El historial anterior conserva sus materias y notas. Corregir un CI existente cambia el usuario, conserva su contraseña y cierra las sesiones abiertas. Completar por primera vez un CI habilita la contraseña inicial basada en ese CI y exige cambiarla. **Restablecer clave** permite asignar una contraseña temporal de 8 a 160 caracteres distinta del CI; cierra las sesiones y obliga a elegir una clave personal al volver a ingresar. Las contraseñas no se muestran ni se guardan en auditoría.
+
+El botón **Eliminar estudiante** revisa su identidad y muestra cuántas inscripciones y registros con notas se borrarían en todas las gestiones. Exige escribir **ELIMINAR ESTUDIANTE**. Elimina únicamente esa persona, sus sesiones e inscripciones; conserva la auditoría y los demás estudiantes. En **Gestiones y módulos**, **Editar trimestre** corrige nombre y fechas, respetando la gestión, los cuatro módulos y los períodos sin superposición. Se puede cambiar de gestión si no hay asignaciones. **Eliminar trimestre** muestra las asignaciones, inscripciones y notas afectadas y exige escribir **ELIMINAR TRIMESTRE**: elimina ese período y sus registros relacionados, conservando las personas, el catálogo y los demás períodos. Las revisiones caducan si cambia la información antes de confirmar. Estas eliminaciones son permanentes en la base activa; una copia previa permite recuperar el estado anterior.
+
+Todas estas funciones y sus endpoints son exclusivos de administración. La nueva migración `005_admin_management.sql` permite registrar la misma materia en varios trimestres de una gestión, manteniendo cada lista y planilla separada. No elimina filas ni modifica las notas existentes. La importación histórica por CLI sigue siendo un flujo distinto para cargas iniciales autorizadas; el endpoint web de grupos ya no acepta listas de nombres para crear personas.
+
+Para actualizar, detén el portal y copia la versión completa del proyecto, conservando `.env`, `backups` y los archivos privados. Ejecuta `npm install`, `npm run db:migrate` y `npm run dev`; actualiza el navegador con Ctrl + F5. Se requieren el nuevo módulo `academic-admin.js` del servidor, los módulos/estilos del cliente y la migración 005, además de los archivos actualizados. Ejemplo con datos de prueba: [selección de estudiantes registrados](docs/registered-students-preview.png).
