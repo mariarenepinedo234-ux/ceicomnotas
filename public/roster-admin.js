@@ -1,3 +1,4 @@
+import {compareSubjects} from './subject-order.js';
 import {studentPicker} from './student-picker.js';
 import {editStudentForm} from './academic-admin.js';
 const $=selector=>document.querySelector(selector);
@@ -13,7 +14,7 @@ export function openGroupForm(ctx){
   const dialog=$('#modal'),form=$('#roster-form');
   const eligible=()=>data.students.filter(s=>s.career_id===Number(form.elements.career_id.value)&&s.level===Number(form.elements.level.value)&&s.admission_year_id===Number(form.elements.admission_year_id.value)&&s.shift_id===Number(form.elements.shift_id.value));
   const picker=studentPicker(form.querySelector('.student-picker'),{escape:esc,candidates:eligible});
-  function subjects(){form.elements.subject_id.innerHTML='<option value="">Selecciona una materia</option>'+data.subjects.filter(s=>s.active&&s.career_id===Number(form.elements.career_id.value)&&s.level===Number(form.elements.level.value)).sort((a,b)=>a.id-b.id).map(s=>`<option value="${s.id}">${esc((s.code?s.code+' · ':'')+s.name)}</option>`).join('');}
+  function subjects(){form.elements.subject_id.innerHTML='<option value="">Selecciona una materia</option>'+data.subjects.filter(s=>s.active&&s.career_id===Number(form.elements.career_id.value)&&s.level===Number(form.elements.level.value)).sort(compareSubjects).map(s=>`<option value="${s.id}">${esc((s.code?s.code+' · ':'')+s.name)}</option>`).join('');}
   function moduleContext(){const m=data.modules.find(m=>m.id===Number(form.elements.module_id.value));form.querySelector('.roster-module-context').textContent=m?`${m.name}: ${m.start_date} a ${m.end_date}. Para corregir fechas usa Gestiones y módulos → Editar.`:'';const existing=data.offerings.find(o=>o.subject_id===Number(form.elements.subject_id.value)&&o.module_id===m?.id&&o.shift_id===Number(form.elements.shift_id.value));if(existing)form.elements.teacher_id.value=String(existing.teacher_id);}
   function modules(){form.elements.module_id.innerHTML='<option value="">Selecciona un trimestre</option>'+data.modules.filter(m=>m.year_id===Number(form.elements.year_id.value)).map(m=>`<option value="${m.id}">${esc(m.name)} (${esc(m.start_date)} a ${esc(m.end_date)})</option>`).join('');moduleContext();}
   form.elements.career_id.onchange=()=>{subjects();picker.refresh(true);moduleContext();};form.elements.level.onchange=()=>{subjects();picker.refresh(true);moduleContext();};form.elements.admission_year_id.onchange=()=>picker.refresh(true);form.elements.shift_id.onchange=()=>{picker.refresh(true);moduleContext();};form.elements.year_id.onchange=modules;form.elements.module_id.onchange=moduleContext;form.elements.subject_id.onchange=moduleContext;modules();subjects();

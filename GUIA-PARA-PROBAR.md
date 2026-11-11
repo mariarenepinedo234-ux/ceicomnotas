@@ -243,3 +243,15 @@ npm run dev
 El comando usa los datos de materias incluidos en `catalogs/ceicom-2026.json`; no necesitas copiar el Excel a la carpeta del proyecto. Asegúrate de conservar también la carpeta `scripts` y el archivo `subject-catalog-update.js` de esta versión. Se aplican 235 materias oficiales; las complementarias existentes y sus notas permanecen. Las correcciones conservan los IDs de las materias, por lo que las asignaciones y planillas muestran los nombres corregidos. Una segunda ejecución no duplica registros.
 
 Finalmente presiona Ctrl + F5. En **Materias y asignaciones** verás **Crear materia** y **Nueva asignación**, además del catálogo editable, sin el botón Importar Excel. Para comprobar las incorporaciones filtra el catálogo por Electrónica o Audiovisuales: cada carrera cuenta con 36 materias, 12 en cada año.
+
+## Respetar el orden del Excel
+
+La versión con la migración 006 guarda la posición de cada materia del Excel dentro de su carrera y año. Actualiza el proyecto completo conservando `.env`, `backups` y tus archivos privados, y ejecuta:
+
+```sh
+npm install
+npm run catalogo:actualizar
+npm run dev
+```
+
+Este comando aplica también las migraciones pendientes. El catálogo y los selectores mostrarán primero 1º año, luego 2º y 3º, siguiendo las filas del Excel y la secuencia de códigos correspondiente (101, 102, 103…). Electrónica mantiene la secuencia del archivo aunque varias materias tengan la misma numeración. Las complementarias como Power BI se conservan al final de su año. Los IDs y las notas permanecen iguales. Finalmente pulsa Ctrl + F5.

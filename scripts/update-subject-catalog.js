@@ -8,7 +8,7 @@ try{
   }else{
     db=await openDatabase();
     const result=await updateReviewedSubjectCatalog(db);
-    console.log(`Catálogo actualizado (${result.version}): ${result.subjects_in_file} materias oficiales, ${result.subjects_updated} corregidas y ${result.subjects_created} agregadas. Se conservan las materias complementarias, IDs, asignaciones, estudiantes y notas.`);
+    console.log(`Catálogo actualizado (${result.version}): ${result.subjects_in_file} materias oficiales, ${result.subjects_updated} corregidas y ${result.subjects_created} agregadas; orden del Excel aplicado. Se conservan las materias complementarias, IDs, asignaciones, estudiantes y notas.`);
   }
 }catch(error){console.error(error.code?'No se pudo actualizar el catálogo. La operación se revirtió; revisa la conexión y las relaciones de la base.':error.message);process.exitCode=1;}
 finally{if(db)await db.close();}

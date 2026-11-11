@@ -173,7 +173,7 @@ El portal usa `pg_dump` instalado. En Windows busca automáticamente en `C:/Prog
 
 Vista previa del panel: [copias de seguridad](docs/backups-preview.png). Las pruebas verifican una restauración real en una base temporal `ceicom_restore_*`; la conexión de pruebas necesita permiso para crear y eliminar bases, además de esquemas, y herramientas de PostgreSQL en el compose de desarrollo.
 
-Al asignar materias a docentes, el selector filtra la carrera elegida y agrupa las materias activas en **1º año, 2º año y 3º año**, en ese orden. Dentro de cada año se conserva el orden de registro (la importación inicial sigue el orden del Excel); las materias agregadas después aparecen al final de su año. Se conservan los códigos para identificar cada materia. No requiere cambios de base de datos.
+Al asignar materias a docentes, el selector filtra la carrera elegida y agrupa las materias activas en **1º año, 2º año y 3º año**, en ese orden. Dentro de cada año se respeta la posición del Excel, guardada en `catalog_order`, independientemente del ID de registro. Las complementarias sin posición se muestran después de las oficiales de ese año, usando su código numérico cuando existe. Se conservan los códigos para identificar cada materia. La migración 006 incorpora el campo de orden y se aplica al actualizar el catálogo.
 
 ## Mayúsculas en los datos académicos
 
@@ -226,3 +226,11 @@ npm run dev
 El comando aplica el catálogo a la base de tu `.env` en una transacción. Actualiza nombres por código, carrera y año, conservando IDs, estado activo/inactivo, asignaciones, inscritos y notas. Si una materia sin código coincide de forma inequívoca con un nombre anterior conocido, se corrige y se completa su código sobre el mismo ID. Añade las materias faltantes y conserva las complementarias, como Informática (Power BI), que no están en el archivo oficial. Una segunda ejecución no duplica materias; vuelve a aplicar los nombres oficiales revisados. El total del sistema puede superar las 235 materias del archivo si hay complementarias o registros históricos propios.
 
 Para revisar solamente el contenido preparado, usa `npm run catalogo:actualizar -- --revisar`. Para correcciones posteriores hechas por la institución se mantienen **Crear materia**, **Editar** y la herramienta de importación por terminal. El importador de Docentes conserva su acceso; para usarlo emplea el Excel actualizado. Presiona Ctrl + F5 después de aplicar el catálogo.
+
+## Orden de materias por carrera y año
+
+La migración `006_subject_order.sql` agrega `subjects.catalog_order` y asigna las posiciones del Excel revisado a las materias existentes por carrera, año y código. No cambia nombres, códigos, IDs, asignaciones ni notas. Tanto la importación Excel como `npm run catalogo:actualizar` conservan desde ahora las posiciones de las filas del archivo dentro de cada carrera/año. El comando de actualización vuelve a aplicar los nombres y el orden del catálogo revisado.
+
+El catálogo, la asignación docente, el registro de grupos y la inscripción individual usan el mismo criterio: carrera, 1º/2º/3º año y posición del Excel. Para los códigos habituales se ve la secuencia 101, 102, 103…; las carreras con numeraciones repetidas, como Electrónica, mantienen el orden exacto de las filas. Las complementarias se mantienen después de las oficiales de su año.
+
+Actualiza el proyecto completo, conservando `.env`, `backups` y tus archivos privados, y ejecuta `npm install`, `npm run catalogo:actualizar` y `npm run dev`. El comando aplica las migraciones pendientes antes de cargar el catálogo; también puedes ejecutar `npm run db:migrate` por separado. Actualiza el navegador con Ctrl + F5.

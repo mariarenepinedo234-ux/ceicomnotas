@@ -66,7 +66,7 @@ export async function parseCatalog(buffer){
 export async function applyCatalog(db,payload,actorId=null,{withinTransaction=false}={}){
   const work=async()=>{
     await db.query('SELECT pg_advisory_xact_lock(731202604)');
-    const result={careers_created:0,careers_renamed:0,subjects_created:0,subjects_updated:0,teachers_pending:0,teachers_linked:0};
+    const result={careers_created:0,careers_renamed:0,subjects_created:0,subjects_updated:0,subjects_reordered:0,teachers_pending:0,teachers_linked:0};
     const existingCareers=await db.prepare('SELECT * FROM careers').all(),ids=new Map();
     for(const name of payload.careers){
       const matches=existingCareers.filter(c=>careerKey(c.name)===careerKey(name));
@@ -76,15 +76,16 @@ export async function applyCatalog(db,payload,actorId=null,{withinTransaction=fa
       else if(career.name!==name){await db.prepare('UPDATE careers SET name=? WHERE id=?').run(name,career.id);result.careers_renamed++;}
       ids.set(careerKey(name),career.id);
     }
+    const positions=new Map();
     for(const source of payload.subjects){
       const s={...source,name:academicUpper(source.name)};
-      const careerId=ids.get(careerKey(s.career));
+      const careerId=ids.get(careerKey(s.career)),positionKey=`${careerId}|${s.level}`,position=(positions.get(positionKey)||0)+1;positions.set(positionKey,position);
       const byCode=await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=? AND upper(code)=? FOR UPDATE').get(careerId,s.level,s.code);
       const candidates=byCode?[byCode]:(await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=? AND code IS NULL FOR UPDATE').all(careerId,s.level)).filter(old=>[s.name,...(Array.isArray(s.previous_names)?s.previous_names:[])].some(name=>keyOf(old.name)===keyOf(name)));
       if(candidates.length>1)throw new Error('Una materia sin código coincide con varios registros. Revísala antes de importar.');
       const old=candidates[0];
-      if(old){if(old.name!==s.name||old.code!==s.code){await db.prepare('UPDATE subjects SET name=?,code=? WHERE id=?').run(s.name,s.code,old.id);result.subjects_updated++;}}
-      else{await db.prepare('INSERT INTO subjects(name,career_id,level,code) VALUES (?,?,?,?)').run(s.name,careerId,s.level,s.code);result.subjects_created++;}
+      if(old){const changed=old.name!==s.name||old.code!==s.code;if(changed)result.subjects_updated++;if(old.catalog_order!==position)result.subjects_reordered++;if(changed||old.catalog_order!==position)await db.prepare('UPDATE subjects SET name=?,code=?,catalog_order=? WHERE id=?').run(s.name,s.code,position,old.id);}
+      else{await db.prepare('INSERT INTO subjects(name,career_id,level,code,catalog_order) VALUES (?,?,?,?,?)').run(s.name,careerId,s.level,s.code,position);result.subjects_created++;}
     }
     const users=await db.prepare("SELECT id,name FROM users WHERE role='teacher'").all();
     for(const name of payload.teachers){
