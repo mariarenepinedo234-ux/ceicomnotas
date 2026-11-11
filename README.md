@@ -242,3 +242,13 @@ En **Materias y asignaciones**, los grupos se muestran en desplegables por docen
 La búsqueda por materia, código, carrera, docente o turno abre los desplegables con coincidencias. Los filtros de gestión y módulo se aplican antes de agrupar. Al borrar la búsqueda se recuperan los docentes que se habían abierto manualmente durante la sesión. Se pueden abrir varios docentes a la vez, también usando el teclado. Este cambio es de presentación y no requiere migraciones.
 
 Vista con registros ficticios: [asignaciones por docente](docs/teacher-assignments-preview.png).
+
+## Crear una materia para varias carreras
+
+**Materias y asignaciones → Crear materia** permite elegir el año académico y marcar una o varias carreras, con **Seleccionar todas** y un contador. Por ejemplo, registra **ORATORIA**, elige **3º año**, marca todas y desmarca Diseño Gráfico, Electrónica y Audiovisuales. El código es opcional y puede ser el mismo en las carreras elegidas. La materia queda en sus catálogos como complementaria, después de las materias oficiales del Excel de ese año.
+
+La creación no inscribe estudiantes ni crea asignaciones docentes. Para el ingreso 2024, usa después **Estudiantes → Registrar grupo**, selecciona carrera, 3º año, ingreso 2024, gestión cursada, trimestre, turno, docente y ORATORIA; marca los estudiantes registrados correspondientes. La edición del catálogo continúa siendo individual por carrera para conservar el historial.
+
+`POST /api/subjects` acepta `career_ids: [1,2,...]` al crear y conserva la compatibilidad con `career_id` individual. Solo administración puede guardar. El lote se aplica en una transacción: si alguna carrera es inválida o hay un nombre/código con datos diferentes, se revierte todo. Las coincidencias de nombre, código, carrera y año se conservan sin duplicar ni cambiar su estado activo; si estaban inactivas, actívalas desde Editar. La respuesta incluye `created`, `existing` y `subject_ids`. No requiere migraciones ni cambios en las asignaciones o notas existentes.
+
+Vista del formulario: [crear materia en varias carreras](docs/bulk-subjects-preview.png).

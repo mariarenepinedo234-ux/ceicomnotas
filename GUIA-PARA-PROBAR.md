@@ -264,3 +264,12 @@ Este comando aplica también las migraciones pendientes. El catálogo y los sele
 4. Cambia gestión o módulo y comprueba que cada docente muestra únicamente los grupos correspondientes. Una búsqueda sin resultados muestra un aviso.
 
 Para esta actualización, reemplaza el proyecto conservando `.env`, `backups` y tus archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere modificar la base de datos.
+
+## Registrar ORATORIA en varias carreras a la vez
+
+1. Abre **Materias y asignaciones → Crear materia** y escribe **ORATORIA**. Puedes dejar el código vacío.
+2. Selecciona **3º año**, pulsa **Seleccionar todas** y desmarca **Diseño Gráfico**, **Electrónica** y **Diseño y Producción de Audiovisuales - Guionización**. Comprueba el contador de carreras seleccionadas.
+3. Pulsa **Crear en carreras seleccionadas**. Revisa el catálogo: la materia aparece solo en las carreras elegidas y en 3º año. Guardar otra vez los mismos datos conserva las coincidencias sin duplicarlas. Si un nombre/código ya existe con otros datos, corrígelo desde Editar; el lote no se guarda parcialmente.
+4. Para incorporar estudiantes de ingreso 2024, usa **Estudiantes → Registrar grupo**, elige carrera, 3º año, ingreso 2024, gestión cursada, trimestre, turno, docente y ORATORIA, y marca los estudiantes correspondientes. Crear la materia no los inscribe automáticamente.
+
+Actualiza el proyecto conservando `.env`, `backups` y tus archivos privados; reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere migraciones de PostgreSQL.

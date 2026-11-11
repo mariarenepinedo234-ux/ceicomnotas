@@ -248,7 +248,10 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
         await transaction(async()=>{(await db.prepare(`INSERT INTO ${tables[b.type]}(name) VALUES (?)`).run(name));await audit(user.id,'Catálogo actualizado',name);});return send({ok:true});
       }
       if(path==='/api/subjects') {
-        const name=academicUpper(required(b.name,'Materia')),careerId=number(b.career_id),yearLevel=level(b.level);
+        const name=academicUpper(required(b.name,'Materia')),yearLevel=level(b.level);
+        const careerIds=b.id||b.career_ids===undefined?[number(b.career_id)]:Array.isArray(b.career_ids)?b.career_ids.map(number):[];
+        if(!careerIds.length||new Set(careerIds).size!==careerIds.length)fail('Selecciona al menos una carrera, sin repetir opciones.');
+        const careerId=careerIds[0],result={ok:true,created:0,existing:0,subject_ids:[]};
         const code=typeof b.code==='string'&&b.code.trim()?b.code.trim().toUpperCase():null;
         if(code&&!/^[A-Z0-9][A-Z0-9._/-]{0,39}$/.test(code))fail('Código inválido (máximo 40 letras, números, guion, punto o barra).');
         const active=b.active===undefined||b.active===true||b.active==='true';
@@ -259,10 +262,24 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
             await db.prepare('UPDATE subjects SET name=?,code=?,career_id=?,level=?,active=? WHERE id=?').run(name,code,careerId,yearLevel,active,old.id);
             await audit(user.id,'Materia actualizada',`${old.id}: ${old.code||'sin código'} · ${old.name} → ${code||'sin código'} · ${name}; ${active?'activa':'inactiva'}`);
           }else{
-            await db.prepare('INSERT INTO subjects(name,career_id,level,code,active) VALUES (?,?,?,?,?)').run(name,careerId,yearLevel,code,active);
-            await audit(user.id,'Materia creada',`${code||'Sin código'} · ${name}`);
+            await db.query('SELECT pg_advisory_xact_lock(731202604)');
+            const careers=(await db.query('SELECT id,name FROM careers WHERE id=ANY($1::integer[]) ORDER BY id FOR SHARE',[careerIds])).rows;
+            if(careers.length!==careerIds.length)fail('Una de las carreras seleccionadas no existe. Revisa la lista.');
+            const nameKey=name.replace(/\s+/g,' ');
+            for(const career of careers){
+              const matches=(await db.query("SELECT * FROM subjects WHERE career_id=$1 AND level=$2 AND (($3::text IS NOT NULL AND upper(code)=$3) OR upper(regexp_replace(trim(name),'\\s+',' ','g'))=$4) FOR UPDATE",[career.id,yearLevel,code,nameKey])).rows;
+              if(matches.length>1)fail(`Hay varias coincidencias en ${career.name}. Revisa el catálogo antes de crear la materia.`);
+              const old=matches[0];
+              if(old){
+                if(old.name.trim().replace(/\s+/g,' ').toUpperCase()!==nameKey||old.code!==code)fail(`La materia o el código ya existe con otros datos en ${career.name}. Revísala con Editar en el catálogo.`);
+                result.existing++;result.subject_ids.push(old.id);continue;
+              }
+              const added=await db.prepare('INSERT INTO subjects(name,career_id,level,code,active) VALUES (?,?,?,?,?) RETURNING id').run(name,career.id,yearLevel,code,active);
+              result.created++;result.subject_ids.push(added.lastInsertRowid);
+              await audit(user.id,'Materia creada',`${code||'Sin código'} · ${name} · ${career.name} · ${yearLevel}º año`);
+            }
           }
-        });return send({ok:true});
+        });return send(result);
       }
       if(path==='/api/modules') {
         const start=date(b.start_date),end=date(b.end_date);if(start>end) fail('El fin debe ser posterior al inicio.');

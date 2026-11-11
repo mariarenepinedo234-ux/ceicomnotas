@@ -12,6 +12,7 @@ export function pendingTeachersHTML(data,{escape:esc}){
   return `<section class="panel spaced"><div class="panel-heading"><div><h2>Docentes pendientes de CI</h2><p>Importados del Excel. Completa su carnet para habilitar el acceso.</p></div><span class="count-tag">${pending.length}</span></div><div class="table-wrap"><table><thead><tr><th>DOCENTE</th><th>ESTADO</th><th>ACCIÓN</th></tr></thead><tbody>${pending.map(t=>`<tr><td><strong>${esc(t.name)}</strong></td><td>Sin cuenta · CI pendiente</td><td><button class="btn secondary compact" data-activate-teacher="${t.id}">Completar CI y habilitar</button></td></tr>`).join('')}</tbody></table></div></section>`;
 }
 export function subjectForm(ctx,subject=null){
+  if(!subject)return createSubjectForm(ctx);
   const {field,select,formModal,data}=ctx;
   const code=`<label>Código de materia<input name="code" value="${ctx.escape(subject?.code||'')}" maxlength="40" placeholder="Ej. PRG-104"></label>`;
   formModal(subject?'Editar materia':'Crear materia',field('Nombre de la materia','name','text',subject?.name||'')+code+
@@ -20,6 +21,32 @@ export function subjectForm(ctx,subject=null){
     (subject?select('Estado','active',[{id:'true',name:'Activa · disponible para asignar'},{id:'false',name:'Inactiva · conserva historial'}],'id','name',String(subject.active)):''),
     'subjects',subject?{id:subject.id}:{},subject?'Si tiene asignaciones, su carrera y año no se cambian. Puedes corregir nombre/código o desactivarla sin borrar su historial.':'Las materias comunes pueden registrarse en distintas carreras con el mismo código.');
 }
+function createSubjectForm(ctx){
+  const {modal,field,select,data,escape:esc,icon}=ctx;
+  modal('Crear materia',`<form id="create-subject-form"><div class="form-grid">${field('Nombre de la materia','name','text','','maxlength="160"')}
+    <label>Código de materia (opcional)<input name="code" data-uppercase maxlength="40" placeholder="Ej. ORA-301"></label>
+    ${select('Año académico','level',[{id:1,name:'1º año'},{id:2,name:'2º año'},{id:3,name:'3º año'}])}
+    <fieldset class="subject-careers full"><legend>Carreras</legend><div class="subject-career-controls"><label><input type="checkbox" id="all-subject-careers"> Seleccionar todas</label><output id="subject-career-count" aria-live="polite">0 carreras seleccionadas</output></div>
+    <div class="subject-career-list">${data.careers.map(c=>`<label><input type="checkbox" name="career_ids" value="${c.id}"><span>${esc(c.name)}</span></label>`).join('')||'<p>No hay carreras registradas. Crea una en Gestiones y módulos.</p>'}</div></fieldset>
+    <p class="subject-career-help full">La materia se añadirá al año elegido en cada carrera marcada. Después podrás asignar docente, trimestre y turno, e inscribir a los estudiantes de la gestión de ingreso correspondiente.</p>
+    </div><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" class="btn secondary cancel">Cancelar</button><button type="submit" class="btn primary">${icon('check')} Crear en carreras seleccionadas</button></div></form>`,
+    'Registra una materia común, como ORATORIA o POWER BI, en varias carreras a la vez.');
+  const dialog=$('#modal'),form=$('#create-subject-form'),all=$('#all-subject-careers'),boxes=[...form.querySelectorAll('[name=career_ids]')];
+  function update(){const count=boxes.filter(box=>box.checked).length;all.checked=boxes.length>0&&count===boxes.length;all.indeterminate=count>0&&count<boxes.length;all.disabled=!boxes.length;if(count)form.querySelector('.form-error').textContent='';$('#subject-career-count').textContent=`${count} ${count===1?'carrera seleccionada':'carreras seleccionadas'}`;}
+  all.onchange=()=>{boxes.forEach(box=>box.checked=all.checked);update();};boxes.forEach(box=>box.onchange=update);update();
+  form.querySelector('.cancel').onclick=()=>dialog.close();
+  form.onsubmit=async event=>{
+    event.preventDefault();const values=new FormData(form),careerIds=values.getAll('career_ids').map(Number),error=form.querySelector('.form-error'),button=form.querySelector('[type=submit]');
+    if(!careerIds.length){error.textContent='Selecciona al menos una carrera.';all.focus();return;}
+    button.disabled=true;error.textContent='';
+    try{
+      const result=await ctx.api('subjects',{name:values.get('name'),code:values.get('code'),level:values.get('level'),career_ids:careerIds});
+      if(form.isConnected)dialog.close();await ctx.refresh();
+      ctx.toast(result.created?`Materia creada en ${result.created} ${result.created===1?'carrera':'carreras'}.${result.existing?` Ya existía en ${result.existing}; se conservó sin cambios.`:''}`:`La materia ya existía en las ${result.existing} carreras seleccionadas. No se crearon duplicados.`);
+    }catch(err){if(form.isConnected)error.textContent=err.message;}finally{button.disabled=false;}
+  };
+}
+
 export function bindCatalog(ctx){
   $('#catalog-search')?.addEventListener('input',e=>{filters.search=e.target.value;const selection=e.target.selectionStart;ctx.rerender();$('#catalog-search').focus();$('#catalog-search').setSelectionRange(selection,selection);});
   $('#catalog-career')?.addEventListener('change',e=>{filters.career=e.target.value;ctx.rerender();});
