@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {groupSubjects,summarizeOfferings} from '../public/academic-summary.js';
+import {groupSubjects,summarizeOfferings,prioritizeTeacherSubjects} from '../public/academic-summary.js';
 
 const offerings=Array.from({length:5},(_,i)=>({id:i+1,subject_id:100+i,subject:i%2?' INFORMATICA   (POWER BI) ':'Informática (Power BI)',level:3,career_id:i+1,module_id:3,year_id:2026,teacher_id:8}));
 offerings.push({id:6,subject_id:200,subject:'Diseño y Programación Web III',level:3,career_id:5,module_id:3,year_id:2026,teacher_id:8});
@@ -27,4 +27,32 @@ test('los filtros de módulo, gestión y carrera respetan materias, grupos y est
 test('el mismo nombre en años académicos distintos no se confunde; los grupos no se fusionan',()=>{
   const grouped=groupSubjects([...offerings,{...offerings[0],id:9,level:1}]);
   assert.equal(grouped.length,3);assert.equal(grouped.flatMap(s=>s.groups).length,7);
+});
+
+
+test('docente ve habilitadas primero y después módulos recientes, conservando grupos de fechas mixtas',()=>{
+  const old={end_date:'2026-09-30',start_date:'2026-07-01'},current={end_date:'2026-12-18',start_date:'2026-10-05'};
+  const groups=[
+    {id:1,subject:'A WEB III',level:3,career_id:1,can_grade:false,...old},
+    {id:2,subject:'Z SOFTWARE',level:3,career_id:1,can_grade:true,...current},
+    {id:3,subject:'POWER BI',level:3,career_id:1,can_grade:false,...old},
+    {id:4,subject:'POWER BI',level:3,career_id:2,can_grade:true,...current},
+    {id:5,subject:'B CERRADA RECIENTE',level:3,career_id:1,can_grade:false,...current},
+    {id:6,subject:'Z SOFTWARE',level:3,career_id:2,can_grade:true,end_date:'2026-11-15',start_date:'2026-10-01'},
+  ];
+  const subjects=groupSubjects(groups),before=structuredClone(subjects),ranked=prioritizeTeacherSubjects(subjects);
+  assert.deepEqual(ranked.map(s=>s.name),['POWER BI','Z SOFTWARE','B CERRADA RECIENTE','A WEB III']);
+  assert.deepEqual(ranked[0].groups.map(g=>g.id),[4,3]);assert.deepEqual(ranked[1].groups.map(g=>g.id),[2,6]);
+  assert.deepEqual(subjects,before);assert.equal(ranked.flatMap(s=>s.groups).length,groups.length);
+});
+
+test('reaperturas habilitadas tienen prioridad sobre módulos cerrados más recientes; soporta fechas faltantes y filtros',()=>{
+  const groups=[
+    {id:1,subject:'NUEVA CERRADA',level:3,can_grade:false,end_date:'2026-12-18'},
+    {id:2,subject:'ANTERIOR REABIERTA',level:3,can_grade:true,end_date:'2026-09-30'},
+    {id:3,subject:'SIN FECHA',level:3,can_grade:false},
+  ];
+  assert.deepEqual(prioritizeTeacherSubjects(groupSubjects(groups)).map(s=>s.name),['ANTERIOR REABIERTA','NUEVA CERRADA','SIN FECHA']);
+  assert.deepEqual(prioritizeTeacherSubjects(groupSubjects(groups.filter(g=>g.id===1))).map(s=>s.name),['NUEVA CERRADA']);
+  assert.deepEqual(prioritizeTeacherSubjects([]),[]);
 });

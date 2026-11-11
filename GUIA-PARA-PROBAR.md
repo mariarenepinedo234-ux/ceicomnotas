@@ -273,3 +273,11 @@ Para esta actualización, reemplaza el proyecto conservando `.env`, `backups` y 
 4. Para incorporar estudiantes de ingreso 2024, usa **Estudiantes → Registrar grupo**, elige carrera, 3º año, ingreso 2024, gestión cursada, trimestre, turno, docente y ORATORIA, y marca los estudiantes correspondientes. Crear la materia no los inscribe automáticamente.
 
 Actualiza el proyecto conservando `.env`, `backups` y tus archivos privados; reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere migraciones de PostgreSQL.
+
+## Saludo completo y materias actuales del docente
+
+1. Entra con cada uno de los tres perfiles y comprueba que el saludo incluya todo el nombre registrado. En móvil puede ocupar varias líneas.
+2. Como docente, abre **Mi resumen** y **Mis materias y notas** con Todos los módulos. Las materias con grupos habilitados aparecen primero; dentro de cada estado, se muestran los módulos más recientes antes que los anteriores. Una misma materia conserva sus grupos por carrera y turno.
+3. Filtra por módulo, carrera o búsqueda y comprueba que se ordenan las coincidencias. Un grupo de un trimestre anterior reabierto por administración también recibe prioridad mientras esté habilitado.
+
+Actualiza el proyecto conservando `.env`, `backups` y tus archivos privados; reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere migraciones de PostgreSQL ni cambiar los datos registrados.

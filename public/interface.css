@@ -46,3 +46,7 @@
 .teacher-assignment .table-wrap{border-top:1px solid var(--line)}
 @media(max-width:760px){.teacher-assignment>summary{padding:16px;gap:10px}.assignment-teacher-info strong{font-size:13px}.assignment-teacher-info>span{font-size:12px}.teacher-assignment .avatar{width:32px;height:32px}}
 @media(prefers-reduced-motion:reduce){.assignment-chevron{transition:none}}
+
+/* El saludo conserva el nombre completo, también en pantallas pequeñas. */
+.page-heading>div:first-child{min-width:0}
+.page-heading h1{overflow-wrap:anywhere}

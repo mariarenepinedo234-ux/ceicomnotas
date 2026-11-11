@@ -25,3 +25,23 @@ export function summarizeOfferings(offerings,enrollments=[]){
     enrollmentCount:selected.length,
   };
 }
+
+// El docente atiende primero los grupos habilitados y, dentro de cada estado,
+// los módulos más recientes. La agrupación por materia y año se conserva.
+const moduleTime=value=>Number.isFinite(Date.parse(value))?Date.parse(value):0;
+function compareTeacherGroups(a,b){
+  return Number(!!b.can_grade)-Number(!!a.can_grade)
+    ||moduleTime(b.end_date)-moduleTime(a.end_date)
+    ||moduleTime(b.start_date)-moduleTime(a.start_date)
+    ||String(a.career||'').localeCompare(String(b.career||''),'es')
+    ||Number(a.id)-Number(b.id);
+}
+export function prioritizeTeacherSubjects(subjects){
+  return subjects.map(subject=>({...subject,groups:subject.groups.slice().sort(compareTeacherGroups)})).sort((a,b)=>{
+    const left=a.groups[0],right=b.groups[0];
+    return Number(!!right?.can_grade)-Number(!!left?.can_grade)
+      ||moduleTime(right?.end_date)-moduleTime(left?.end_date)
+      ||moduleTime(right?.start_date)-moduleTime(left?.start_date)
+      ||a.name.localeCompare(b.name,'es',{sensitivity:'base'})||a.level-b.level;
+  });
+}

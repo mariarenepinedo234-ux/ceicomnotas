@@ -252,3 +252,13 @@ La creación no inscribe estudiantes ni crea asignaciones docentes. Para el ingr
 `POST /api/subjects` acepta `career_ids: [1,2,...]` al crear y conserva la compatibilidad con `career_id` individual. Solo administración puede guardar. El lote se aplica en una transacción: si alguna carrera es inválida o hay un nombre/código con datos diferentes, se revierte todo. Las coincidencias de nombre, código, carrera y año se conservan sin duplicar ni cambiar su estado activo; si estaban inactivas, actívalas desde Editar. La respuesta incluye `created`, `existing` y `subject_ids`. No requiere migraciones ni cambios en las asignaciones o notas existentes.
 
 Vista del formulario: [crear materia en varias carreras](docs/bulk-subjects-preview.png).
+
+## Saludos completos y prioridades del docente
+
+El saludo de administración, docentes y estudiantes muestra el nombre completo registrado, incluidos títulos como ING. o LIC., y se ajusta a varias líneas en móvil.
+
+En **Mi resumen → Panorama del período** y **Mis materias y notas**, el docente ve primero las materias que tienen algún grupo habilitado para registrar notas, incluidas las reaperturas autorizadas. Dentro de cada estado se ordenan por fin de módulo, de más reciente a más antiguo, y después por inicio; los empates entre materias usan el nombre. Dentro de una misma materia también aparecen primero sus grupos habilitados y recientes, conservando cada carrera, turno y planilla. La materia toma la prioridad de su primer grupo; si mezcla plazos habilitados y cerrados, el resumen conserva la etiqueta Plazos mixtos.
+
+Los filtros de gestión, módulo, carrera y búsqueda se aplican antes de establecer esta prioridad. El orden del catálogo oficial para administración continúa siguiendo el Excel por carrera y año. Este cambio de presentación no requiere migraciones ni modifica notas, asignaciones o plazos.
+
+Vistas con datos ficticios: [prioridades del docente](docs/teacher-recency-preview.png) y [saludo completo en móvil](docs/full-name-mobile.png).
