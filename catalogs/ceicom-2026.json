@@ -1,0 +1,1490 @@
+{
+  "version": "2026-11-11",
+  "source_sha256": "36ab6a541e63ab528b391aee0c87642172273685fd3eb6ed621eb3b5033586ed",
+  "careers": [
+    "ADMINISTRACIÓN DE EMPRESAS",
+    "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+    "CONTADURÍA GENERAL",
+    "DISEÑO GRÁFICO",
+    "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+    "ELECTRÓNICA",
+    "MERCADOTECNIA",
+    "SECRETARIADO EJECUTIVO",
+    "SISTEMAS INFORMÁTICOS"
+  ],
+  "subjects": [
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "FUNDAMENTO DE LA ADMINISTRACIÓN",
+      "code": "FUA-101",
+      "previous_names": [
+        "FUNDAMENTO DE LA ADMINISTRACION"
+      ]
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "GESTIÓN SECRETARIAL I",
+      "code": "GES-101"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "REGÍMENES ADUANEROS",
+      "code": "RDA-101",
+      "previous_names": [
+        "REGIMENES ADUANEROS"
+      ]
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "FUNDAMENTOS DE MARKETING",
+      "code": "FDM-101"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "LEGISLACIÓN LABORAL Y SEGURIDAD SOCIAL APLICADA",
+      "code": "LSA-101"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "INGLÉS TÉCNICO",
+      "code": "INT-102"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "GRAMÁTICA NORMATIVA",
+      "code": "GRA-102"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "METROLOGÍA Y CLASIFICACIÓN ARANCELARIA",
+      "code": "MCA-102",
+      "previous_names": [
+        "METROLOGÍAY CLASIFICACIÓN ARANCELARIA"
+      ]
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "COMPORTAMIENTO DEL CONSUMIDOR",
+      "code": "CDC-102"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "INGLÉS TÉCNICO",
+      "code": "INT-102"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "CONTABILIDAD GENERAL PARA ADMINISTRACIONES",
+      "code": "CGA-103"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "REDACCIÓN Y CORRESPONDENCIA I",
+      "code": "REC-103"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "INTEGRACIÓN ECONÓMICA Y NORMAS DE ORIGEN",
+      "code": "IEN-103",
+      "previous_names": [
+        "INTEGRACIÓN ECONÓMICAY NORMAS DE ORIGEN"
+      ]
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "SERVICIO Y ATENCIÓN AL CLIENTE",
+      "code": "SAC-103"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "CONTABILIDAD I",
+      "code": "CON-103"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "MATEMÁTICA FINANCIERA",
+      "code": "MAF-104"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "OFIMÁTICA I",
+      "code": "OFI-104",
+      "previous_names": [
+        "OFIMÁTICAI"
+      ]
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "GESTIÓN COMERCIAL TRIBUTARIA",
+      "code": "GCT-104"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "INFORMÁTICA APLICADA A MARKETING",
+      "code": "IAM-104"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "MATEMÁTICA FINANCIERA",
+      "code": "MAF-104"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "ESTADÍSTICA PARA LOS NEGOCIOS",
+      "code": "ESN-105",
+      "previous_names": [
+        "ESTADISTICA PARA LOS NEGOCIOS"
+      ]
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "DOCUMENTOS MERCANTILES",
+      "code": "DOM-105"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "TALLER DE EMPRENDIMIENTO E IDEAS DE NEGOCIOS",
+      "code": "TEI-105"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "INGLÉS TÉCNICO DE MERCADOTECNIA",
+      "code": "ITM-105"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "INFORMÁTICA CONTABLE",
+      "code": "ICO-105"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "PRACTICA LABORAL Y TRIBUTARIA",
+      "code": "PLT-106"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "ARCHIVISTA FÍSICA Y DIGITAL",
+      "code": "AFD-106",
+      "previous_names": [
+        "ARCHIVÍSTA FÍSICA Y DIGITAL"
+      ]
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "CONTABILIDAD GENERAL",
+      "code": "COG-106"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "ANÁLISIS ECONÓMICO Y CONTABILIDAD APLICADA MARKETING",
+      "code": "AEC-106"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "ECONOMÍA GENERAL APLICADA",
+      "code": "EGA-106"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "INFORMÁTICA EMPRESARIAL",
+      "code": "IFE-107"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "IDIOMA ORIGINARIO I",
+      "code": "IDO-107"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "MERCADOTECNIA GENERAL",
+      "code": "MEG-107"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "ESTADÍSTICA APLICADA A MARKETING",
+      "code": "EAM-107"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "DOCUMENTOS COMERCIALES Y MERCANTILES",
+      "code": "DCM-107"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 1,
+      "name": "EMPRENDIMIENTO PRODUCTIVO",
+      "code": "EMP-108"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "MECANOGRAFÍA COMPUTARIZADA",
+      "code": "MEC-108"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "DISEÑO GRAFICO PUBLICITARIO",
+      "code": "DGP-108"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 1,
+      "name": "INTRODUCCIÓN TÉCNICAS DE VENTAS",
+      "code": "ITV-108",
+      "previous_names": [
+        "INTRODUCCIÓNA TÉCNICAS DE VENTAS"
+      ]
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "ESTADÍSTICA APLICADA",
+      "code": "ESA-108",
+      "previous_names": [
+        "ESTADISTICA APLICADA"
+      ]
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 1,
+      "name": "INGLÉS COMERCIAL I",
+      "code": "INC-109"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 1,
+      "name": "ESTADÍSTICA DESCRIPTIVA",
+      "code": "ESD-109"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 1,
+      "name": "ADMINISTRACIÓN GENERAL",
+      "code": "ADG-109"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "ORGANIZACIÓN DE LA ADMINISTRACIÓN",
+      "code": "ORA-201"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "GESTIÓN SECRETARIAL II",
+      "code": "GES-201"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "PROCESOS Y SISTEMAS ADUANEROS",
+      "code": "PSA-201"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "GESTIÓN DE PRODUCTO Y MARCA",
+      "code": "GPM-201"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 2,
+      "name": "CONTABILIDAD II",
+      "code": "CON-201"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "INVESTIGACIÓN Y ESTRATEGIA DE MERCADO",
+      "code": "IDM-202"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "INGLES COMERCIAL II",
+      "code": "INC-202"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "CLASIFICACIÓN ARANCELARIA Y MERCEOLOGÍA",
+      "code": "CAM-202",
+      "previous_names": [
+        "CLASIFICACIÓNARANCELARIAY MERCEOLOGÍA"
+      ]
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "DETERMINACIÓN DE COSTOS PARA LA FIJACIÓN DE PRECIOS",
+      "code": "DCP-202"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 2,
+      "name": "CONTABILIDAD DE COSTOS I",
+      "code": "COC-202"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "ADMINISTRACIÓN DE OPERACIONES",
+      "code": "ADO-203",
+      "previous_names": [
+        "ADMINISTRACION DE OPERACIONES"
+      ]
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "REDACCIÓN Y CORRESPONDENCIA II",
+      "code": "REC-203"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "LOGÍSTICA TRANSPORTE INTERNACIONAL",
+      "code": "LTI-203",
+      "previous_names": [
+        "LOGISTICAY TRANSPORTE INTERNACIONAL"
+      ]
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "GESTIÓN DE DISTRIBUCIÓN",
+      "code": "GDD-203"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 2,
+      "name": "CONTABILIDAD DE SOCIEDADES",
+      "code": "COS-203"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "GESTIÓN DEL TALENTO HUMANO",
+      "code": "GTH-204"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "OFIMÁTICA II",
+      "code": "OFI-204"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "NEGOCIACIÓN INTERNACIONAL",
+      "code": "NIN-204"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "PUBLICIDAD Y PRODUCCIÓN AUDIOVISUAL",
+      "code": "PPA-204"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 2,
+      "name": "CONTABILIDAD DE SEGUROS",
+      "code": "CDS-204"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "ADMINISTRACIÓN FINANCIERA I",
+      "code": "ADF-205"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "CONTABILIDAD I",
+      "code": "CON-205"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "INVESTIGACIÓN DE MERCADOS",
+      "code": "INM-205"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "MARKETING PÚBLICO DE SERVICIOS Y SOCIAL",
+      "code": "MPS-205"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 2,
+      "name": "CONTABILIDAD BANCARIA Y COOPERATIVAS",
+      "code": "CBC-205"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "PREPARACIÓN Y EVALUACIÓN DE PROYECTOS",
+      "code": "PEP-206"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "RELACIONES HUMANAS Y ÉTICA PROFESIONAL",
+      "code": "RHE-206"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "CONTABILIDAD DE COSTOS",
+      "code": "CDC-206"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "DISEÑO GRÁFICO PUBLICITARIO",
+      "code": "DGP-206"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 2,
+      "name": "SISTEMA TRIBUTARIO",
+      "code": "SIT-206"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "ADMINISTRACIÓN DE COSTOS Y PRESUPUESTOS",
+      "code": "ACP-207"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "IDIOMA ORIGINARIO II",
+      "code": "IDO-207"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "MERCADOTECNIA INTERNACIONAL Y HERRAMIENTAS DE PROSPECCIÓN",
+      "code": "MIH-207"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "INVESTIGACIÓN DE MERCADOS",
+      "code": "IDM-207"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 2,
+      "name": "INVESTIGACIÓN APLICADA Y EMPRENDIMIENTO",
+      "code": "IAE-207"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 2,
+      "name": "ECONOMÍA DE LA EMPRESA",
+      "code": "EMP-208"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 2,
+      "name": "GESTIÓN DOCUMENTAL Y ARCHIVO",
+      "code": "GDA-208"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 2,
+      "name": "E-COMMERCE Y MERCADOTECNIA EN INTERNET",
+      "code": "EMI-208"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 2,
+      "name": "MARKETING DIRECTO Y RELACIONES PÚBLICAS",
+      "code": "MDR-208"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 3,
+      "name": "ADMINISTRACIÓN DE LA MICRO Y PEQUEÑA Y MEDIANA EMPRESA",
+      "code": "AMP-301",
+      "previous_names": [
+        "ADMINISTRACIÓN DE LA MICRO Y PEQUELA Y MEDIANA EMPRESA"
+      ]
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 3,
+      "name": "ADMINISTRACIÓN ORGANIZACIONAL Y MEDIO AMBIENTE",
+      "code": "AOM-301"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TMG-301"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "DIRECCIÓN Y PROMOCIÓN DE VENTAS",
+      "code": "DPV-301"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "CONTABILIDAD AGROPECUARIA",
+      "code": "COA-301"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 3,
+      "name": "INCUBACIÓN Y MODELO DE NEGOCIOS",
+      "code": "INM-302"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 3,
+      "name": "INGLÉS EMPRESARIAL",
+      "code": "INE-302"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 3,
+      "name": "OPERATIVIZACIÓN ADUANERA",
+      "code": "OPA-302",
+      "previous_names": [
+        "OPERATIVIZACIÓNADUANERA"
+      ]
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "MARKETING ESTRATÉGICO",
+      "code": "MEE-302"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "CONTABILIDAD DE COSTOS II",
+      "code": "COC-302"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 3,
+      "name": "ESTRATEGIAS DE MERCADOTECNIA",
+      "code": "ESM-303",
+      "previous_names": [
+        "ESTRATÉGIAS DE MERCADOTECNIA"
+      ]
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 3,
+      "name": "REDACCIÓN Y CORRESPONDENCIA III",
+      "code": "REC-303"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 3,
+      "name": "DISTRIBUCIÓN FÍSICA INTERNACIONAL",
+      "code": "DFI-303"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "MERCADOTECNIA INTERNACIONAL",
+      "code": "MEI-303"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "CONTABILIDAD GUBERNAMENTAL",
+      "code": "COG-303",
+      "previous_names": [
+        "CONTABILIDAD GUBERRNAMENTAL"
+      ]
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 3,
+      "name": "ADMINISTRACIÓN FINANCIERA II",
+      "code": "ADF-304"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TMG-304"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 3,
+      "name": "INGLÉS TÉCNICO",
+      "code": "INT-304"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "MARKETING RELACIONAL Y CRM",
+      "code": "MRC-304"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "CONTABILIDAD EXTRACTIVA(MINERA, PETROLERA Y FORESTAL)",
+      "code": "CEP-304"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 3,
+      "name": "COMERCIO INTERNACIONAL",
+      "code": "CMI-305"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 3,
+      "name": "CONTABILIDAD II",
+      "code": "CON-305"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 3,
+      "name": "ADMINISTRACIÓN EMPRESARIAL",
+      "code": "ADE-305"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "MARKETING DIGITAL",
+      "code": "MKD-305"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "CONTABILIDAD DE SERVICIOS(CONSTRUCCIÓN, HOTELERÍA Y TRANSPORTE)",
+      "code": "CHS-305",
+      "previous_names": [
+        "CONTABILIDAD DE SERVICIOS(CONSTRUCCIÓN, HOTELERPIA Y TRANSPORTE)"
+      ]
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 3,
+      "name": "GESTIÓN ESTRATÉGICA",
+      "code": "GEE-306"
+    },
+    {
+      "career": "SECRETARIADO EJECUTIVO",
+      "level": 3,
+      "name": "RELACIONES PÚBLICAS Y ORGANIZACIÓN DE EVENTOS",
+      "code": "RPO-306"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 3,
+      "name": "PRESUPUESTO Y EVALUACIÓN FINANCIERA",
+      "code": "PEF-306"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "EMPRENDIMIENTO PRODUCTIVO",
+      "code": "EMP-306"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "GABINETE CONTABLE INFORMÁTICO",
+      "code": "GCI-306"
+    },
+    {
+      "career": "ADMINISTRACIÓN DE EMPRESAS",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TMG-307"
+    },
+    {
+      "career": "COMERCIO INTERNACIONAL Y ADMINISTRACIÓN ADUANERA",
+      "level": 3,
+      "name": "TRAMITOLOGÍA DE DOCUMENTOS SOPORTE",
+      "code": "TDS-307"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TMG-307"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "ANÁLISIS E INTERPRETACIÓN DE ESTADOS FINANCIEROS",
+      "code": "AEF-307"
+    },
+    {
+      "career": "MERCADOTECNIA",
+      "level": 3,
+      "name": "ANÁLISIS DE LA COMPETENCIA Y TÉCNICAS DE NEGOCIACIÓN",
+      "code": "ACN-308"
+    },
+    {
+      "career": "CONTADURÍA GENERAL",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TMG-308",
+      "previous_names": [
+        "TALLER DE MODALIDAD DE GRADUACION"
+      ]
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 1,
+      "name": "HARDWARE DE COMPUTADORAS",
+      "code": "HSA-101"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 1,
+      "name": "FUNDAMENTOS DE DISEÑO",
+      "code": "FDI-101"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "MEDIOS AUDIOVISUALES",
+      "code": "MAU-101"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "SEGURIDAD INDUSTRIAL Y MEDIO AMBIENTE",
+      "code": "SIM-100"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 1,
+      "name": "INGLÉS TÉCNICO",
+      "code": "INT-102"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 1,
+      "name": "COMUNICACIÓN VISUAL",
+      "code": "COV-102"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "FOTOGRAFÍA BÁSICA",
+      "code": "FOB-102"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "ALGEBRA Y CALCULO",
+      "code": "ALC-100"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 1,
+      "name": "MATEMÁTICA PARA LA INFORMÁTICA",
+      "code": "MPI-103"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 1,
+      "name": "DISEÑO VECTORIAL",
+      "code": "DVE-103"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "COMPUTACIÓN GRÁFICA DE IMAGEN",
+      "code": "CGI-103"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "ANÁLISIS DE CIRCUITOS DE CORRIENTE CONTINUA",
+      "code": "ACC-100"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 1,
+      "name": "PROGRAMACIÓN I",
+      "code": "PRG-104"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 1,
+      "name": "CREACIÓN DE IMÁGENES VECTORIALES",
+      "code": "CDI-104"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "EDICIÓN DIGITAL",
+      "code": "EDD-104"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "FÍSICA",
+      "code": "INC-100"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 1,
+      "name": "TALLER DE SISTEMAS OPERATIVOS",
+      "code": "TSO-105"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 1,
+      "name": "TIPOGRAFÍA",
+      "code": "TIP-105"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "TALLER DE SONIDO",
+      "code": "TDS-105"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "INSTRUMENTOS Y COMPONENTES",
+      "code": "INE-100"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 1,
+      "name": "OFIMÁTICA Y TECNOLOGÍA MULTIMEDIA",
+      "code": "OTM-106"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 1,
+      "name": "TALLER DE CREATIVIDAD",
+      "code": "TAC-106"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "HISTORIA DEL ARTE",
+      "code": "HDA-106"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "INSTALACIONES ELÉCTRICAS",
+      "code": "SIC-100"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 1,
+      "name": "DISEÑO Y PROGRAMACIÓN WEB I",
+      "code": "DPW-107"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 1,
+      "name": "INGLES TÉCNICO",
+      "code": "INT-107"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "PRODUCCIÓN AUDIOVISUAL",
+      "code": "PRA-201"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "SISTEMAS CAD",
+      "code": "SIM-200"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "LENGUAJE DE LA IMAGEN",
+      "code": "LDI-202"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "SEGURIDAD INDUSTRIAL Y MEDIO AMBIENTE II",
+      "code": "ACC-200"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "TALLER DE CAMAROGRAFIA",
+      "code": "TDC-203"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "ANÁLISIS DE CIRCUITOS DE CORRIENTE ALTERNA",
+      "code": "ELA-200"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "GUION CINEMATOGRÁFICO",
+      "code": "GCI-204"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "ELECTRÓNICA ANALÓGICA",
+      "code": "ELD-200"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "FOTOGRAFÍA EN MOVIMIENTO I",
+      "code": "FEM-205"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "ALGORITMOS Y ESTRUCTURAS",
+      "code": "ALE-200"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 1,
+      "name": "FOTOGRAFÍA BLANCO Y NEGRO",
+      "code": "FBN-206"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 1,
+      "name": "INGLES TÉCNICO",
+      "code": "INT-200"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "ESTADÍSTICA",
+      "code": "EST-201",
+      "previous_names": [
+        "ESTADISTICA"
+      ]
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 2,
+      "name": "MAQUETACIÓN ELECTRÓNICA",
+      "code": "MEL-201"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "TALLER DE MONTAJE",
+      "code": "TDM-301"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "LÍNEAS DE TRANSMISIÓN Y ANTENAS",
+      "code": "LTA-300"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "PROGRAMACIÓN II",
+      "code": "PRG-202"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 2,
+      "name": "INTERFAZ GRÁFICA",
+      "code": "IGR-202"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "PUESTA EN ESCENA",
+      "code": "PEE-302"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "MAQUINAS E INSTALACIONES INDUSTRIALES",
+      "code": "MII-300"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "REDES DE COMPUTADORAS I",
+      "code": "RDC-203"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 2,
+      "name": "AUDIOVISUAL",
+      "code": "AUD-203"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "FOTOGRAFÍA CON LUZ ARTIFICIAL",
+      "code": "FLA-303"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "OPERACIONALES Y APLICACIONES",
+      "code": "OAP-300"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "PROGRAMACIÓN MÓVIL I",
+      "code": "PDM-204",
+      "previous_names": [
+        "PROGRAMACIÓN MOVIL I"
+      ]
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 2,
+      "name": "EMPRENDIMIENTO PRODUCTIVO",
+      "code": "EMP-204"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "GUION CINEMATOGRÁFICO II",
+      "code": "GCI-304"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "SISTEMAS LÓGICOS PROGRAMABLES",
+      "code": "SLP-300"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "ANÁLISIS Y DISEÑO DE SISTEMAS I",
+      "code": "ADS-205"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 2,
+      "name": "MARKETING",
+      "code": "MRK-205"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "FOTOGRAFÍA EN MOVIMIENTO II",
+      "code": "FEM-305"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "PROGRAMACIÓN",
+      "code": "PRO-300"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "DISEÑO Y PROGRAMACIÓN WEB II",
+      "code": "DPW-206"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 2,
+      "name": "DISEÑO Y MODELADO 3D",
+      "code": "DMO-206"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "HISTORIA DEL CINE",
+      "code": "HDC-306"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "EMPRENDIMIENTO PRODUCTIVO",
+      "code": "EMP-300"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "BASE DE DATOS I",
+      "code": "BDD-207"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 2,
+      "name": "DISEÑO E IMAGEN DE MARCA",
+      "code": "DIM-207"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "ANIMACIÓN EN 3D",
+      "code": "AED-401"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "SISTEMAS DE TELECOMUNICACIONES",
+      "code": "SIT-400"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 2,
+      "name": "EMPRENDIMIENTO PRODUCTIVO",
+      "code": "ELE-208"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "REALIZACIÓN DOCUMENTAL",
+      "code": "RED-402"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "ELECTROACÚSTICA",
+      "code": "ELE-400"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "DIRECCIÓN DE CINE Y VIDEO",
+      "code": "DCV-403"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "ELECTRÓNICA INDUSTRIAL",
+      "code": "ELI-400"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "FOTOGRAFÍA EN MOVIMIENTO III",
+      "code": "FEM-404"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "MANTENIMIENTO DE EQUIPOS ELÉCTRICOS",
+      "code": "MAE-400"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "AUDIO DIRECTO",
+      "code": "AUD-405"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "ARQUITECTURA Y REDES DE COMPUTADORAS",
+      "code": "ARD-400"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 2,
+      "name": "ESPACIOS FOTOGRÁFICOS",
+      "code": "ESF-406"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 2,
+      "name": "MICROCONTROLADORES",
+      "code": "MIC-400"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "GESTIÓN Y MEJORAMIENTO DE LA CALIDAD DE SOFTWARE",
+      "code": "GMC-301"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "DISEÑO PARA EL DESARROLLO",
+      "code": "DGD-301"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "GUION DE TELEVISIÓN",
+      "code": "GDT-501"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "SISTEMAS DE CONTROL",
+      "code": "SDC-500"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "REDES DE COMPUTADORAS II",
+      "code": "RDC-302"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "SISTEMAS DE IMPRESIÓN",
+      "code": "SIM-302"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "TALLER DE ANIMACIÓN",
+      "code": "TDA-502"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "AUTÓMATAS PROGRAMABLES",
+      "code": "AUP-500"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "DISEÑO Y PROGRAMACIÓN WEB III",
+      "code": "DPW-303"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "PROYECTOS DE DISEÑO",
+      "code": "PDG-303"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "REALIZACIÓN DE FICCIÓN",
+      "code": "RDF-503"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "SISTEMAS NEUMÁTICOS",
+      "code": "SIN-500"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "PROGRAMACIÓN MÓVIL II",
+      "code": "PDM-304",
+      "previous_names": [
+        "PROGRAMACIÓN MOVIL II"
+      ]
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "DIAGNÓSTICO DE DISEÑO",
+      "code": "DDI-304"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "FOTOGRAFÍA EN MOVIMIENTO IV",
+      "code": "FEM-504"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "SISTEMAS DE TELEFONÍA",
+      "code": "SIT-500"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "ANÁLISIS Y DISEÑO DE SISTEMAS II",
+      "code": "ADS-305"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "PENSAMIENTO CREATIVO Y PROTOTIPADO",
+      "code": "PCP-305"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "DIRECCIÓN DE TELEVISIÓN",
+      "code": "DDT-505"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "REDES Y GESTIÓN DE DATOS",
+      "code": "RGD-500"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "BASE DE DATOS II",
+      "code": "BDD-306"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "PRODUCCIÓN DE PROTOTIPOS",
+      "code": "PPR-306"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "FUNDAMENTOS DE MERCADOTECNIA",
+      "code": "FME-506"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN I",
+      "code": "TMG-500"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "PROYECTOS DE INNOVACIÓN Y COMPUTACIÓN EN LA NUBE",
+      "code": "PIC-307"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "APLICACIONES DE DISEÑO",
+      "code": "APD-307"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "EMPRENDIMIENTO PRODUCTIVO",
+      "code": "EMP-601"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "CONTROL DIGITAL",
+      "code": "COD-600"
+    },
+    {
+      "career": "SISTEMAS INFORMÁTICOS",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TMG-308"
+    },
+    {
+      "career": "DISEÑO GRÁFICO",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TDG-308"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "EFECTOS ESPECIALES",
+      "code": "EFE-602"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "SISTEMAS SCADA",
+      "code": "SIS-600"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "REALIZACIÓN TELEVISIVA",
+      "code": "RET-603"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "ROBÓTICA INDUSTRIAL",
+      "code": "ROI-600"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "PRODUCCIÓN DIGITAL DE AUDIO E IMAGEN",
+      "code": "PAI-604"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "SISTEMAS ELECTRONEUMÁTICOS",
+      "code": "SEN-600"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN",
+      "code": "TDG-605"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "FIBRA ÓPTICA",
+      "code": "FIO-600"
+    },
+    {
+      "career": "DISEÑO Y PRODUCCIÓN DE AUDIOVISUALES - GUIONIZACIÓN",
+      "level": 3,
+      "name": "ÉTICA PROFESIONAL",
+      "code": "ETP-606"
+    },
+    {
+      "career": "ELECTRÓNICA",
+      "level": 3,
+      "name": "TALLER DE MODALIDAD DE GRADUACIÓN II",
+      "code": "TMG-600"
+    }
+  ]
+}

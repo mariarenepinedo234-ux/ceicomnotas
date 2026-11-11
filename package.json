@@ -18,7 +18,8 @@
     "db:backup": "node --env-file-if-exists=.env scripts/backup.js",
     "db:restore": "node --env-file-if-exists=.env scripts/backup.js --restore",
     "catalogo:importar": "node --env-file-if-exists=.env scripts/catalog-excel.js",
-    "grupos:importar": "node --env-file-if-exists=.env scripts/rosters.js"
+    "grupos:importar": "node --env-file-if-exists=.env scripts/rosters.js",
+    "catalogo:actualizar": "node --env-file-if-exists=.env scripts/update-subject-catalog.js"
   },
   "dependencies": {
     "busboy": "^1.6.0",

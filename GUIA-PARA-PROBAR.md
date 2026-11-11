@@ -102,9 +102,9 @@ Ejecuta `npm install`, `npm run db:migrate`, `npm run crear-admin` y `npm run de
 
 ### Cargar carreras, materias y docentes desde el Excel institucional
 
-Actualiza los archivos del proyecto conservando `.env`, SQLite y el volumen PostgreSQL. Ejecuta `npm install`, `npm run db:migrate` y `npm run dev`. Entra como administrador, abre **Materias y asignaciones → Importar Excel**, elige tu archivo `PLANILLA DE NOTAS 2026.xlsx`, revisa el resumen y pulsa **Confirmar importación**.
+Actualiza los archivos del proyecto conservando `.env`, SQLite y el volumen PostgreSQL. Ejecuta `npm install`, `npm run db:migrate` y `npm run dev`. Entra como administrador, abre **Docentes → Importar Excel**, elige tu archivo `PLANILLA DE NOTAS 2026.xlsx`, revisa el resumen y pulsa **Confirmar importación**.
 
-El catálogo real de este archivo tiene 163 materias con códigos por carrera/año. Las materias de Electrónica y Diseño y Producción de Audiovisuales - Guionización quedan pendientes; puedes agregarlas en **Crear materia** o completar el archivo e importarlo nuevamente. Usa **Editar** en el catálogo para corregir nombres, códigos o desactivar registros. Cambiar de carrera/año una materia que ya se dictó está restringido para conservar el historial.
+El archivo original tenía 163 materias. El catálogo revisado de noviembre tiene 235 materias por carrera/año y completa Electrónica y Audiovisuales. Para aplicar las materias corregidas sin importar el Excel desde el panel, ejecuta `npm run catalogo:actualizar` después de actualizar el proyecto. Usa **Editar** en el catálogo para corregir nombres, códigos o desactivar registros. Cambiar de carrera/año una materia que ya se dictó está restringido para conservar el historial.
 
 Los 23 docentes del archivo no incluyen CI. Aparecerán en **Docentes → Docentes pendientes de CI**. Completa cada carnet con **Completar CI y habilitar** para crear su acceso. No se importan los estudiantes ni las notas de ejemplo de otras hojas.
 
@@ -229,3 +229,17 @@ La migración 005 conserva tus registros y permite usar la misma materia en dist
 - **Eliminar un trimestre:** pulsa Eliminar trimestre, revisa las cantidades y escribe ELIMINAR TRIMESTRE. Se eliminan ese período, sus asignaciones, grupos, inscripciones y notas. Las personas registradas, materias del catálogo y otros períodos se conservan.
 
 Si el sistema indica que la información cambió durante una revisión, cierra el diálogo y vuelve a abrirlo para consultar la lista actual antes de confirmar. Puedes crear una copia desde Copias de seguridad para conservar un estado recuperable antes de una eliminación permanente.
+
+## Aplicar las materias corregidas del Excel de noviembre
+
+Detén el servidor con Ctrl + C y actualiza el proyecto completo, conservando `.env`, `backups` y tus archivos privados. Ejecuta desde la carpeta que contiene `package.json`:
+
+```sh
+npm install
+npm run catalogo:actualizar
+npm run dev
+```
+
+El comando usa los datos de materias incluidos en `catalogs/ceicom-2026.json`; no necesitas copiar el Excel a la carpeta del proyecto. Asegúrate de conservar también la carpeta `scripts` y el archivo `subject-catalog-update.js` de esta versión. Se aplican 235 materias oficiales; las complementarias existentes y sus notas permanecen. Las correcciones conservan los IDs de las materias, por lo que las asignaciones y planillas muestran los nombres corregidos. Una segunda ejecución no duplica registros.
+
+Finalmente presiona Ctrl + F5. En **Materias y asignaciones** verás **Crear materia** y **Nueva asignación**, además del catálogo editable, sin el botón Importar Excel. Para comprobar las incorporaciones filtra el catálogo por Electrónica o Audiovisuales: cada carrera cuenta con 36 materias, 12 en cada año.

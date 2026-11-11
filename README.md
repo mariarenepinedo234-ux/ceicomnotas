@@ -17,7 +17,7 @@ npm run crear-admin
 npm run dev
 ```
 
-Abre `http://localhost:3000`. El administrador se crea en la terminal con una contraseña elegida por ti. El primer acceso obliga a cambiarla. Las contraseñas elegidas deben tener entre 8 y 160 caracteres y ser distintas del usuario/CI y de la anterior. No existen contraseñas predeterminadas en modo institucional. El catálogo académico real se registra desde el panel.
+Abre `http://localhost:3000`. El administrador se crea en la terminal con una contraseña elegida por ti. El primer acceso obliga a cambiarla. Las contraseñas elegidas deben tener entre 8 y 160 caracteres y ser distintas del usuario/CI y de la anterior. No existen contraseñas predeterminadas en modo institucional. El catálogo académico revisado se carga con `npm run catalogo:actualizar` y se puede editar desde el panel.
 
 Para una instalación de prueba nueva con datos ficticios, usa `npm run configurar -- --demo` en lugar de `npm run configurar`, y omite `crear-admin`. Los accesos de demostración están en la guía. No actives demostración sobre una base institucional. `configurar` nunca sobrescribe `.env`.
 
@@ -51,7 +51,7 @@ Los resúmenes administrativos y docentes distinguen **materias diferentes** de 
 
 Administración puede abrir **Materias y asignaciones → Importar Excel** (también disponible en Docentes), seleccionar la planilla `.xlsx` y revisar una vista previa antes de confirmar. Se utiliza exclusivamente la hoja **BASE DE DATOS**: lista de carreras y docentes en columna B, y bloques de materias/códigos encabezados por carrera y año. Las otras hojas no se usan para cargar estudiantes, notas ni asignaciones. No se ejecutan fórmulas del archivo. Límite: 2 MB comprimido y 40 MB expandido.
 
-La importación actualiza coincidencias por código, carrera y año, permite códigos compartidos entre carreras, conserva las materias ausentes y se ejecuta en una transacción. Una repetición del mismo catálogo no duplica los registros. Los nombres de materias y estudiantes se guardan en mayúsculas, conservando tildes y Ñ; posibles errores de redacción se corrigen desde **Editar**. La referencia revisada contiene 163 materias, nueve carreras y 23 docentes; faltan las materias de Electrónica y Diseño y Producción de Audiovisuales - Guionización.
+La importación actualiza coincidencias por código, carrera y año, permite códigos compartidos entre carreras, conserva las materias ausentes y se ejecuta en una transacción. Una repetición del mismo catálogo no duplica los registros. Los nombres de materias y estudiantes se guardan en mayúsculas, conservando tildes y Ñ; posibles errores de redacción se corrigen desde **Editar**. La referencia original contenía 163 materias y 23 docentes. La revisión de noviembre de 2026 contiene 235 materias de las nueve carreras y completa Electrónica y Audiovisuales; sus datos de materias están disponibles con `npm run catalogo:actualizar`.
 
 En el catálogo puedes **buscar por código/nombre**, filtrar por **carrera y año académico**, **crear** materias y **editar** nombre, código o estado. Una materia inactiva no puede asignarse nuevamente pero conserva su historial. Si ya tiene asignaciones, no se permite cambiar su carrera o año: crea otro registro para otro plan. Un código debe ser único dentro de una misma carrera y año.
 
@@ -64,7 +64,7 @@ npm run catalogo:importar -- "PLANILLA DE NOTAS 2026.xlsx"
 npm run catalogo:importar -- "PLANILLA DE NOTAS 2026.xlsx" --aplicar
 ```
 
-El primer comando solo revisa; el segundo guarda. El Excel original y los nombres de docentes no se incluyen en el repositorio. El catálogo real se carga en la base mediante el archivo que conserva la institución. La aplicación de este entorno recibió el catálogo; descargar el código en otra computadora no copia su base de datos.
+El primer comando solo revisa; el segundo guarda. El Excel original y los nombres de docentes no se incluyen en el repositorio. El catálogo corregido de materias se puede aplicar desde el archivo revisado incluido, sin datos personales, mediante `npm run catalogo:actualizar`; el directorio docente se importa desde el Excel privado de la institución. La aplicación de este entorno recibió el catálogo; descargar el código en otra computadora no copia su base de datos.
 
 La exportación Excel reproduce la estructura de la hoja **PLANILLA DE NOTAS**: escudo, encabezado, gestión, fecha, carrera, materia/código y curso; tabla de 20 filas iniciales, dimensiones en F/G/H, nota final en I, observación en J, y firmas. Conserva fórmulas y validaciones, formato carta y páginas adicionales. El PDF y la vista previa usan los mismos datos y el escudo extraído de la plantilla. Solo los estudiantes reprobados se resaltan en rojo; las filas vacías quedan sin resultado.
 
@@ -149,7 +149,7 @@ La restauración requiere un destino vacío configurado en `DATABASE_URL`. Para 
 
 No se ha desplegado una instalación institucional de producción. Falta decidir alojamiento, configurar HTTPS, permisos mínimos para usuarios PostgreSQL, respaldos automáticos fuera del servidor, recuperación de contraseñas y revisión de privacidad. El limitador de intentos de acceso es local a cada proceso; varias instancias necesitan un limitador compartido o en el proxy.
 
-Pendientes funcionales: materias de las dos carreras incompletas, CI de los docentes importados, edición y bajas de otros catálogos, recuperación de cuentas sin intervención administrativa, importación de notas desde Excel, equivalencias y validación de convalidaciones al cambiar de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
+Pendientes funcionales: CI de los docentes importados, edición y bajas de otros catálogos, recuperación de cuentas sin intervención administrativa, importación de notas desde Excel, equivalencias y validación de convalidaciones al cambiar de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
 
 ### Dependencias de exportación
 
@@ -210,3 +210,19 @@ El botón **Eliminar estudiante** revisa su identidad y muestra cuántas inscrip
 Todas estas funciones y sus endpoints son exclusivos de administración. La nueva migración `005_admin_management.sql` permite registrar la misma materia en varios trimestres de una gestión, manteniendo cada lista y planilla separada. No elimina filas ni modifica las notas existentes. La importación histórica por CLI sigue siendo un flujo distinto para cargas iniciales autorizadas; el endpoint web de grupos ya no acepta listas de nombres para crear personas.
 
 Para actualizar, detén el portal y copia la versión completa del proyecto, conservando `.env`, `backups` y los archivos privados. Ejecuta `npm install`, `npm run db:migrate` y `npm run dev`; actualiza el navegador con Ctrl + F5. Se requieren el nuevo módulo `academic-admin.js` del servidor, los módulos/estilos del cliente y la migración 005, además de los archivos actualizados. Ejemplo con datos de prueba: [selección de estudiantes registrados](docs/registered-students-preview.png).
+
+## Catálogo corregido de noviembre de 2026
+
+Materias y asignaciones ya no muestra **Importar Excel**. El catálogo revisado del archivo recibido el 11 de noviembre de 2026 está incorporado en `catalogs/ceicom-2026.json`: 235 materias de nueve carreras, con 21 nombres corregidos y 72 materias añadidas para completar Electrónica y Diseño y Producción de Audiovisuales - Guionización (36 por carrera). El archivo publicado contiene únicamente carreras, códigos, años y nombres de materias; no incluye el Excel ni los datos personales de sus otras hojas.
+
+Tras actualizar el proyecto completo, conservando `.env`, `backups` y los archivos privados, ejecuta:
+
+```sh
+npm install
+npm run catalogo:actualizar
+npm run dev
+```
+
+El comando aplica el catálogo a la base de tu `.env` en una transacción. Actualiza nombres por código, carrera y año, conservando IDs, estado activo/inactivo, asignaciones, inscritos y notas. Si una materia sin código coincide de forma inequívoca con un nombre anterior conocido, se corrige y se completa su código sobre el mismo ID. Añade las materias faltantes y conserva las complementarias, como Informática (Power BI), que no están en el archivo oficial. Una segunda ejecución no duplica materias; vuelve a aplicar los nombres oficiales revisados. El total del sistema puede superar las 235 materias del archivo si hay complementarias o registros históricos propios.
+
+Para revisar solamente el contenido preparado, usa `npm run catalogo:actualizar -- --revisar`. Para correcciones posteriores hechas por la institución se mantienen **Crear materia**, **Editar** y la herramienta de importación por terminal. El importador de Docentes conserva su acceso; para usarlo emplea el Excel actualizado. Presiona Ctrl + F5 después de aplicar el catálogo.

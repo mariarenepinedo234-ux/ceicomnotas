@@ -80,7 +80,7 @@ export async function applyCatalog(db,payload,actorId=null,{withinTransaction=fa
       const s={...source,name:academicUpper(source.name)};
       const careerId=ids.get(careerKey(s.career));
       const byCode=await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=? AND upper(code)=? FOR UPDATE').get(careerId,s.level,s.code);
-      const candidates=byCode?[byCode]:(await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=? AND code IS NULL FOR UPDATE').all(careerId,s.level)).filter(old=>keyOf(old.name)===keyOf(s.name));
+      const candidates=byCode?[byCode]:(await db.prepare('SELECT * FROM subjects WHERE career_id=? AND level=? AND code IS NULL FOR UPDATE').all(careerId,s.level)).filter(old=>[s.name,...(Array.isArray(s.previous_names)?s.previous_names:[])].some(name=>keyOf(old.name)===keyOf(name)));
       if(candidates.length>1)throw new Error('Una materia sin código coincide con varios registros. Revísala antes de importar.');
       const old=candidates[0];
       if(old){if(old.name!==s.name||old.code!==s.code){await db.prepare('UPDATE subjects SET name=?,code=? WHERE id=?').run(s.name,s.code,old.id);result.subjects_updated++;}}
