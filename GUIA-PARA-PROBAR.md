@@ -255,3 +255,12 @@ npm run dev
 ```
 
 Este comando aplica también las migraciones pendientes. El catálogo y los selectores mostrarán primero 1º año, luego 2º y 3º, siguiendo las filas del Excel y la secuencia de códigos correspondiente (101, 102, 103…). Electrónica mantiene la secuencia del archivo aunque varias materias tengan la misma numeración. Las complementarias como Power BI se conservan al final de su año. Los IDs y las notas permanecen iguales. Finalmente pulsa Ctrl + F5.
+
+## Materias y asignaciones por docente
+
+1. Entra como administrador a **Materias y asignaciones**: aparece una fila desplegable por docente con asignaciones en la gestión y módulo elegidos.
+2. Pulsa un docente para ver sus materias, carreras, años, módulos, turnos y plazos. Puedes abrir varios a la vez y usar **Ver notas**, **Editar inscritos** y el candado de reapertura como antes.
+3. Busca una materia, código, carrera, docente o turno: se abren las coincidencias. Borra la búsqueda para volver a los desplegables que habías abierto.
+4. Cambia gestión o módulo y comprueba que cada docente muestra únicamente los grupos correspondientes. Una búsqueda sin resultados muestra un aviso.
+
+Para esta actualización, reemplaza el proyecto conservando `.env`, `backups` y tus archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere modificar la base de datos.

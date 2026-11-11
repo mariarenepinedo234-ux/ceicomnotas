@@ -30,3 +30,19 @@
 .panel-foot .icon{width:16px;height:16px;margin-top:3px;color:currentColor}
 .app-footer{font-size:13px;line-height:1.7;color:#66616d;gap:16px;flex-wrap:wrap}
 @media(max-width:760px){.app-footer{font-size:12px;gap:8px;align-items:flex-start}.app-footer>span{flex-basis:100%}.app-footer span:last-child{max-width:none;text-align:left}}
+
+/* Asignaciones desplegables por docente. */
+.teacher-assignment{margin:0;border-top:1px solid var(--line);color:var(--ink);line-height:normal}
+.teacher-assignment>summary{display:flex;align-items:center;gap:13px;padding:19px 22px;cursor:pointer;list-style:none;min-height:83px}
+.teacher-assignment>summary::-webkit-details-marker{display:none}
+.teacher-assignment>summary:hover{background:var(--wine-soft)}
+.teacher-assignment>summary:focus-visible{outline:2px solid var(--wine);outline-offset:-3px;border-radius:5px}
+.assignment-teacher-info{display:flex;flex-direction:column;gap:7px;min-width:0;flex:1}
+.assignment-teacher-info strong{font-size:14px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+.assignment-teacher-info>span{font-size:12px;color:var(--muted);line-height:1.5}
+.assignment-chevron{color:var(--wine);transition:transform .15s}
+.teacher-assignment[open]>summary .assignment-chevron{transform:rotate(180deg)}
+.teacher-assignment table td:first-child{min-width:240px;max-width:440px;white-space:normal;overflow-wrap:anywhere}
+.teacher-assignment .table-wrap{border-top:1px solid var(--line)}
+@media(max-width:760px){.teacher-assignment>summary{padding:16px;gap:10px}.assignment-teacher-info strong{font-size:13px}.assignment-teacher-info>span{font-size:12px}.teacher-assignment .avatar{width:32px;height:32px}}
+@media(prefers-reduced-motion:reduce){.assignment-chevron{transition:none}}

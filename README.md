@@ -234,3 +234,11 @@ La migración `006_subject_order.sql` agrega `subjects.catalog_order` y asigna l
 El catálogo, la asignación docente, el registro de grupos y la inscripción individual usan el mismo criterio: carrera, 1º/2º/3º año y posición del Excel. Para los códigos habituales se ve la secuencia 101, 102, 103…; las carreras con numeraciones repetidas, como Electrónica, mantienen el orden exacto de las filas. Las complementarias se mantienen después de las oficiales de su año.
 
 Actualiza el proyecto completo, conservando `.env`, `backups` y tus archivos privados, y ejecuta `npm install`, `npm run catalogo:actualizar` y `npm run dev`. El comando aplica las migraciones pendientes antes de cargar el catálogo; también puedes ejecutar `npm run db:migrate` por separado. Actualiza el navegador con Ctrl + F5.
+
+## Asignaciones agrupadas por docente
+
+En **Materias y asignaciones**, los grupos se muestran en desplegables por docente, cerrados al entrar. Cada cabecera indica cuántas materias, grupos y carreras corresponden al período filtrado. Al abrirla se ven las materias con carrera, año, módulo, gestión, turno y plazo, manteniendo el orden del Excel por carrera/año y las acciones **Ver notas**, **Editar inscritos** y **Reabrir plazo**.
+
+La búsqueda por materia, código, carrera, docente o turno abre los desplegables con coincidencias. Los filtros de gestión y módulo se aplican antes de agrupar. Al borrar la búsqueda se recuperan los docentes que se habían abierto manualmente durante la sesión. Se pueden abrir varios docentes a la vez, también usando el teclado. Este cambio es de presentación y no requiere migraciones.
+
+Vista con registros ficticios: [asignaciones por docente](docs/teacher-assignments-preview.png).
