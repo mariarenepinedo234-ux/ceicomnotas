@@ -1,3 +1,4 @@
+import {retakeStudentLabel} from './public/enrollment-rules.js';
 import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
 import {readFileSync} from 'node:fs';
 import PDFDocument from 'pdfkit';
@@ -16,8 +17,8 @@ export async function reportData(db,id) {
     JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id
     JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id WHERE o.id=?`).get(id));
   if(!offering) return null;
-  const rows=(await db.prepare('SELECT e.id,u.name student,u.ci,e.saber,e.hacer,e.ser,e.grade FROM enrollments e JOIN users u ON u.id=e.student_id WHERE e.offering_id=?').all(id))
-    .sort((a,b)=>a.student.localeCompare(b.student,'es',{sensitivity:'base'})||a.ci.localeCompare(b.ci))
+  const rows=(await db.prepare('SELECT e.id,u.name student,u.ci,e.saber,e.hacer,e.ser,e.grade,e.is_retake,s.level student_level,y.name admission_year FROM enrollments e JOIN users u ON u.id=e.student_id JOIN students s ON s.user_id=e.student_id JOIN years y ON y.id=s.admission_year_id WHERE e.offering_id=?').all(id))
+    .sort((a,b)=>a.student.localeCompare(b.student,'es',{sensitivity:'base'})||String(a.ci||'').localeCompare(String(b.ci||'')))
     .map((row,index)=>({...row,number:index+1,status:statusFor(row.grade)}));
   return uppercaseAcademicData({offering:{...offering,course:levelName[offering.level]},rows,pending:rows.filter(r=>r.grade===null).length,
     legacy:rows.filter(r=>r.grade!==null && [r.saber,r.hacer,r.ser].some(v=>v===null)).length,
@@ -29,6 +30,7 @@ export function reportFilename(report,extension) {
   const text=`planilla-${report.offering.career}-${report.offering.subject}-${report.offering.year}-${report.offering.module}-${report.offering.shift}`;
   return (report.draft?'borrador-':'')+text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9-]+/g,'-').slice(0,170)+'.'+extension;
 }
+const studentText=row=>[row.student.toLocaleUpperCase('es'),retakeStudentLabel(row)].filter(Boolean).join('\n');
 const dateLabel=iso=>new Intl.DateTimeFormat('es-BO',{day:'numeric',month:'long',year:'numeric',timeZone:'America/La_Paz'}).format(new Date(iso));
 
 export function renderPdf(report) {
@@ -40,7 +42,7 @@ export function renderPdf(report) {
       const pages=[];let chunk=[],height=0;
       doc.font('Helvetica').fontSize(7.5);
       for(const row of report.rows) {
-        const rowHeight=Math.max(18,doc.heightOfString(row.student.toLocaleUpperCase('es'),{width:widths[1]-12})+8);
+        const rowHeight=Math.max(18,doc.heightOfString(studentText(row),{width:widths[1]-12})+8);
         if(chunk.length===20 || height+rowHeight>360) {pages.push(chunk);chunk=[];height=0;}
         chunk.push({...row,height:rowHeight});height+=rowHeight;
       }
@@ -76,11 +78,11 @@ export function renderPdf(report) {
         let rendered=0;
         for(const row of rows){
           const failed=row.grade!==null && row.grade<61;
-          const cells=[row.number,row.student.toLocaleUpperCase('es'),row.saber??'—',row.hacer??'—',row.ser??'—',row.grade??'—',row.status];
+          const cells=[row.number,studentText(row),row.saber??'—',row.hacer??'—',row.ser??'—',row.grade??'—',row.status];
           cells.forEach((v,i)=>cell(x[i],y,widths[i],row.height,v,failed?'#fbe8eb':i===2?'#fcf5ed':i===3||i===4?'#f0f6f8':'#ffffff',i===1?'Helvetica':'Helvetica-Bold',i===6?6.5:7.5,i===1?'left':'center',failed?'#b22740':INK));
           y+=row.height;rendered++;
         }
-        while(rendered<20 && y+18<=650){[pageIndex*20+rendered+1,'','','','','',''].forEach((v,i)=>cell(x[i],y,widths[i],18,v,'#fff','Helvetica',7));y+=18;rendered++;}
+        while(rendered<20 && y+18<=650){[(rows.at(-1)?.number||0)+rendered-rows.length+1,'','','','','',''].forEach((v,i)=>cell(x[i],y,widths[i],18,v,'#fff','Helvetica',7));y+=18;rendered++;}
         doc.font('Helvetica').fontSize(7).fillColor('#8f8089').text('ESCALA: 1 A 100 PUNTOS · APROBACIÓN DESDE 61 · ROJO: ESTUDIANTE REPROBADO',43,Math.max(y+11,661),{width:528});
         if(report.legacy)doc.fontSize(6.5).text('—: DESGLOSE NO REGISTRADO EN NOTAS ANTERIORES. LA NOTA FINAL ORIGINAL SE CONSERVA.',43,676,{width:528});
         doc.moveTo(49,717).lineTo(267,717).moveTo(345,717).lineTo(563,717).strokeColor(INK).lineWidth(.5).stroke();
@@ -121,9 +123,9 @@ export async function renderExcel(report){
   }
   const count=Math.max(20,report.rows.length);
   for(let i=0;i<count;i++){
-    const r=15+i,item=report.rows[i],row=sheet.getRow(r);row.height=item?Math.max(16,Math.ceil(item.student.length/45)*11+5):16;
+    const r=15+i,item=report.rows[i],row=sheet.getRow(r);row.height=item?Math.max(16,Math.ceil(item.student.length/45)*11+(retakeStudentLabel(item)?Math.ceil(retakeStudentLabel(item).length/45)*11:0)+5):16;
     sheet.mergeCells(`C${r}:E${r}`);
-    sheet.getCell(r,2).value=i+1;sheet.getCell(r,3).value=item?.student.toLocaleUpperCase('es')||'';
+    sheet.getCell(r,2).value=i+1;sheet.getCell(r,3).value=item?studentText(item):'';
     for(let d=0;d<3;d++)sheet.getCell(r,d+6).value=item?.[['saber','hacer','ser'][d]]??null;
     if(item){
       const complete=[item.saber,item.hacer,item.ser].every(v=>v!==null);

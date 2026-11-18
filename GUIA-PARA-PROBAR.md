@@ -299,3 +299,11 @@ npm run dev
 ```
 
 La migración 007 añade una marca a las inscripciones; conserva las notas y los datos de los estudiantes. Después pulsa Ctrl + F5.
+
+## Ver el año actual y el ingreso del alumno que recursa
+
+Después de inscribirlo con la opción de materias pendientes, abre **Ver notas** y luego **Generar planilla de notas**. Bajo su nombre aparece, por ejemplo, **MATERIA PENDIENTE · 3º AÑO ACTUAL · INGRESO 2024**. La identificación se incluye también al descargar PDF o Excel y en su expediente. No tienes que escribirla manualmente.
+
+El encabezado de la materia puede decir **CURSO: PRIMERO**, porque el alumno está recursando esa materia de 1º. La etiqueta bajo su nombre permite distinguirlo de los alumnos regulares. **INGRESO 2024** es su gestión de ingreso; la gestión de la planilla corresponde al período en que está cursando la materia.
+
+Actualiza el proyecto completo conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. Esta identificación usa la migración 007 de la versión anterior; si aún no la aplicaste, ejecuta `npm run db:migrate` antes de iniciar.
