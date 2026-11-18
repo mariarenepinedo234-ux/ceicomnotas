@@ -1,0 +1,10 @@
+.history-progress{padding:22px;display:flex;flex-direction:column;gap:16px}
+.history-progress h2{font-size:16px}.history-progress p{font-size:13px;color:var(--muted);line-height:1.8;margin-top:8px}
+.history-progress progress{width:100%;height:14px;accent-color:var(--wine)}
+.history-toolbar{flex-wrap:wrap}.history-toolbar select{width:auto;min-width:160px;font-size:13px}.history-toolbar .search-box{flex:1;max-width:440px;min-width:200px}
+.history-count,.history-note{font-size:13px;line-height:1.8;color:var(--muted);padding:0 22px 18px}.history-note{margin-top:20px;padding:0}
+.history-results>.panel>.history-note{padding:0 22px}
+.history-table{white-space:normal;font-size:13px}.history-table th{font-size:10px}.history-table td{vertical-align:top}.history-table td:first-child{min-width:220px;max-width:420px;overflow-wrap:anywhere}.history-table td strong{font-size:13px}.history-table .cell-sub{font-size:12px}.history-table .badge{font-size:11px}
+.history-attempts{margin:0;min-width:210px;font-size:12px;line-height:1.7;color:var(--ink)}.history-attempts summary{cursor:pointer;color:var(--wine);font-weight:600}.history-attempts summary:focus-visible{outline:2px solid var(--wine);outline-offset:4px}.history-attempts ol{padding-left:18px;margin:12px 0 0}.history-attempts li{margin:0 0 12px}.history-attempts li>span,.history-attempts li>strong{display:block}
+.student-history-link{margin:0 0 24px;white-space:normal}
+@media(max-width:760px){.history-toolbar select{width:100%;font-size:16px}.history-toolbar .search-box{min-width:0;max-width:none;flex-basis:100%}.history-toolbar input{font-size:16px}.history-count{padding:0 16px 16px}.history-progress{padding:18px}.history-table td{padding:14px}.history-table td:first-child{min-width:200px}.history-stats .stat-sub{font-size:11px;line-height:1.5}}

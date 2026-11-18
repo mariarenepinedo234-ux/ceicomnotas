@@ -307,3 +307,13 @@ Después de inscribirlo con la opción de materias pendientes, abre **Ver notas*
 El encabezado de la materia puede decir **CURSO: PRIMERO**, porque el alumno está recursando esa materia de 1º. La etiqueta bajo su nombre permite distinguirlo de los alumnos regulares. **INGRESO 2024** es su gestión de ingreso; la gestión de la planilla corresponde al período en que está cursando la materia.
 
 Actualiza el proyecto completo conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. Esta identificación usa la migración 007 de la versión anterior; si aún no la aplicaste, ejecuta `npm run db:migrate` antes de iniciar.
+
+## Consultar materias cursadas y por aprobar como estudiante
+
+1. Entra como estudiante y pulsa **Mi historial académico** en el menú, o **Ver mi historial y las materias por aprobar** desde el resumen.
+2. Revisa las tarjetas: materias del plan, aprobadas, por aprobar y sin inscripción. El avance incluye todo el historial, aunque el resumen estuviera filtrado por una gestión anterior.
+3. Filtra por 1º/2º/3º año, por estado o busca una materia/código. **Por aprobar** reúne reprobadas, inscritas, notas pendientes y materias sin inscripción.
+4. Abre **Ver registros** en una materia para consultar sus distintos intentos. Una reprobación seguida de una aprobación cuenta como una sola materia aprobada; la nota anterior se conserva.
+5. Revisa la sección de complementarias y planes anteriores. Sus notas se conservan, pero se muestran aparte del avance del plan vigente. Si una materia ya cursada aparece Sin inscripción, solicita a secretaría completar sus registros anteriores al uso del portal.
+
+Actualiza el proyecto completo conservando `.env`, `backups` y tus archivos privados; reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones respecto de la versión 007. Para que el plan refleje el Excel revisado, administración debe haber aplicado el catálogo mediante `npm run catalogo:actualizar`.

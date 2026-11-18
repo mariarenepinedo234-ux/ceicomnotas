@@ -1,3 +1,4 @@
+import {studentAcademicHistory} from './student-history.js';
 import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
 import {saveRegisteredGroup,academicImpact,offeringRosterReview,updateOfferingRoster,editStudent,resetStudentPassword,deleteStudent,editModule,deleteModule} from './academic-admin.js';
 import {readPlanUpload,listStudyPlans,createStudyPlan,studyPlanFile,deleteStudyPlan} from './study-plans.js';
@@ -110,6 +111,10 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
           }
         }
         fail('Ruta no encontrada.',404);
+      }
+      if(path==='/api/academic-history' && req.method==='GET'){
+        if(user.role!=='student')fail('Este historial corresponde al perfil estudiante.',403);
+        return send(await studentAcademicHistory(db,user.id));
       }
       if(path==='/api/data' && req.method==='GET') {
         if(user.role==='student' && user.blocked) return send({blocked:true});
