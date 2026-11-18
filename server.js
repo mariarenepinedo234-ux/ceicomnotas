@@ -1,3 +1,4 @@
+import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
 import {saveRegisteredGroup,academicImpact,offeringRosterReview,updateOfferingRoster,editStudent,resetStudentPassword,deleteStudent,editModule,deleteModule} from './academic-admin.js';
 import {readPlanUpload,listStudyPlans,createStudyPlan,studyPlanFile,deleteStudyPlan} from './study-plans.js';
 import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
@@ -127,7 +128,8 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
           teacher_directory:admin?(await db.prepare('SELECT id,name,user_id FROM teacher_directory ORDER BY name').all()):[],
           group_memberships:admin?(await db.prepare('SELECT * FROM academic_group_students ORDER BY group_id,student_id').all()):[],
           academic_groups:admin?(await db.prepare(`SELECT g.*,s.name subject,c.name career,ay.name admission_year,y.name AS "year",sh.name shift,o.teacher_id,u.name teacher,m.name module,
-            (SELECT COUNT(*) FROM academic_group_students gs WHERE gs.group_id=g.id) student_count
+            (SELECT COUNT(*) FROM academic_group_students gs WHERE gs.group_id=g.id) student_count,
+            (SELECT COUNT(*) FROM enrollments e WHERE e.offering_id=g.offering_id AND e.is_retake) retake_count
             FROM academic_groups g JOIN subjects s ON s.id=g.subject_id JOIN careers c ON c.id=s.career_id
             JOIN years ay ON ay.id=g.admission_year_id JOIN years y ON y.id=g.year_id JOIN shifts sh ON sh.id=g.shift_id
             LEFT JOIN offerings o ON o.id=g.offering_id LEFT JOIN users u ON u.id=o.teacher_id LEFT JOIN modules m ON m.id=o.module_id ORDER BY g.id`).all()):[],
@@ -307,12 +309,12 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
           const o=await db.prepare('SELECT o.*,s.career_id,s.level FROM offerings o JOIN subjects s ON s.id=o.subject_id WHERE o.id=? FOR UPDATE OF o').get(offeringId);
           const s=await db.prepare('SELECT * FROM students WHERE user_id=? FOR UPDATE').get(studentId);
           if(!s||!o)fail('Estudiante o materia inválidos.');
-          if(s.career_id!==o.career_id||s.shift_id!==o.shift_id||s.level!==o.level)fail('La materia debe coincidir con la carrera, turno y año actual del estudiante.');
           const group=await db.prepare('SELECT * FROM academic_groups WHERE offering_id=?').get(o.id);
-          if(group&&group.admission_year_id!==s.admission_year_id)fail('El estudiante pertenece a otro ingreso. Revisa el grupo académico.');
-          await db.prepare('INSERT INTO enrollments(student_id,offering_id) VALUES (?,?)').run(s.user_id,o.id);
+          if(!enrollmentMatches(s,o,{allowRetake:allowsRetakes(b.allow_retake),admissionYearId:group?.admission_year_id}))fail('La materia debe coincidir con carrera, turno y año. Para cursar un año anterior activa Materia pendiente; no se permite adelantar años.');
+          if(await db.prepare('SELECT id FROM enrollments WHERE student_id=? AND offering_id=?').get(s.user_id,o.id))fail('El estudiante ya está inscrito en esta asignación. Para otro intento usa una asignación de otro trimestre o gestión.');
+          await db.prepare('INSERT INTO enrollments(student_id,offering_id,is_retake) VALUES (?,?,?)').run(s.user_id,o.id,s.level>o.level);
           if(group)await db.prepare('INSERT INTO academic_group_students(group_id,student_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(group.id,s.user_id);
-          await audit(user.id,'Inscripción realizada',`Estudiante ${s.user_id} · asignación ${o.id}`);
+          await audit(user.id,s.level>o.level?'Materia pendiente inscrita':'Inscripción realizada',`Estudiante ${s.user_id} · asignación ${o.id} · año actual ${s.level}º · materia ${o.level}º; ingreso y notas anteriores conservados.`);
         });return send({ok:true});
       }
       if(path==='/api/student-status') {

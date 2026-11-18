@@ -1,3 +1,4 @@
+import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
 import {createHash} from 'node:crypto';
 import {academicUpper} from './public/academic-text.js';
 import {hashPassword} from './lib.js';
@@ -14,10 +15,10 @@ async function studentRow(db,studentId){
   const student=await db.prepare('SELECT * FROM students WHERE user_id=? FOR UPDATE').get(studentId);if(!student)fail('Estudiante no encontrado.',404);
   const user=await db.prepare("SELECT * FROM users WHERE id=? AND role='student' FOR UPDATE").get(studentId);if(!user)fail('Estudiante no encontrado.',404);return {student,user};
 }
-async function eligibility(db,studentIds,subject,shiftId,admissionId=null,existing=new Set()){
+async function eligibility(db,studentIds,subject,shiftId,admissionId=null,existing=new Set(),allowRetake=false){
   const result=await db.query('SELECT s.*,u.name FROM students s JOIN users u ON u.id=s.user_id WHERE s.user_id=ANY($1::int[]) ORDER BY s.user_id FOR UPDATE OF s',[studentIds]);
   if(result.rows.length!==studentIds.length)fail('Todos los estudiantes deben estar registrados. No se crean estudiantes desde un grupo.');
-  for(const s of result.rows)if(!existing.has(s.user_id)&&(s.career_id!==subject.career_id||s.level!==subject.level||s.shift_id!==shiftId||(admissionId&&s.admission_year_id!==admissionId)))fail('La selección contiene estudiantes de otra carrera, año, ingreso o turno. Actualiza los filtros.');
+  for(const s of result.rows)if(!existing.has(s.user_id)&&!enrollmentMatches(s,{...subject,shift_id:shiftId},{allowRetake,admissionYearId:admissionId}))fail('La selección contiene estudiantes de otra carrera, año, ingreso o turno. Para un año anterior, habilita Materias pendientes. No se permite adelantar materias.');
   return result.rows;
 }
 
@@ -34,13 +35,16 @@ export async function saveRegisteredGroup(db,input,actor){
     if(offering&&offering.teacher_id!==teacher)fail('La materia ya está asignada a otro docente en ese trimestre y turno.',409);
     if(!offering)offering=(await db.query('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES ($1,$2,$3,$4) RETURNING *',[subjectId,moduleId,shift,teacher])).rows[0];
     let group=await db.prepare('SELECT * FROM academic_groups WHERE offering_id=?').get(offering.id);
-    if(group&&group.admission_year_id!==admission)fail('Esta asignación ya está vinculada a otro ingreso. Revisa el grupo existente.',409);
+    const students=await eligibility(db,studentIds,subject,shift,null,new Set(),allowsRetakes(input.allow_retake));
+    if(students.some(s=>s.admission_year_id!==admission))fail('Los estudiantes deben pertenecer a la gestión de ingreso seleccionada.');
+    if(group&&group.admission_year_id!==admission&&!students.every(s=>s.level>subject.level))fail('Esta asignación ya está vinculada a otro ingreso. Revisa el grupo existente.',409);
     if(!group)group=(await db.query('INSERT INTO academic_groups(subject_id,year_id,admission_year_id,shift_id,offering_id) VALUES ($1,$2,$3,$4,$5) RETURNING *',[subjectId,year,admission,shift,offering.id])).rows[0];
-    await eligibility(db,studentIds,subject,shift,admission);
     let count=0;
     for(const studentId of studentIds){
       await db.prepare('INSERT INTO academic_group_students(group_id,student_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(group.id,studentId);
-      count+=(await db.prepare('INSERT INTO enrollments(student_id,offering_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(studentId,offering.id)).changes;
+      const retake=students.find(s=>s.user_id===studentId).level>subject.level;
+      const added=(await db.prepare('INSERT INTO enrollments(student_id,offering_id,is_retake) VALUES (?,?,?) ON CONFLICT DO NOTHING').run(studentId,offering.id,retake)).changes;count+=added;
+      if(added&&retake)await audit(db,actor,'Materia pendiente inscrita',`Estudiante ${studentId} · asignación ${offering.id} · materia de ${subject.level}º; año actual e ingreso conservados.`);
     }
     await db.query('INSERT INTO academic_group_students(group_id,student_id) SELECT $1,student_id FROM enrollments WHERE offering_id=$2 ON CONFLICT DO NOTHING',[group.id,offering.id]);
     await audit(db,actor,'Grupo de estudiantes registrados guardado',`Grupo ${group.id} · ${studentIds.length} seleccionados · ${count} inscripciones nuevas; sin crear personas.`);
@@ -77,10 +81,10 @@ export async function offeringRosterReview(db,offeringId){
   return db.transaction(async()=>{
     const state=await snapshot(db,'offering',id(offeringId));
     const enrolled=state.enrollments.map(e=>e.student_id),r=state.record;
-    const candidates=(await db.query(`SELECT s.*,u.name,u.ci FROM students s JOIN users u ON u.id=s.user_id
-      WHERE s.user_id=ANY($1::int[]) OR (s.career_id=$2 AND s.level=$3 AND s.shift_id=$4 AND ($5::int IS NULL OR s.admission_year_id=$5)) ORDER BY upper(u.name),s.user_id`,[enrolled,r.career_id,r.level,r.shift_id,state.groups[0]?.admission_year_id||null])).rows;
+    const candidates=(await db.query(`SELECT s.*,u.name,u.ci,y.name AS admission_year FROM students s JOIN users u ON u.id=s.user_id JOIN years y ON y.id=s.admission_year_id
+      WHERE s.user_id=ANY($1::int[]) OR (s.career_id=$2 AND s.shift_id=$4 AND ((s.level=$3 AND ($5::int IS NULL OR s.admission_year_id=$5)) OR s.level>$3)) ORDER BY upper(u.name),s.user_id`,[enrolled,r.career_id,r.level,r.shift_id,state.groups[0]?.admission_year_id||null])).rows;
     const detail=await db.prepare('SELECT c.name AS career,m.name AS module,y.name AS year,sh.name AS shift FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id WHERE o.id=?').get(offeringId);
-    return {...state.public,context:academicUpper(`${detail.career} · ${detail.module} · ${detail.year} · ${detail.shift}`),student_ids:enrolled,graded_student_ids:state.enrollments.filter(hasNotes).map(e=>e.student_id),students:candidates.map(s=>({...s,name:academicUpper(s.name)}))};
+    return {...state.public,context:academicUpper(`${detail.career} · ${detail.module} · ${detail.year} · ${detail.shift}`),student_ids:enrolled,graded_student_ids:state.enrollments.filter(hasNotes).map(e=>e.student_id),students:candidates.map(s=>({...s,name:academicUpper(s.name),retake_candidate:s.level>r.level}))};
   },{isolation:'REPEATABLE READ'});
 }
 
@@ -91,10 +95,14 @@ export async function updateOfferingRoster(db,input,actor){
     if(input.revision!==state.public.revision)fail('La lista o sus notas cambiaron. Cierra y abre de nuevo Editar inscritos.',409);
     const existing=new Set(state.enrollments.map(e=>e.student_id)),selected=new Set(studentIds),removed=state.enrollments.filter(e=>!selected.has(e.student_id));
     if(removed.some(hasNotes)&&input.confirm_grades!=='RETIRAR CON NOTAS')fail('Hay estudiantes desmarcados con notas o borradores. Confirma que deseas retirarlos junto con sus notas.',409);
-    await eligibility(db,studentIds,state.record,state.record.shift_id,state.groups[0]?.admission_year_id,existing);
+    const students=await eligibility(db,studentIds,state.record,state.record.shift_id,state.groups[0]?.admission_year_id,existing,allowsRetakes(input.allow_retake));
     for(const row of removed)await db.prepare('DELETE FROM enrollments WHERE id=?').run(row.id);
     for(const group of state.groups){await db.query('DELETE FROM academic_group_students WHERE group_id=$1 AND NOT(student_id=ANY($2::int[]))',[group.id,studentIds]);for(const studentId of studentIds)await db.prepare('INSERT INTO academic_group_students(group_id,student_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(group.id,studentId);}
-    let added=0;for(const studentId of studentIds)added+=(await db.prepare('INSERT INTO enrollments(student_id,offering_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(studentId,offeringId)).changes;
+    let added=0;for(const studentId of studentIds){
+      const retake=students.find(s=>s.user_id===studentId).level>state.record.level;
+      const count=(await db.prepare('INSERT INTO enrollments(student_id,offering_id,is_retake) VALUES (?,?,?) ON CONFLICT DO NOTHING').run(studentId,offeringId,retake)).changes;added+=count;
+      if(count&&retake)await audit(db,actor,'Materia pendiente inscrita',`Estudiante ${studentId} · asignación ${offeringId} · materia de ${state.record.level}º; año actual e ingreso conservados.`);
+    }
     await audit(db,actor,'Lista de inscritos actualizada',`Asignación ${offeringId}: ${added} agregados, ${removed.length} retirados, ${removed.filter(hasNotes).length} registros con notas retirados; notas restantes conservadas.`);
     return {ok:true,added,removed:removed.length};
   });

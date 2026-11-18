@@ -281,3 +281,21 @@ Actualiza el proyecto conservando `.env`, `backups` y tus archivos privados; rei
 3. Filtra por módulo, carrera o búsqueda y comprueba que se ordenan las coincidencias. Un grupo de un trimestre anterior reabierto por administración también recibe prioridad mientras esté habilitado.
 
 Actualiza el proyecto conservando `.env`, `backups` y tus archivos privados; reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere migraciones de PostgreSQL ni cambiar los datos registrados.
+
+## Alumno de 3º que debe una materia de 1º o 2º
+
+1. Conserva al alumno en **3º año** y con su ingreso original, por ejemplo 2024. Conserva también la inscripción y la nota reprobada anterior.
+2. Verifica que la materia pendiente tenga una asignación con docente, turno y trimestre de la gestión en que volverá a cursarla. Si falta, créala con **Nueva asignación**.
+3. En **Materias y asignaciones**, abre el docente y pulsa **Editar inscritos** en esa asignación. Activa **Incluir estudiantes de años superiores con materias pendientes**, busca al alumno y marca su casilla. Los datos bajo su nombre muestran su año actual e ingreso.
+4. Guarda. El alumno aparece en la lista del docente como materia pendiente; la nueva nota se registra allí. El expediente conserva ambos intentos, separados por trimestre/gestión.
+
+También puedes usar **Inscribir estudiante** y marcar **Materia pendiente de un año anterior**. Se muestran las asignaciones compatibles de la misma carrera y turno. En **Registrar grupo**, elige el año de la materia (1º o 2º), el ingreso del alumno (2024), la gestión cursada y activa la opción de pendientes. Cambiar este filtro reinicia la selección. No se permite adelantar materias ni inscribir en otra carrera o turno con esta opción.
+
+Para actualizar esta versión, conserva `.env`, `backups` y tus archivos privados, y ejecuta:
+
+```sh
+npm run db:migrate
+npm run dev
+```
+
+La migración 007 añade una marca a las inscripciones; conserva las notas y los datos de los estudiantes. Después pulsa Ctrl + F5.

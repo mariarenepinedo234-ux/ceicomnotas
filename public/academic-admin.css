@@ -15,3 +15,7 @@
 .subject-career-help{font-size:13px;line-height:1.7;color:var(--muted)}
 #create-subject-form .form-actions{flex-wrap:wrap}
 @media(max-width:760px){.subject-career-list{grid-template-columns:minmax(0,1fr);max-height:240px}.subject-careers{padding:12px}#create-subject-form .form-actions .btn{white-space:normal}#create-subject-form input:not([type=checkbox]),#create-subject-form select{font-size:16px}}
+
+.retake-option{display:flex;flex-direction:row;align-items:flex-start;gap:12px;margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--wine-soft);font-size:13px;line-height:1.7}
+.retake-option input[type=checkbox]{width:18px;height:18px;min-width:18px;min-height:18px;padding:0;margin:3px 0 0;accent-color:var(--wine);flex-shrink:0}
+.retake-option small{display:block;font-size:12px;font-weight:400;line-height:1.7;color:var(--muted);margin-top:4px}

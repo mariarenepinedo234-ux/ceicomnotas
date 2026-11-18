@@ -22,7 +22,7 @@ test('base institucional vacía, administrador seguro y migraciones repetibles',
   const db=await testDatabase({demo:false});t.after(()=>db.cleanup());
   for(const table of applicationTables)assert.equal((await db.prepare(`SELECT COUNT(*) n FROM ${table}`).get()).n,0);
   await migrateDatabase(db);await migrateDatabase(db);
-  assert.equal((await db.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n,6);
+  assert.equal((await db.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n,7);
   await assert.rejects(createAdmin(db,{ci:'administracion',name:'Administrador institucional',password:'Clave12'}),/8 a 160/);
   await createAdmin(db,{ci:'administracion',name:'Administrador institucional',password:'Clave123'});
   const admin=await db.prepare('SELECT * FROM users').get();assert.equal(admin.must_change,1);assert.equal(admin.role,'admin');assert.ok(verifyPassword('Clave123',admin.password));
@@ -56,7 +56,7 @@ test('importación SQLite íntegra, solo lectura, con contraseñas, notas, audit
   old.prepare('UPDATE enrollments SET saber=30,hacer=45,ser=25,grade=100 WHERE id=1').run();
   old.prepare('INSERT INTO sessions VALUES (?,?,?)').run('sesion-anterior',1,Date.now()+100000);
   const password=old.prepare('SELECT password FROM users WHERE id=1').get().password;
-  const enrollments=old.prepare('SELECT * FROM enrollments ORDER BY id').all().map(r=>({...r}));
+  const enrollments=old.prepare('SELECT * FROM enrollments ORDER BY id').all().map(r=>({...r,is_retake:false}));
   old.close();const bytes=readFileSync(filename);
   const db=await testDatabase({demo:false});t.after(()=>db.cleanup());
   const counts=await importSqlite(db,filename);assert.equal(counts.users,11);assert.equal(counts.enrollments,18);
