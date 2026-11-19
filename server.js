@@ -1,7 +1,7 @@
 import {saveCalendarModule,moduleAcceptsAdmission} from './module-calendars.js';
 import {studentAcademicHistory} from './student-history.js';
 import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
-import {saveRegisteredGroup,academicImpact,offeringRosterReview,updateOfferingRoster,editStudent,resetStudentPassword,deleteStudent,editModule,deleteModule} from './academic-admin.js';
+import {saveRegisteredGroup,academicImpact,offeringRosterReview,updateOfferingRoster,editStudent,resetStudentPassword,resetTeacherPassword,deleteStudent,editModule,deleteModule} from './academic-admin.js';
 import {readPlanUpload,listStudyPlans,createStudyPlan,studyPlanFile,deleteStudyPlan} from './study-plans.js';
 import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
 import http from 'node:http';
@@ -206,7 +206,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
       if(path==='/api/academic-impact'&&req.method==='GET')return send(await academicImpact(db,url.searchParams.get('type'),number(url.searchParams.get('id'))));
       if(req.method!=='POST') fail('Ruta no encontrada.',404);
       const b=body;
-      const administration={'/api/student-edit':editStudent,'/api/student-password-reset':resetStudentPassword,'/api/student-delete':deleteStudent,'/api/module-edit':editModule,'/api/module-delete':deleteModule,'/api/offering-roster':updateOfferingRoster};
+      const administration={'/api/student-edit':editStudent,'/api/student-password-reset':resetStudentPassword,'/api/teacher-password-reset':resetTeacherPassword,'/api/student-delete':deleteStudent,'/api/module-edit':editModule,'/api/module-delete':deleteModule,'/api/offering-roster':updateOfferingRoster};
       if(administration[path])return send(await administration[path](db,b,user.id));
       if(path==='/api/rosters'){
         return send(await saveRegisteredGroup(db,b,user.id));

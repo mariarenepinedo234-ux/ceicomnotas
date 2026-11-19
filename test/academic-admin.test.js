@@ -93,11 +93,50 @@ test('trimestres se editan sin perder notas; eliminación confirmada retira sus 
   assert.equal((await api('module-delete',{module_id:module.id,revision:impact.revision,confirm:'ELIMINAR TRIMESTRE'})).status,200);assert.equal(await db.prepare('SELECT id FROM modules WHERE id=?').get(module.id),undefined);assert.equal((await db.prepare('SELECT COUNT(*) n FROM users').get()).n,users);assert.deepEqual((await db.query('SELECT e.* FROM enrollments e JOIN offerings o ON o.id=e.offering_id WHERE o.module_id<>$1 ORDER BY e.id',[module.id])).rows,otherRows);
 });
 
-test('solo administración puede administrar estudiantes, grupos y trimestres',async t=>{
+test('restablecer contraseña docente revoca sus sesiones, exige cambio y conserva asignaciones y notas',async t=>{
+  const {db,api}=await setup(t),teacher=await db.prepare("SELECT * FROM users WHERE ci='4567890'").get();
+  await api('password',{current:'4567890',password:'AnteriorDocente123'},'teacher');
+  assert.equal((await api('login',{ci:teacher.ci,password:'AnteriorDocente123'},'teacher-second')).status,200);
+  assert.equal((await api('login',{ci:'5678901',password:'5678901'},'other-teacher')).status,200);
+  const others=await db.prepare('SELECT * FROM users WHERE id<>? ORDER BY id').all(teacher.id),sessions=await db.prepare('SELECT * FROM sessions WHERE user_id<>? ORDER BY token').all(teacher.id);
+  const offerings=await db.prepare('SELECT * FROM offerings ORDER BY id').all(),notes=await db.prepare('SELECT * FROM enrollments ORDER BY id').all();
+  const result=await api('teacher-password-reset',{teacher_id:teacher.id,password:'TemporalDocente123'});assert.equal(result.status,200);assert.deepEqual(result.body,{ok:true});
+  const after=await db.prepare('SELECT * FROM users WHERE id=?').get(teacher.id);assert.ok(verifyPassword('TemporalDocente123',after.password));assert.notEqual(after.password,'TemporalDocente123');assert.equal(after.must_change,1);
+  assert.deepEqual({...after,password:teacher.password,must_change:teacher.must_change},teacher);
+  assert.equal((await db.prepare('SELECT COUNT(*) n FROM sessions WHERE user_id=?').get(teacher.id)).n,0);
+  for(const role of ['teacher','teacher-second'])assert.equal((await api('me',null,role)).status,401);
+  assert.deepEqual(await db.prepare('SELECT * FROM sessions WHERE user_id<>? ORDER BY token').all(teacher.id),sessions);
+  assert.deepEqual(await db.prepare('SELECT * FROM users WHERE id<>? ORDER BY id').all(teacher.id),others);
+  assert.equal((await api('me')).status,200);assert.equal((await api('me',null,'other-teacher')).status,200);
+  assert.equal((await api('login',{ci:teacher.ci,password:'AnteriorDocente123'},'teacher')).status,401);
+  assert.equal((await api('login',{ci:teacher.ci,password:'TemporalDocente123'},'teacher')).status,200);
+  assert.equal((await api('me',null,'teacher')).body.must_change,true);
+  assert.equal((await api('data',null,'teacher')).status,403);assert.equal((await api('grades',{grades:[]},'teacher')).status,403);
+  assert.equal((await api('password',{current:'TemporalDocente123',password:'TemporalDocente123'},'teacher')).status,400);
+  assert.equal((await api('password',{current:'TemporalDocente123',password:'PersonalDocente123'},'teacher')).status,200);
+  assert.equal((await api('data',null,'teacher')).status,200);
+  assert.deepEqual(await db.prepare('SELECT * FROM offerings ORDER BY id').all(),offerings);assert.deepEqual(await db.prepare('SELECT * FROM enrollments ORDER BY id').all(),notes);
+  const audit=await db.prepare("SELECT * FROM audit WHERE action='Contraseña de docente restablecida'").all();assert.equal(audit.length,1);assert.equal(audit[0].actor_id,1);assert.ok(audit[0].detail.includes(`Docente ${teacher.id}`));
+  const log=JSON.stringify(await db.prepare('SELECT * FROM audit').all());for(const secret of ['TemporalDocente123','AnteriorDocente123','PersonalDocente123',after.password])assert.equal(log.includes(secret),false);
+});
+
+test('restablecer docente valida identidad, CI y contraseña sin modificar otras cuentas',async t=>{
+  const {db,api}=await setup(t);await db.prepare("UPDATE users SET ci='45678900' WHERE id=2").run();
+  const pending=(await db.prepare("INSERT INTO users(ci,name,role,password) VALUES (NULL,'DOCENTE PENDIENTE','teacher',NULL)").run()).lastInsertRowid;
+  const before=await db.prepare('SELECT * FROM users ORDER BY id').all(),sessions=await db.prepare('SELECT * FROM sessions ORDER BY token').all();
+  for(const password of [undefined,null,12345678,'corta','x'.repeat(161),' Temporal123','Temporal123 ','45678900'])assert.equal((await api('teacher-password-reset',{teacher_id:2,password})).status,400);
+  for(const teacher_id of [0,-1,'invalido',2147483648])assert.equal((await api('teacher-password-reset',{teacher_id,password:'Temporal123'})).status,400);
+  for(const teacher_id of [1,4,999999])assert.equal((await api('teacher-password-reset',{teacher_id,password:'Temporal123'})).status,404);
+  const missing=await api('teacher-password-reset',{teacher_id:pending,password:'Temporal123'});assert.equal(missing.status,400);assert.match(missing.body.error,/Completa el CI del docente/);
+  assert.deepEqual(await db.prepare('SELECT * FROM users ORDER BY id').all(),before);assert.deepEqual(await db.prepare('SELECT * FROM sessions ORDER BY token').all(),sessions);
+  assert.equal((await db.prepare("SELECT COUNT(*) n FROM audit WHERE action='Contraseña de docente restablecida'").get()).n,0);
+});
+
+test('solo administración puede administrar estudiantes, docentes, grupos y trimestres',async t=>{
   const {api,student,payload}=await setup(t);
   for(const role of ['teacher','student','anonymous']){
     const expected=role==='anonymous'?401:403;
     for(const path of ['academic-impact?type=student&id='+student.user_id,'offering-roster?offering_id=1'])assert.equal((await api(path,null,role)).status,expected);
-    for(const [path,body] of [['rosters',payload],['student-edit',{}],['student-password-reset',{}],['student-delete',{}],['module-edit',{}],['module-delete',{}],['offering-roster',{}]])assert.equal((await api(path,body,role)).status,expected);
+    for(const [path,body] of [['rosters',payload],['student-edit',{}],['student-password-reset',{}],['teacher-password-reset',{}],['student-delete',{}],['module-edit',{}],['module-delete',{}],['offering-roster',{}]])assert.equal((await api(path,body,role)).status,expected);
   }
 });

@@ -318,3 +318,9 @@ Los módulos sin materias ofrecen Asignar materia y Registrar grupo para comenza
 La búsqueda de **Estudiantes** incluye **Gestión de ingreso**, con Todas las gestiones y los ingresos registrados. Se combina con nombre/carnet, carrera y turno. Utiliza el ingreso del perfil, por lo que un alumno de 3º año que ingresó en 2024 se encuentra seleccionando Ingreso 2024, aunque esté cursando materias en 2026. La selección se mantiene al abrir y cerrar el expediente o el formulario de restablecimiento de clave.
 
 El filtro usa los datos ya cargados; no modifica perfiles, contraseñas, inscripciones ni notas y no requiere nuevas migraciones. Vista con registros ficticios: [filtro de estudiantes por ingreso](docs/student-admission-filter-preview.png).
+
+## Restablecer la contraseña de un docente
+
+En **Docentes**, el administrador puede buscar por nombre o CI y pulsar **Restablecer contraseña** en la tarjeta de la cuenta. El formulario muestra el nombre y CI, solicita una contraseña temporal de 8 a 160 caracteres distinta del CI y su repetición. Al guardar, se cierran todas las sesiones de ese docente y debe crear una contraseña personal antes de acceder a sus materias y notas. El administrador debe comunicarle la contraseña temporal; no se envía automáticamente.
+
+Los docentes pendientes de CI deben completar su habilitación antes de usar esta opción. El restablecimiento conserva las materias, grupos, inscripciones y notas, y registra la acción sin incluir la contraseña en la auditoría. Solo administración puede usar la API `POST /api/teacher-password-reset`. No requiere migraciones adicionales. Vista con cuentas ficticias: [restablecimiento de docentes](docs/teacher-password-reset-preview.png).

@@ -142,6 +142,20 @@ export async function resetStudentPassword(db,input,actor){
     await audit(db,actor,'Contraseña de estudiante restablecida',`Estudiante ${studentId}; sesiones cerradas y cambio obligatorio al ingresar.`);return {ok:true};
   });
 }
+export async function resetTeacherPassword(db,input,actor){
+  const teacherId=id(input.teacher_id),password=input.password;
+  if(typeof password!=='string'||password!==password.trim()||password.length<8||password.length>160)fail('La contraseña temporal debe tener entre 8 y 160 caracteres.');
+  return db.transaction(async()=>{
+    const user=await db.prepare("SELECT * FROM users WHERE id=? AND role='teacher' FOR UPDATE").get(teacherId);
+    if(!user)fail('Docente no encontrado.',404);
+    if(!user.ci)fail('Completa el CI del docente antes de restablecer su contraseña.');
+    if(password===user.ci)fail('La contraseña temporal debe ser distinta del CI.');
+    await db.prepare('UPDATE users SET password=?,must_change=1 WHERE id=?').run(hashPassword(password),teacherId);
+    await db.prepare('DELETE FROM sessions WHERE user_id=?').run(teacherId);
+    await audit(db,actor,'Contraseña de docente restablecida',`Docente ${teacherId}; sesiones cerradas y cambio obligatorio al ingresar.`);
+    return {ok:true};
+  });
+}
 export async function deleteStudent(db,input,actor){
   const studentId=id(input.student_id);return db.transaction(async()=>{
     await structuralLock(db);const state=await snapshot(db,'student',studentId,true);reviewed(input,state.public,'ELIMINAR ESTUDIANTE');

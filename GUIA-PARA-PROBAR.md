@@ -346,3 +346,12 @@ En **Docentes** se muestra Nuevo docente y se conservan los pendientes de CI; se
 En **Estudiantes**, selecciona **Gestión de ingreso → Ingreso 2024**, por ejemplo. Puedes combinarlo con carrera, turno y nombre o carnet para localizar al alumno. Desde su fila usa **Restablecer clave** o el botón de expediente. La gestión elegida permanece al cerrar esos formularios.
 
 Se filtra por el año en que ingresó, no por la gestión actual de cursada. Para volver a todos, selecciona **Todas las gestiones** y limpia los demás filtros si corresponde. Actualiza el proyecto conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. Esta mejora no añade migraciones de PostgreSQL.
+
+## Recuperar el acceso de un docente
+
+1. Como administrador, abre **Docentes** y busca al docente por nombre o CI.
+2. Pulsa **Restablecer contraseña** en su tarjeta y verifica el nombre y CI del formulario.
+3. Escribe y repite una contraseña temporal de entre 8 y 160 caracteres, distinta del CI. Guarda y comunícala al docente.
+4. El docente ingresará con su mismo CI y esa contraseña temporal. Antes de ver el panel deberá cambiarla por una contraseña personal. Sus sesiones anteriores se cierran y sus materias y notas se conservan.
+
+Si todavía tiene CI pendiente, primero usa **Completar CI y habilitar**. Actualiza conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones.
