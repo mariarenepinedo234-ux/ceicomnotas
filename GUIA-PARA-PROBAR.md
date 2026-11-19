@@ -382,3 +382,16 @@ Crear las dos asignaciones con **Nueva asignación** las registra como independi
 El formulario **Nueva asignación** ahora avisa cuando la materia ya tiene asignaciones y ofrece Continuar materia desde allí, con módulo y docente de destino precargados. Un trimestre vencido no convierte automáticamente la materia en PARTE I: las partes se establecen mediante la continuación explícita. El sistema comprueba misma materia, turno, orden de fechas y grupos compatibles; únicamente administración puede vincularlos.
 
 Actualiza el proyecto conservando `.env`, `backups` y archivos privados. Ejecuta `npm install`, reinicia con `npm run dev` y pulsa Ctrl + F5. Si ya tienes aplicada la migración 009, esta mejora no necesita migraciones adicionales.
+
+## Inscribir toda la lista de una materia y eliminar una asignación equivocada
+
+1. Como administrador, abre **Gestiones y módulos → Ver materias y grupos** o la lista por docente en **Materias y asignaciones**.
+2. En la fila de la materia, pulsa **Registrar grupo**. Por ejemplo, PROGRAMACIÓN I, SISTEMAS INFORMÁTICOS, 1º año, MAÑANA. El contexto de esa asignación queda fijado; no tienes que seleccionarlo nuevamente.
+3. Revisa **Gestión de ingreso** y los conteos de estudiantes por año. La lista muestra únicamente estudiantes registrados compatibles con la carrera, año, turno, ingreso y calendario de esa materia. Usa **Seleccionar visibles** para marcarla completa o marca solo algunas casillas. Guarda con **Registrar grupo e inscripciones**.
+4. Para ajustar una lista existente, usa **Inscribir / editar estudiantes**. Su filtro de ingreso conserva a los seleccionados de otras gestiones: cambiar el filtro no los retira. Desmarcar estudiantes con notas requiere confirmar expresamente la retirada de esas notas.
+5. Si aparecen 0 alumnos de 1º y hay alumnos de 3º, revisa su año actual en Estudiantes. Para quienes realmente deban la materia de 1º, activa **Incluir estudiantes de años superiores con materias pendientes**. Sus perfiles y notas anteriores se conservan. Un ingreso con otro calendario debe utilizar su módulo correspondiente.
+6. Si creaste una asignación equivocada, pulsa **Eliminar materia** en esa fila. Revisa el módulo, carrera, turno, docente y las cantidades de inscripciones y notas. Para eliminar, escribe **ELIMINAR ASIGNACION**. Se retira esa asignación junto con su lista y notas; los estudiantes, docentes, catálogo y otras asignaciones se conservan. Si cambió la lista desde la revisión, vuelve a abrirla antes de confirmar.
+
+Las asignaciones vinculadas a partes I, II, III, etc. se conservan para proteger el historial y los promedios; la pantalla explica esa protección. El botón elimina una asignación de un módulo, no el registro de la materia del catálogo. Para corregir solamente su nombre, usa la edición del catálogo.
+
+Actualiza conservando `.env`, `backups` y archivos privados, ejecuta `npm install`, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones si ya aplicaste la 009.

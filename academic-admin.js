@@ -3,6 +3,7 @@ import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
 import {createHash} from 'node:crypto';
 import {academicUpper} from './public/academic-text.js';
 import {hashPassword} from './lib.js';
+import {partTitle} from './public/part-summary.js';
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const id=(value,label='registro')=>{const n=Number(value);if(!Number.isSafeInteger(n)||n<1||n>2147483647)fail(`Selecciona ${label}.`);return n;};
 const yearLevel=value=>{const n=id(value,'el año académico');if(n>3)fail('El año académico debe ser 1, 2 o 3.');return n;};
@@ -65,16 +66,16 @@ async function snapshot(db,type,targetId,lock=false){
     record=await db.prepare('SELECT * FROM modules WHERE id=?'+(lock?' FOR UPDATE':'')).get(targetId);if(!record)fail('Trimestre no encontrado.',404);
     offerings=await db.prepare('SELECT * FROM offerings WHERE module_id=? ORDER BY id'+(lock?' FOR UPDATE':'')).all(targetId);
   }else if(type==='offering'){
-    record=await db.prepare('SELECT o.*,s.career_id,s.level,s.name FROM offerings o JOIN subjects s ON s.id=o.subject_id WHERE o.id=?'+(lock?' FOR UPDATE OF o':'')).get(targetId);if(!record)fail('Asignación no encontrada.',404);offerings=[record];
+    record=await db.prepare('SELECT o.*,s.career_id,s.level,s.name,c.name career,sh.name shift,m.name module,y.name AS "year",u.name teacher FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN shifts sh ON sh.id=o.shift_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN users u ON u.id=o.teacher_id WHERE o.id=?'+(lock?' FOR UPDATE OF o':'')).get(targetId);if(!record)fail('Asignación no encontrada.',404);offerings=[record];
   }else fail('Tipo de revisión inválido.');
   const offeringIds=offerings.map(o=>o.id);
   const enrollments=type==='student'?await db.prepare('SELECT * FROM enrollments WHERE student_id=? ORDER BY id'+(lock?' FOR UPDATE':'')).all(targetId):(await db.query('SELECT * FROM enrollments WHERE offering_id=ANY($1::int[]) ORDER BY id'+(lock?' FOR UPDATE':''),[offeringIds])).rows;
   const groups=(await db.query('SELECT * FROM academic_groups WHERE offering_id=ANY($1::int[]) ORDER BY id',[offeringIds])).rows;
   const members=type==='student'?await db.prepare('SELECT * FROM academic_group_students WHERE student_id=? ORDER BY group_id').all(targetId):(await db.query('SELECT * FROM academic_group_students WHERE group_id=ANY($1::int[]) ORDER BY group_id,student_id',[groups.map(g=>g.id)])).rows;
   students=[...new Set(enrollments.map(e=>e.student_id))];
-  const context=type==='student'?`CI ${record.ci||'PENDIENTE'} · REGISTRO ${targetId}`:type==='module'?`GESTIÓN ${(await db.prepare('SELECT name FROM years WHERE id=?').get(record.year_id)).name} · ${record.start_date} A ${record.end_date}`:`ASIGNACIÓN ${targetId}`;
+  const context=type==='student'?`CI ${record.ci||'PENDIENTE'} · REGISTRO ${targetId}`:type==='module'?`GESTIÓN ${(await db.prepare('SELECT name FROM years WHERE id=?').get(record.year_id)).name} · ${record.start_date} A ${record.end_date}`:academicUpper(`${record.career} · ${record.level}º AÑO · ${record.shift} · ${record.module} · GESTIÓN ${record.year} · ${record.teacher}`);
   const revision=createHash('sha256').update(JSON.stringify({record,offerings,enrollments,groups,members})).digest('hex');
-  return {record,offerings,enrollments,groups,members,public:{type,id:targetId,title:academicUpper(record.name),context,students:students.length,enrollments:enrollments.length,notes:enrollments.filter(hasNotes).length,offerings:offerings.length,groups:groups.length,revision}};
+  return {record,offerings,enrollments,groups,members,public:{type,id:targetId,title:academicUpper(type==='offering'?partTitle({...record,subject:record.name}):record.name),context,students:students.length,enrollments:enrollments.length,notes:enrollments.filter(hasNotes).length,offerings:offerings.length,groups:groups.length,revision,...(type==='offering'&&record.series_id?{deletion_blocked:'Esta asignación pertenece a una materia por partes. Se conserva para mantener la secuencia y el promedio de sus estudiantes.'}:{})}};
 }
 export async function academicImpact(db,type,targetId){return db.transaction(async()=>(await snapshot(db,type,id(targetId))).public,{isolation:'REPEATABLE READ'});}
 function reviewed(input,impact,phrase){if(input.confirm!==phrase)fail(`Escribe ${phrase} para confirmar.`);if(input.revision!==impact.revision)fail('Los datos cambiaron desde la revisión. Cierra y abre de nuevo la confirmación.',409);}
@@ -87,7 +88,10 @@ export async function offeringRosterReview(db,offeringId){
       WHERE s.user_id=ANY($1::int[]) OR (s.career_id=$2 AND s.shift_id=$4 AND ((s.level=$3 AND ($5::int IS NULL OR s.admission_year_id=$5)) OR s.level>$3)) ORDER BY upper(u.name),s.user_id`,[enrolled,r.career_id,r.level,r.shift_id,state.groups[0]?.admission_year_id||null])).rows;
     const admits=await moduleAdmissionRule(db,r.module_id),allowed=candidates.filter(student=>enrolled.includes(student.user_id)||student.level>r.level||admits(student.admission_year_id));
     const detail=await db.prepare('SELECT c.name AS career,m.name AS module,y.name AS year,sh.name AS shift FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id WHERE o.id=?').get(offeringId);
-    return {...state.public,context:academicUpper(`${detail.career} · ${detail.module} · ${detail.year} · ${detail.shift}`),student_ids:enrolled,graded_student_ids:state.enrollments.filter(hasNotes).map(e=>e.student_id),students:allowed.map(s=>({...s,name:academicUpper(s.name),retake_candidate:s.level>r.level}))};
+    const profiles=await db.prepare('SELECT level,COUNT(*) count FROM students WHERE career_id=? AND shift_id=? GROUP BY level ORDER BY level').all(r.career_id,r.shift_id);
+    const levels=Object.fromEntries([1,2,3].map(level=>[level,profiles.find(p=>p.level===level)?.count||0]));
+    const regular=allowed.filter(s=>s.career_id===r.career_id&&s.shift_id===r.shift_id&&s.level===r.level);
+    return {...state.public,context:academicUpper(`${detail.career} · ${r.level}º AÑO · ${detail.module} · ${detail.year} · ${detail.shift}`),scope:{career_id:r.career_id,shift_id:r.shift_id,career:academicUpper(detail.career),shift:academicUpper(detail.shift),level:r.level,levels,regular_eligible:regular.length},student_ids:enrolled,graded_student_ids:state.enrollments.filter(hasNotes).map(e=>e.student_id),students:allowed.map(s=>({...s,name:academicUpper(s.name),retake_candidate:s.level>r.level}))};
   },{isolation:'REPEATABLE READ'});
 }
 
@@ -162,6 +166,19 @@ export async function deleteStudent(db,input,actor){
     await db.prepare('DELETE FROM academic_group_students WHERE student_id=?').run(studentId);await db.prepare('DELETE FROM enrollments WHERE student_id=?').run(studentId);await db.prepare('DELETE FROM sessions WHERE user_id=?').run(studentId);
     await db.prepare('UPDATE audit SET actor_id=NULL WHERE actor_id=?').run(studentId);await db.prepare('DELETE FROM students WHERE user_id=?').run(studentId);await db.prepare('DELETE FROM users WHERE id=?').run(studentId);
     await audit(db,actor,'Estudiante eliminado',`Estudiante ${studentId}: ${state.record.name}; ${state.public.enrollments} inscripciones y ${state.public.notes} registros con notas eliminados.`);return {ok:true};
+  });
+}
+export async function deleteOffering(db,input,actor){
+  const offeringId=id(input.offering_id);return db.transaction(async()=>{
+    await structuralLock(db);const state=await snapshot(db,'offering',offeringId,true);
+    if(state.public.deletion_blocked)fail(state.public.deletion_blocked,409);
+    reviewed(input,state.public,'ELIMINAR ASIGNACION');
+    await db.query('DELETE FROM academic_group_students WHERE group_id=ANY($1::int[])',[state.groups.map(g=>g.id)]);
+    await db.prepare('DELETE FROM academic_groups WHERE offering_id=?').run(offeringId);
+    await db.prepare('DELETE FROM enrollments WHERE offering_id=?').run(offeringId);
+    await db.prepare('DELETE FROM offerings WHERE id=?').run(offeringId);
+    await audit(db,actor,'Materia retirada del módulo',`Asignación ${offeringId}: ${state.record.name} · ${state.public.context}; ${state.public.enrollments} inscripciones y ${state.public.notes} registros con notas retirados. Personas, catálogo y otras asignaciones conservados.`);
+    return {ok:true};
   });
 }
 export async function editModule(db,input,actor){return saveCalendarModule(db,input,actor,{moduleId:id(input.module_id)});}
