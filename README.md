@@ -49,7 +49,7 @@ Los resúmenes administrativos y docentes distinguen **materias diferentes** de 
 
 ## Catálogo desde la planilla institucional Excel
 
-Administración puede abrir **Materias y asignaciones → Importar Excel** (también disponible en Docentes), seleccionar la planilla `.xlsx` y revisar una vista previa antes de confirmar. Se utiliza exclusivamente la hoja **BASE DE DATOS**: lista de carreras y docentes en columna B, y bloques de materias/códigos encabezados por carrera y año. Las otras hojas no se usan para cargar estudiantes, notas ni asignaciones. No se ejecutan fórmulas del archivo. Límite: 2 MB comprimido y 40 MB expandido.
+Las pantallas de Materias y asignaciones y Docentes no muestran el botón Importar Excel. Para revisar un catálogo institucional desde la terminal usa `npm run catalogo:importar -- "archivo.xlsx"`; añade `--aplicar` para guardarlo. Se utiliza exclusivamente la hoja **BASE DE DATOS**: lista de carreras y docentes en columna B, y bloques de materias/códigos encabezados por carrera y año. Las otras hojas no se usan para cargar estudiantes, notas ni asignaciones. No se ejecutan fórmulas del archivo. Límite: 2 MB comprimido y 40 MB expandido.
 
 La importación actualiza coincidencias por código, carrera y año, permite códigos compartidos entre carreras, conserva las materias ausentes y se ejecuta en una transacción. Una repetición del mismo catálogo no duplica los registros. Los nombres de materias y estudiantes se guardan en mayúsculas, conservando tildes y Ñ; posibles errores de redacción se corrigen desde **Editar**. La referencia original contenía 163 materias y 23 docentes. La revisión de noviembre de 2026 contiene 235 materias de las nueve carreras y completa Electrónica y Audiovisuales; sus datos de materias están disponibles con `npm run catalogo:actualizar`.
 
@@ -225,7 +225,7 @@ npm run dev
 
 El comando aplica el catálogo a la base de tu `.env` en una transacción. Actualiza nombres por código, carrera y año, conservando IDs, estado activo/inactivo, asignaciones, inscritos y notas. Si una materia sin código coincide de forma inequívoca con un nombre anterior conocido, se corrige y se completa su código sobre el mismo ID. Añade las materias faltantes y conserva las complementarias, como Informática (Power BI), que no están en el archivo oficial. Una segunda ejecución no duplica materias; vuelve a aplicar los nombres oficiales revisados. El total del sistema puede superar las 235 materias del archivo si hay complementarias o registros históricos propios.
 
-Para revisar solamente el contenido preparado, usa `npm run catalogo:actualizar -- --revisar`. Para correcciones posteriores hechas por la institución se mantienen **Crear materia**, **Editar** y la herramienta de importación por terminal. El importador de Docentes conserva su acceso; para usarlo emplea el Excel actualizado. Presiona Ctrl + F5 después de aplicar el catálogo.
+Para revisar solamente el contenido preparado, usa `npm run catalogo:actualizar -- --revisar`. Para correcciones posteriores hechas por la institución se mantienen **Crear materia**, **Editar** y la herramienta de importación por terminal. La importación completa de materias y docentes sigue disponible por terminal con el Excel actualizado; no hay botón de importación en Docentes. Presiona Ctrl + F5 después de aplicar el catálogo.
 
 ## Orden de materias por carrera y año
 
@@ -303,3 +303,12 @@ Las superposiciones y el límite de cuatro módulos se verifican dentro del mism
 La migración `008_module_calendars.sql` añade `modules.admission_year_id`; los módulos previos quedan como compartidos y conservan IDs, nombres y fechas. Permite nombres iguales en calendarios distintos. La gestión o el calendario de un módulo con asignaciones no pueden cambiarse desde Editar; sí se pueden corregir sus fechas dentro de las validaciones habituales. La importación de grupos por terminal continúa usando el calendario compartido y rechaza fechas que correspondan a un calendario propio, para que se seleccione mediante Registrar grupo.
 
 Actualiza el proyecto completo conservando `.env`, `backups` y archivos privados, ejecuta `npm run db:migrate`, reinicia con `npm run dev` y pulsa Ctrl + F5. Vista con datos ficticios: [crear módulo por ingreso](docs/module-calendar-form.png).
+
+
+## Inscripciones desde Gestiones y módulos
+
+Cada tarjeta del administrador tiene **Ver materias y grupos** debajo del contador. Abre una lista del módulo seleccionado, agrupada por docente, con carrera, año, turno, número de inscritos y estado del plazo de notas. Permite buscar por materia, código, carrera, docente o turno. **Inscribir / editar estudiantes** abre las casillas de ese grupo; **Inscribir uno** abre el formulario individual con la asignación fijada. También se puede consultar notas y generar su planilla.
+
+Desde la misma lista, **Asignar materia** crea una asignación con ese módulo seleccionado; **Registrar grupo** permite elegir una materia del catálogo y marcar estudiantes registrados; **Inscribir estudiante** muestra las asignaciones compatibles únicamente de ese módulo. Los formularios conservan la gestión y el módulo de origen. Respetan los calendarios por ingreso y la excepción de materias pendientes. Al guardar se actualizan los contadores y se mantiene abierta la lista. Cambiar filtros de gestión, módulo o calendario cierra la selección anterior.
+
+Los módulos sin materias ofrecen Asignar materia y Registrar grupo para comenzar. Los controles nuevos de inscripción son exclusivos de administración. Esta actualización reutiliza las APIs existentes y no requiere migraciones adicionales respecto de la versión 008. En Docentes se conserva Nuevo docente y la lista de pendientes de CI, sin Importar Excel. Vista con registros ficticios: [materias e inscripciones desde el módulo](docs/module-groups-preview.png).

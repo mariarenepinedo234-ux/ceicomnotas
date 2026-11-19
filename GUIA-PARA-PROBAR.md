@@ -102,11 +102,11 @@ Ejecuta `npm install`, `npm run db:migrate`, `npm run crear-admin` y `npm run de
 
 ### Cargar carreras, materias y docentes desde el Excel institucional
 
-Actualiza los archivos del proyecto conservando `.env`, SQLite y el volumen PostgreSQL. Ejecuta `npm install`, `npm run db:migrate` y `npm run dev`. Entra como administrador, abre **Docentes → Importar Excel**, elige tu archivo `PLANILLA DE NOTAS 2026.xlsx`, revisa el resumen y pulsa **Confirmar importación**.
+Actualiza los archivos del proyecto conservando `.env`, SQLite y el volumen PostgreSQL. Ejecuta `npm install`, `npm run db:migrate` y `npm run dev`. Los botones Importar Excel ya no se muestran en Docentes ni en Materias y asignaciones. Para revisar el archivo desde la terminal ejecuta `npm run catalogo:importar -- "PLANILLA DE NOTAS 2026.xlsx"`; para guardarlo, repite el comando añadiendo `--aplicar`.
 
 El archivo original tenía 163 materias. El catálogo revisado de noviembre tiene 235 materias por carrera/año y completa Electrónica y Audiovisuales. Para aplicar las materias corregidas sin importar el Excel desde el panel, ejecuta `npm run catalogo:actualizar` después de actualizar el proyecto. Usa **Editar** en el catálogo para corregir nombres, códigos o desactivar registros. Cambiar de carrera/año una materia que ya se dictó está restringido para conservar el historial.
 
-Los 23 docentes del archivo no incluyen CI. Aparecerán en **Docentes → Docentes pendientes de CI**. Completa cada carnet con **Completar CI y habilitar** para crear su acceso. No se importan los estudiantes ni las notas de ejemplo de otras hojas.
+Si importas el Excel completo por terminal, sus 23 docentes sin CI aparecerán en **Docentes → Docentes pendientes de CI**. Completa cada carnet con **Completar CI y habilitar** para crear su acceso. No se importan los estudiantes ni las notas de ejemplo de otras hojas.
 
 Importante: descargar la nueva versión de GitHub no descarga la base ni los nombres de docentes. Debes importar tu Excel en tu instalación. El archivo original se conserva y no se publica en GitHub. El escudo institucional sí está incorporado al diseño de la aplicación y las planillas.
 
@@ -329,3 +329,14 @@ Actualiza el proyecto completo conservando `.env`, `backups` y tus archivos priv
 6. Usa **Calendario por ingreso** para revisar las fechas de cada ingreso. Si otros trimestres de ingreso 2026 también tienen fechas diferentes, créalos en su propio calendario. Los períodos compartidos que coincidan con uno propio dejan de ofrecerse para nuevas inscripciones regulares de ese ingreso.
 
 La migración conserva las asignaciones y notas previas. Crear un módulo nuevo no mueve estudiantes ni cambia las notas de asignaciones anteriores. Los módulos se identifican por su calendario, aunque tengan nombres parecidos. Los plazos de notas de cada docente se calculan según la fecha final del módulo asignado.
+
+
+## Inscribir alumnos desde un módulo
+
+1. Entra como administrador a **Gestiones y módulos** y pulsa **Ver materias y grupos** en la tarjeta del trimestre deseado.
+2. Localiza la materia y carrera en la lista por docente. Usa **Inscribir / editar estudiantes** para marcar varios alumnos o **Inscribir uno** para una inscripción individual. Revisa el turno y el calendario de ingreso.
+3. Guarda y comprueba que aumente el contador. Las notas de los alumnos que permanecen inscritos se conservan.
+4. Para una asignación nueva, usa **Asignar materia**; para registrar el grupo y sus alumnos juntos, usa **Registrar grupo**. Ambos formularios mantienen seleccionado el módulo de origen. Si todavía no hay asignaciones, estos botones permiten comenzar.
+5. Desde cada fila también puedes abrir **Ver notas** o **Planilla**. La búsqueda permite encontrar materia, código, carrera, docente o turno dentro de ese módulo.
+
+En **Docentes** se muestra Nuevo docente y se conservan los pendientes de CI; se retiró Importar Excel. Actualiza el proyecto completo conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones si ya aplicaste la versión 008.
