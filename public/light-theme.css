@@ -1,0 +1,193 @@
+/* Paleta del tema claro: menú guinda, fondo crema y superficies blancas.
+   Se limita a pantalla para conservar la impresión de las planillas. */
+@media screen {
+  html[data-theme="light"] {
+    color-scheme: light;
+    --wine: #7b1c13;
+    --wine-dark: #59140e;
+    --wine-soft: #f6eae5;
+    --cream: #eee5d5;
+    --bg: #f4f1e8;
+    --ink: #37322f;
+    --muted: #746e67;
+    --line: #e7e0d6;
+    --green: #347357;
+    --surface: #ffffff;
+    --surface-raised: #f8f5ef;
+    --text-secondary: #746e67;
+    --shadow: 0 2px 8px #4a241b05;
+  }
+
+  html[data-theme="light"] body,
+  html[data-theme="light"] .app-layout {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  html[data-theme="light"] .sidebar {
+    background: #4a100c;
+    border-color: #63231b;
+    color: #fff0e2;
+  }
+  html[data-theme="light"] .sidebar .brand { background: transparent; }
+  html[data-theme="light"] .sidebar .ceicom-wordmark { background: #fff7eb; }
+  html[data-theme="light"] .sidebar :is(.workspace-label, .sidebar-version) {
+    color: #dcbfaf;
+  }
+  html[data-theme="light"] .sidebar .sidebar-version { border-color: #81483b; }
+  html[data-theme="light"] .sidebar .nav-link {
+    color: #f5e5d9;
+    border-left: 2px solid transparent;
+  }
+  html[data-theme="light"] .sidebar nav .nav-link { font-size: 13px; }
+  html[data-theme="light"] .sidebar .nav-link .icon { color: #e1c4b5; }
+  html[data-theme="light"] .sidebar .nav-link:hover {
+    background: #682019;
+    color: #fff7eb;
+  }
+  html[data-theme="light"] .sidebar .nav-link.active {
+    background: #842b21;
+    color: #fff7eb;
+    border-left-color: #f1d7bf;
+  }
+  html[data-theme="light"] .sidebar .nav-link.active .icon { color: #fff7eb; }
+  html[data-theme="light"] .sidebar .active-dot { background: #f1d7bf; }
+  html[data-theme="light"] .sidebar :is(a, button):focus-visible {
+    outline-color: #fff0d8;
+  }
+  html[data-theme="light"] .sidebar .mini-dot { background: #b8c9a3; }
+
+  html[data-theme="light"] .topbar {
+    background: #ffffff;
+    border-color: var(--line);
+  }
+  html[data-theme="light"] .breadcrumb { color: #867970; }
+  html[data-theme="light"] .breadcrumb strong { color: #574a42; }
+  html[data-theme="light"] .topbar-divider { background: var(--line); }
+  html[data-theme="light"] .app-layout :is(.panel, .stat-card, .teacher-card, .blocked-card, .quick-action) {
+    background: var(--surface);
+    border-color: var(--line);
+  }
+  html[data-theme="light"] .app-layout :is(.avatar, .stat-icon, .quick-icon, .person-cell .avatar) {
+    background: #f5e7e1;
+    color: var(--wine);
+  }
+  html[data-theme="light"] .app-layout :is(.stat-icon.sand, .stat-icon.amber) {
+    background: #f6eedf;
+    color: #99723f;
+  }
+  html[data-theme="light"] .app-layout .stat-icon.gray {
+    background: #eeede7;
+    color: #797262;
+  }
+
+  html[data-theme="light"] .app-layout .welcome-banner {
+    background: var(--cream);
+    border-color: #e4d7c2;
+  }
+  html[data-theme="light"] .app-layout .banner-copy h2 { color: #4a2720; }
+  html[data-theme="light"] .app-layout .banner-copy h2 em { color: var(--wine); }
+  html[data-theme="light"] .app-layout :is(.banner-link, .text-button, .subtle-link, .subject-breakdown summary) {
+    color: var(--wine);
+  }
+  html[data-theme="light"] .app-layout .art-book { color: var(--wine); }
+  html[data-theme="light"] .app-layout :is(.deadline-note, .academic-note, .note) {
+    background: #f9f5ed;
+    border-color: var(--line);
+  }
+  html[data-theme="light"] .app-layout :is(.panel-foot, .teacher-subjects > span, .count-tag) {
+    background: #fbf8f3;
+    border-color: var(--line);
+  }
+  html[data-theme="light"] .app-layout :is(.muted, .small, .cell-sub, .person-cell small, .stat-top, .stat-sub, .shift-label, .teacher-meta, .module-calendar-label, .module-bottom, .offering-detail, .offering-deadline, .panel-foot, .app-footer, .banner-tag, .banner-copy > p, .page-heading p, .panel-heading p, .quick-action small, .deadline-note p, .deadline-note strong, .module-dates div > span, .module-deadline, .progress-label) {
+    color: var(--muted);
+  }
+  html[data-theme="light"] .app-layout .progress { background: #f1e5df; }
+  html[data-theme="light"] .app-layout .progress > span { background: #9b392c; }
+  html[data-theme="light"] .app-footer {
+    background: transparent;
+    border-color: var(--line);
+  }
+  html[data-theme="light"] .app-layout th {
+    background: #f8f5ef;
+    color: #7d7269;
+    border-color: var(--line);
+  }
+  html[data-theme="light"] .app-layout td { border-color: #eee8df; }
+  html[data-theme="light"] .app-layout .search-box {
+    background: #fbfaf7;
+    border-color: var(--line);
+  }
+
+  html[data-theme="light"] :is(.app-layout, dialog:not(.planilla-modal)) :is(input, select, textarea) {
+    border-color: #ded6cb;
+    color: var(--ink);
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) :is(input, select, textarea):focus {
+    outline-color: #7b1c133b;
+    border-color: var(--wine);
+  }
+  html[data-theme="light"] :is(.app-layout, dialog:not(.planilla-modal)) :is(input, textarea)::placeholder {
+    color: var(--muted);
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .badge {
+    background: #f1ede7;
+    color: #6f665c;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .badge.success {
+    background: #eaf3ed;
+    color: #32664d;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .badge.warning {
+    background: #fbf0dc;
+    color: #805c24;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .badge.danger {
+    background: #fae9e4;
+    color: #9d3025;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .btn.primary {
+    background: var(--wine);
+    color: #ffffff;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .btn.primary:hover {
+    background: var(--wine-dark);
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .btn.secondary {
+    background: #ffffff;
+    border-color: #ded6cb;
+    color: #5d5148;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .btn.secondary:hover {
+    background: #f7f1e9;
+    border-color: #cbb7a6;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .btn.delete-offering-button {
+    color: #9d3025;
+  }
+  html[data-theme="light"] :is(.app-layout, dialog) .btn.danger-action {
+    background: #9d3025 !important;
+    color: #ffffff !important;
+  }
+  html[data-theme="light"] .theme-toggle { border-color: #e4ddd2; }
+  html[data-theme="light"] dialog:not(.planilla-modal) {
+    background: #ffffff;
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  html[data-theme="light"] .auth-page {
+    background: linear-gradient(135deg, #3d0e0a, #6f1c13 60%, #8a3023);
+  }
+  html[data-theme="light"] .auth-card { background: #fffdfa; }
+  html[data-theme="light"] .auth-heading h1 { color: var(--ink); }
+  html[data-theme="light"] .auth-heading p { color: var(--muted); }
+  html[data-theme="light"] .auth-input input::placeholder { color: var(--muted); }
+  html[data-theme="light"] :is(.auth-heading .eyebrow, .auth-help, .auth-input button) {
+    color: var(--wine);
+  }
+  html[data-theme="light"] .auth-theme .theme-toggle {
+    color: #fff0e2;
+    border-color: #ffffff40;
+  }
+}

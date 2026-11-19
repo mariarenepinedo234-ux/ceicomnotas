@@ -25,6 +25,7 @@ Todas las rutas de esta guía parten de la carpeta del proyecto.
 | Apariencia personalizada que agregarás siguiendo esta guía | `public/personalizacion.css` |
 | Estilos generales originales: títulos, tarjetas, tablas y menú | `public/style.css` |
 | Login, logo ovalado, textos del pie y desplegables por docente | `public/interface.css` |
+| Paleta del tema claro: menú guinda y fondo crema | `public/light-theme.css` |
 | Colores y excepciones del tema oscuro | `public/theme.css` |
 | Botón de tema y preferencia guardada | `public/theme.js` y `public/theme-init.js` |
 | Formularios administrativos, casillas y resúmenes por partes | `public/academic-admin.css` |
@@ -47,7 +48,7 @@ La mayor parte de las pantallas se construye desde JavaScript. Por eso el texto 
 3. Localiza esta línea existente:
 
 ```html
-<link rel="stylesheet" href="/academic-history.css" />
+<link rel="stylesheet" href="/light-theme.css" />
 ```
 
 4. Justo debajo agrega esta línea, antes de la etiqueta que carga `app.js`:
@@ -121,7 +122,7 @@ El primer bloque cambia títulos como «Estudiantes», «Docentes» y «Gestione
   .panel-heading h2 { font-size: 17px; }
   .panel-heading p { font-size: 13px; }
   .module-card h2 { font-size: 24px; }
-  .sidebar nav .nav-link { font-size: 14px; }
+  html[data-theme] .sidebar nav .nav-link { font-size: 14px; }
   .sidebar-bottom > .nav-link { font-size: 15px; }
   .modal-header h2 { font-size: 26px; }
   .form-grid label { font-size: 14px; }
@@ -172,18 +173,20 @@ Una medida adecuada para computadora puede resultar demasiado grande en celular.
 
 ### Paleta principal
 
+La combinación del tema claro se define en `public/light-theme.css`, que se carga al final de los estilos del portal. El menú usa guinda oscuro `#4a100c`, el fondo crema `#f4f1e8`, las tarjetas blanco `#ffffff` y las acciones guinda `#7b1c13`. Si agregas tu propio CSS, enlázalo después de `light-theme.css`.
+
 Los colores se escriben con códigos como `#631e30`. Puedes obtener un código desde el selector de colores de Visual Studio Code al pulsar sobre la muestra de color.
 
 ```css
 @media screen {
   html[data-theme="light"] {
-    --wine: #631e30;
-    --wine-dark: #40121d;
-    --wine-soft: #f5eaee;
-    --bg: #f8f9fb;
-    --ink: #25262d;
-    --muted: #676975;
-    --line: #ececf0;
+    --wine: #7b1c13;
+    --wine-dark: #59140e;
+    --wine-soft: #f6eae5;
+    --bg: #f4f1e8;
+    --ink: #37322f;
+    --muted: #746e67;
+    --line: #e7e0d6;
   }
   html[data-theme="dark"] {
     --wine: #e0a4b6;
@@ -276,13 +279,14 @@ El ancho del menú lateral y el desplazamiento del contenido están relacionados
 
 ### El logo ovalado actual
 
-El logo del menú y del login se dibuja con `.ceicom-wordmark` en `interface.css`. Usa `public/assets/ceicom-wordmark.png` como **máscara de luminosidad**: la forma de la imagen define qué zonas se pintan y `background` define su color. Por eso tiene una regla guinda para el tema claro y una blanca para el oscuro, sin recuadro de fondo.
+El logo del menú y del login se dibuja con `.ceicom-wordmark` en `interface.css`. Usa `public/assets/ceicom-wordmark.png` como **máscara de luminosidad**: la forma de la imagen define qué zonas se pintan y `background` define su color. En el tema claro, el logo del login es guinda y el del menú guinda oscuro se pinta en blanco crema. En el tema oscuro se pinta blanco. La regla del menú claro está en `light-theme.css`; el resto parte de `interface.css` y `theme.css`.
 
 Para cambiar solamente su color:
 
 ```css
 @media screen {
-  html[data-theme="light"] .ceicom-wordmark { background: #631e30; }
+  html[data-theme="light"] .sidebar .ceicom-wordmark { background: #fff7eb; }
+  html[data-theme="light"] .auth-brand .ceicom-wordmark { background: #57120e; }
   html[data-theme="dark"] .ceicom-wordmark { background: #ffffff; }
   .auth-brand { max-width: 330px; }
 }
@@ -292,7 +296,7 @@ Para cambiar solamente su color:
 
 ### Usar dos imágenes nuevas: una clara y otra oscura
 
-Guarda dos PNG con fondo transparente en `public/assets/`: `logo-claro.png` y `logo-oscuro.png`. Los nombres son ejemplos; deben coincidir con los archivos que realmente agregues. Para usar las imágenes completas en lugar de la máscara actual, agrega:
+Guarda dos PNG con fondo transparente en `public/assets/`: `logo-claro.png` para el fondo claro del login y `logo-oscuro.png` para los fondos oscuros del menú y del tema oscuro. Los nombres son ejemplos; deben coincidir con los archivos que realmente agregues. Para usar las imágenes completas en lugar de la máscara actual, agrega:
 
 ```css
 @media screen {
@@ -302,6 +306,7 @@ Guarda dos PNG con fondo transparente en `public/assets/`: `logo-claro.png` y `l
     aspect-ratio: 1878 / 838;
     background: transparent url('/assets/logo-claro.png') center / contain no-repeat;
   }
+  html[data-theme="light"] .sidebar .ceicom-wordmark,
   html[data-theme="dark"] .ceicom-wordmark {
     background: transparent url('/assets/logo-oscuro.png') center / contain no-repeat;
   }

@@ -1,6 +1,6 @@
 /* CEICOM · PLANTILLA OPCIONAL DE PERSONALIZACIÓN
    1. Copia este archivo como public/personalizacion.css.
-   2. En public/index.html enlázalo DESPUÉS de academic-history.css:
+   2. En public/index.html enlázalo DESPUÉS de light-theme.css:
       <link rel="stylesheet" href="/personalizacion.css" />
    3. Guarda, recarga con Ctrl + F5 y ajusta los valores que quieras.
    Este archivo de docs NO está activado en el sistema.
@@ -20,7 +20,7 @@
   .panel-heading p { font-size: 13px; }
 
   /* Menú principal y acciones inferiores del menú. */
-  .sidebar nav .nav-link { font-size: 14px; }
+  html[data-theme] .sidebar nav .nav-link { font-size: 14px; }
   .sidebar-bottom > .nav-link { font-size: 15px; }
 
   /* Ventanas de registro y edición. */

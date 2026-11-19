@@ -395,3 +395,9 @@ Actualiza el proyecto conservando `.env`, `backups` y archivos privados. Ejecuta
 Las asignaciones vinculadas a partes I, II, III, etc. se conservan para proteger el historial y los promedios; la pantalla explica esa protección. El botón elimina una asignación de un módulo, no el registro de la materia del catálogo. Para corregir solamente su nombre, usa la edición del catálogo.
 
 Actualiza conservando `.env`, `backups` y archivos privados, ejecuta `npm install`, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones si ya aplicaste la 009.
+
+## Tema claro con menú guinda y fondo crema
+
+Actualiza los archivos del proyecto conservando `.env`, `backups`, archivos privados y tus personalizaciones. Ejecuta `npm install`, reinicia con `npm run dev` y pulsa Ctrl + F5. Elige **Tema claro**: verás el menú lateral guinda oscuro con logo blanco, fondo crema y tarjetas blancas. En móvil, abre el menú para comprobar la misma combinación. El tema oscuro sigue disponible con su propia paleta. Esta actualización visual no requiere migraciones.
+
+Para cambiar los colores, consulta **public/light-theme.css** y el [manual de personalización](MANUAL-DE-PERSONALIZACION.md). Si ya usas `personalizacion.css`, su enlace debe ir después de `light-theme.css` en `public/index.html` para que tus ajustes se apliquen al final. Comprueba ambos temas y, si modificas documentos, la impresión y las descargas PDF/Excel.
