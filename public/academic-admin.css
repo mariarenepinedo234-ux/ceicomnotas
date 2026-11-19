@@ -32,3 +32,8 @@
 @media(max-width:760px){.module-groups-toolbar .search-box{flex-basis:100%;min-width:0}.module-groups-toolbar .heading-actions{width:100%}.module-groups-toolbar .btn{white-space:normal;flex:1}#module-group-search{font-size:16px}.module-groups-count,.module-groups-empty{padding-left:16px;padding-right:16px}}
 
 .module-groups-table th,.module-groups-table .badge{font-size:10px}
+
+.toolbar:has(#student-admission-filter){flex-wrap:wrap;align-items:flex-end}
+.student-admission-filter{font-size:12px;gap:6px;min-width:200px;max-width:230px}
+.student-admission-filter select{height:38px;min-height:38px;font-size:12px;padding:8px 10px}
+@media(max-width:760px){.student-admission-filter{flex-basis:100%;min-width:0;max-width:none;width:100%}.student-admission-filter select{font-size:16px}.toolbar:has(#student-admission-filter) .search-box{min-width:0}}

@@ -312,3 +312,9 @@ Cada tarjeta del administrador tiene **Ver materias y grupos** debajo del contad
 Desde la misma lista, **Asignar materia** crea una asignación con ese módulo seleccionado; **Registrar grupo** permite elegir una materia del catálogo y marcar estudiantes registrados; **Inscribir estudiante** muestra las asignaciones compatibles únicamente de ese módulo. Los formularios conservan la gestión y el módulo de origen. Respetan los calendarios por ingreso y la excepción de materias pendientes. Al guardar se actualizan los contadores y se mantiene abierta la lista. Cambiar filtros de gestión, módulo o calendario cierra la selección anterior.
 
 Los módulos sin materias ofrecen Asignar materia y Registrar grupo para comenzar. Los controles nuevos de inscripción son exclusivos de administración. Esta actualización reutiliza las APIs existentes y no requiere migraciones adicionales respecto de la versión 008. En Docentes se conserva Nuevo docente y la lista de pendientes de CI, sin Importar Excel. Vista con registros ficticios: [materias e inscripciones desde el módulo](docs/module-groups-preview.png).
+
+## Filtrar estudiantes por gestión de ingreso
+
+La búsqueda de **Estudiantes** incluye **Gestión de ingreso**, con Todas las gestiones y los ingresos registrados. Se combina con nombre/carnet, carrera y turno. Utiliza el ingreso del perfil, por lo que un alumno de 3º año que ingresó en 2024 se encuentra seleccionando Ingreso 2024, aunque esté cursando materias en 2026. La selección se mantiene al abrir y cerrar el expediente o el formulario de restablecimiento de clave.
+
+El filtro usa los datos ya cargados; no modifica perfiles, contraseñas, inscripciones ni notas y no requiere nuevas migraciones. Vista con registros ficticios: [filtro de estudiantes por ingreso](docs/student-admission-filter-preview.png).

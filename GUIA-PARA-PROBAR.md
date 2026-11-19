@@ -340,3 +340,9 @@ La migración conserva las asignaciones y notas previas. Crear un módulo nuevo 
 5. Desde cada fila también puedes abrir **Ver notas** o **Planilla**. La búsqueda permite encontrar materia, código, carrera, docente o turno dentro de ese módulo.
 
 En **Docentes** se muestra Nuevo docente y se conservan los pendientes de CI; se retiró Importar Excel. Actualiza el proyecto completo conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones si ya aplicaste la versión 008.
+
+## Buscar rápidamente un alumno por gestión
+
+En **Estudiantes**, selecciona **Gestión de ingreso → Ingreso 2024**, por ejemplo. Puedes combinarlo con carrera, turno y nombre o carnet para localizar al alumno. Desde su fila usa **Restablecer clave** o el botón de expediente. La gestión elegida permanece al cerrar esos formularios.
+
+Se filtra por el año en que ingresó, no por la gestión actual de cursada. Para volver a todos, selecciona **Todas las gestiones** y limpia los demás filtros si corresponde. Actualiza el proyecto conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. Esta mejora no añade migraciones de PostgreSQL.
