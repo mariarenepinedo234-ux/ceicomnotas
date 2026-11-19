@@ -1,0 +1,52 @@
+/* CEICOM · PLANTILLA OPCIONAL DE PERSONALIZACIÓN
+   1. Copia este archivo como public/personalizacion.css.
+   2. En public/index.html enlázalo DESPUÉS de academic-history.css:
+      <link rel="stylesheet" href="/personalizacion.css" />
+   3. Guarda, recarga con Ctrl + F5 y ajusta los valores que quieras.
+   Este archivo de docs NO está activado en el sistema.
+   Los bloques siguientes cambian tamaños en pantalla. Puedes quitarlos.
+*/
+@media screen {
+  /* Títulos principales de los apartados. */
+  .page-heading h1 {
+    font-size: 32px;
+    line-height: 1.25;
+  }
+  .page-heading p { font-size: 14px; line-height: 1.6; }
+  .page-heading .eyebrow { font-size: 11px; }
+
+  /* Encabezados dentro de los recuadros. */
+  .panel-heading h2 { font-size: 17px; }
+  .panel-heading p { font-size: 13px; }
+
+  /* Menú principal y acciones inferiores del menú. */
+  .sidebar nav .nav-link { font-size: 14px; }
+  .sidebar-bottom > .nav-link { font-size: 15px; }
+
+  /* Ventanas de registro y edición. */
+  .modal-header h2 { font-size: 26px; }
+  .form-grid label { font-size: 14px; }
+
+  /* Tablas del panel, sin modificar la planilla emergente. */
+  .app-layout .table-wrap th { font-size: 11px; }
+  .app-layout .table-wrap td { font-size: 13px; }
+  .app-layout .person-cell strong { font-size: 14px; }
+  .app-layout .person-cell small { font-size: 12px; }
+  .app-layout .cell-sub { font-size: 12px; }
+
+  /* Pies informativos. */
+  .panel-foot { font-size: 14px; line-height: 1.7; }
+  .app-footer { font-size: 14px; }
+}
+
+/* En celular se reduce el título para que se acomode mejor. */
+@media screen and (max-width: 760px) {
+  .page-heading h1 { font-size: 26px; }
+  .modal-header h2 { font-size: 23px; }
+}
+
+/* Para colores, logos, fotografías y planillas, consulta
+   MANUAL-DE-PERSONALIZACION.md. Agrega únicamente los ejemplos que necesites.
+   Los archivos de imágenes que muestra el manual son nombres de ejemplo:
+   debes agregar tus imágenes reales antes de usarlos.
+*/
