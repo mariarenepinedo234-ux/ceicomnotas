@@ -1,3 +1,4 @@
+import {moduleForm} from './module-admin.js';
 import {retakeOption} from './enrollment-rules.js';
 import {studentPicker} from './student-picker.js';
 const $=selector=>document.querySelector(selector);
@@ -23,9 +24,8 @@ export async function deleteEntityForm(ctx,type,targetId){
     form.onsubmit=async event=>{event.preventDefault();button.disabled=true;try{await ctx.api(type==='student'?'student-delete':'module-delete',{[type==='student'?'student_id':'module_id']:targetId,revision:impact.revision,confirm:form.elements.confirm.value.trim()});if(form.isConnected)dialog.close();await ctx.refresh();ctx.toast(`${type==='student'?'Estudiante':'Trimestre'} eliminado.`);}catch(error){if(form.isConnected)form.querySelector('.form-error').textContent=error.message;button.disabled=false;}};
   }catch(error){if(marker.isConnected)marker.textContent=error.message;}
 }
-export function editModuleForm(ctx,module){
-  ctx.formModal('Editar trimestre / módulo',ctx.field('Nombre','name','text',module.name)+ctx.select('Gestión','year_id',ctx.data.years,'id','name',module.year_id)+ctx.field('Fecha de inicio','start_date','date',module.start_date)+ctx.field('Fecha de finalización','end_date','date',module.end_date),'module-edit',{module_id:module.id},'Corregir las fechas ajusta los plazos de registro. Las notas se conservan. La gestión se puede cambiar mientras el trimestre no tenga asignaciones.');
-}
+export function editModuleForm(ctx,module){moduleForm(ctx,module);}
+
 export async function editRosterForm(ctx,offeringId){
   ctx.modal('Editar inscritos',`<p id="roster-review" role="status">Consultando la lista actual…</p>`);const marker=$('#roster-review');
   try{

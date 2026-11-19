@@ -1,3 +1,4 @@
+import {saveCalendarModule,moduleAcceptsAdmission} from './module-calendars.js';
 import {studentAcademicHistory} from './student-history.js';
 import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
 import {saveRegisteredGroup,academicImpact,offeringRosterReview,updateOfferingRoster,editStudent,resetStudentPassword,deleteStudent,editModule,deleteModule} from './academic-admin.js';
@@ -22,7 +23,6 @@ const fail = (message, status=400) => { const e = new Error(message); e.status=s
 const required = (v,label) => { if(typeof v!=='string' || !v.trim() || v.length>160) fail(`${label}: valor requerido (máximo 160 caracteres).`); return v.trim(); };
 const number = v => { const n=Number(v); if(!Number.isInteger(n)||n<1) fail('Selecciona una opción válida.'); return n; };
 const level = v => { const n=number(v); if(n>3) fail('El año debe estar entre 1 y 3.'); return n; };
-const date = v => { if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v)||Number.isNaN(Date.parse(v))||new Date(v).toISOString().slice(0,10)!==v) fail('Fecha inválida.'); return v; };
 
 export function staticFileTarget(pathname, paths = pathTools) {
   const root=paths.resolve('public');
@@ -119,14 +119,15 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
       if(path==='/api/data' && req.method==='GET') {
         if(user.role==='student' && user.blocked) return send({blocked:true});
         const admin=user.role==='admin'; const teacher=user.role==='teacher';
-        const offeringSql=`SELECT o.*, s.name subject, s.code subject_code, s.catalog_order, s.career_id, s.level, c.name career, m.name module, m.start_date, m.end_date, m.year_id, y.name AS "year", sh.name shift, u.name teacher FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id`;
+        const offeringSql=`SELECT o.*, s.name subject, s.code subject_code, s.catalog_order, s.career_id, s.level, m.admission_year_id module_admission_year_id, ay.name module_admission_year, c.name career, m.name module, m.start_date, m.end_date, m.year_id, y.name AS "year", sh.name shift, u.name teacher FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id JOIN users u ON u.id=o.teacher_id LEFT JOIN years ay ON ay.id=m.admission_year_id`;
         const offerings=admin?(await db.prepare(offeringSql).all()):teacher?(await db.prepare(offeringSql+' WHERE o.teacher_id=?').all(user.id)):(await db.prepare(offeringSql+' WHERE o.id IN (SELECT offering_id FROM enrollments WHERE student_id=?)').all(user.id));
         const enrollmentSql=`SELECT e.*,u.name student,u.ci,s.level student_level,y.name admission_year FROM enrollments e JOIN users u ON u.id=e.student_id JOIN students s ON s.user_id=e.student_id JOIN years y ON y.id=s.admission_year_id`;
         const enrollments=admin?(await db.prepare(enrollmentSql).all()):teacher?(await db.prepare(enrollmentSql+' JOIN offerings o ON o.id=e.offering_id WHERE o.teacher_id=?').all(user.id)):(await db.prepare(enrollmentSql+' WHERE e.student_id=?').all(user.id));
         return send(uppercaseAcademicData({
           offerings:offerings.map(o=>({...o,deadline:deadlineFor(o.end_date),can_grade:canGrade(o.end_date,o.unlocked_until)})),enrollments,
           careers:(await db.prepare('SELECT * FROM careers').all()),shifts:(await db.prepare('SELECT * FROM shifts').all()),years:(await db.prepare('SELECT * FROM years ORDER BY name DESC').all()),
-          modules:(await db.prepare('SELECT m.*,y.name AS "year" FROM modules m JOIN years y ON y.id=m.year_id ORDER BY start_date').all()),
+          modules:(await db.prepare('SELECT m.*,y.name AS "year",ay.name admission_year FROM modules m JOIN years y ON y.id=m.year_id LEFT JOIN years ay ON ay.id=m.admission_year_id ORDER BY start_date').all()),
+          calendar_admission_year_id:user.role==='student'?(await db.prepare('SELECT admission_year_id FROM students WHERE user_id=?').get(user.id))?.admission_year_id:null,
           subjects:admin?(await db.prepare('SELECT s.*,c.name career FROM subjects s JOIN careers c ON c.id=s.career_id').all()):[],
           students:admin?(await db.prepare('SELECT s.*,u.name,u.ci,u.blocked,c.name career,sh.name shift,y.name admission_year FROM students s JOIN users u ON u.id=s.user_id JOIN careers c ON c.id=s.career_id JOIN shifts sh ON sh.id=s.shift_id JOIN years y ON y.id=s.admission_year_id').all()):[],
           teachers:admin?(await db.prepare("SELECT id,name,ci FROM users WHERE role='teacher'").all()):[],
@@ -288,18 +289,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
           }
         });return send(result);
       }
-      if(path==='/api/modules') {
-        const start=date(b.start_date),end=date(b.end_date);if(start>end) fail('El fin debe ser posterior al inicio.');
-        const yearId=number(b.year_id);
-        await transaction(async()=>{
-          const year=await db.prepare('SELECT name FROM years WHERE id=? FOR UPDATE').get(yearId);
-          if(!year||start.slice(0,4)!==year.name||end.slice(0,4)!==year.name)fail('Las fechas deben pertenecer a la gestión.');
-          if((await db.prepare('SELECT count(*) n FROM modules WHERE year_id=?').get(yearId)).n>=4)fail('Cada gestión admite hasta cuatro módulos.');
-          if(await db.prepare('SELECT id FROM modules WHERE year_id=? AND start_date<=? AND end_date>=?').get(yearId,end,start))fail('El módulo se superpone con otro de la misma gestión.');
-          await db.prepare('INSERT INTO modules(name,year_id,start_date,end_date) VALUES (?,?,?,?)').run(academicUpper(required(b.name,'Módulo')),yearId,start,end);
-          await audit(user.id,'Módulo creado',b.name);
-        });return send({ok:true});
-      }
+      if(path==='/api/modules')return send(await saveCalendarModule(db,b,user.id));
       if(path==='/api/offerings') {
         const teacher=number(b.teacher_id);if(!(await db.prepare("SELECT id FROM users WHERE id=? AND role='teacher'").get(teacher))) fail('Docente inválido.');
         const subjectId=number(b.subject_id),careerId=number(b.career_id);
@@ -310,12 +300,14 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
       }
       if(path==='/api/enrollments') {
         await transaction(async()=>{
+          await db.query('SELECT pg_advisory_xact_lock(731202606)');
           const studentId=number(b.student_id),offeringId=number(b.offering_id);
           const o=await db.prepare('SELECT o.*,s.career_id,s.level FROM offerings o JOIN subjects s ON s.id=o.subject_id WHERE o.id=? FOR UPDATE OF o').get(offeringId);
           const s=await db.prepare('SELECT * FROM students WHERE user_id=? FOR UPDATE').get(studentId);
           if(!s||!o)fail('Estudiante o materia inválidos.');
           const group=await db.prepare('SELECT * FROM academic_groups WHERE offering_id=?').get(o.id);
           if(!enrollmentMatches(s,o,{allowRetake:allowsRetakes(b.allow_retake),admissionYearId:group?.admission_year_id}))fail('La materia debe coincidir con carrera, turno y año. Para cursar un año anterior activa Materia pendiente; no se permite adelantar años.');
+          if(s.level<=o.level&&!await moduleAcceptsAdmission(db,o.module_id,s.admission_year_id))fail('Esta asignación usa otro calendario. Elige el módulo correspondiente al ingreso del estudiante.');
           if(await db.prepare('SELECT id FROM enrollments WHERE student_id=? AND offering_id=?').get(s.user_id,o.id))fail('El estudiante ya está inscrito en esta asignación. Para otro intento usa una asignación de otro trimestre o gestión.');
           await db.prepare('INSERT INTO enrollments(student_id,offering_id,is_retake) VALUES (?,?,?)').run(s.user_id,o.id,s.level>o.level);
           if(group)await db.prepare('INSERT INTO academic_group_students(group_id,student_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(group.id,s.user_id);

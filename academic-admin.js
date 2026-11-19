@@ -1,3 +1,4 @@
+import {saveCalendarModule,moduleAcceptsAdmission,moduleAdmissionRule} from './module-calendars.js';
 import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
 import {createHash} from 'node:crypto';
 import {academicUpper} from './public/academic-text.js';
@@ -36,6 +37,7 @@ export async function saveRegisteredGroup(db,input,actor){
     if(!offering)offering=(await db.query('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES ($1,$2,$3,$4) RETURNING *',[subjectId,moduleId,shift,teacher])).rows[0];
     let group=await db.prepare('SELECT * FROM academic_groups WHERE offering_id=?').get(offering.id);
     const students=await eligibility(db,studentIds,subject,shift,null,new Set(),allowsRetakes(input.allow_retake));
+    if(!await moduleAcceptsAdmission(db,moduleId,admission)&&students.some(s=>s.level<=subject.level))fail('Este módulo pertenece a otro calendario de ingreso. Elige el módulo de la gestión de ingreso seleccionada.');
     if(students.some(s=>s.admission_year_id!==admission))fail('Los estudiantes deben pertenecer a la gestión de ingreso seleccionada.');
     if(group&&group.admission_year_id!==admission&&!students.every(s=>s.level>subject.level))fail('Esta asignación ya está vinculada a otro ingreso. Revisa el grupo existente.',409);
     if(!group)group=(await db.query('INSERT INTO academic_groups(subject_id,year_id,admission_year_id,shift_id,offering_id) VALUES ($1,$2,$3,$4,$5) RETURNING *',[subjectId,year,admission,shift,offering.id])).rows[0];
@@ -83,8 +85,9 @@ export async function offeringRosterReview(db,offeringId){
     const enrolled=state.enrollments.map(e=>e.student_id),r=state.record;
     const candidates=(await db.query(`SELECT s.*,u.name,u.ci,y.name AS admission_year FROM students s JOIN users u ON u.id=s.user_id JOIN years y ON y.id=s.admission_year_id
       WHERE s.user_id=ANY($1::int[]) OR (s.career_id=$2 AND s.shift_id=$4 AND ((s.level=$3 AND ($5::int IS NULL OR s.admission_year_id=$5)) OR s.level>$3)) ORDER BY upper(u.name),s.user_id`,[enrolled,r.career_id,r.level,r.shift_id,state.groups[0]?.admission_year_id||null])).rows;
+    const admits=await moduleAdmissionRule(db,r.module_id),allowed=candidates.filter(student=>enrolled.includes(student.user_id)||student.level>r.level||admits(student.admission_year_id));
     const detail=await db.prepare('SELECT c.name AS career,m.name AS module,y.name AS year,sh.name AS shift FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id WHERE o.id=?').get(offeringId);
-    return {...state.public,context:academicUpper(`${detail.career} · ${detail.module} · ${detail.year} · ${detail.shift}`),student_ids:enrolled,graded_student_ids:state.enrollments.filter(hasNotes).map(e=>e.student_id),students:candidates.map(s=>({...s,name:academicUpper(s.name),retake_candidate:s.level>r.level}))};
+    return {...state.public,context:academicUpper(`${detail.career} · ${detail.module} · ${detail.year} · ${detail.shift}`),student_ids:enrolled,graded_student_ids:state.enrollments.filter(hasNotes).map(e=>e.student_id),students:allowed.map(s=>({...s,name:academicUpper(s.name),retake_candidate:s.level>r.level}))};
   },{isolation:'REPEATABLE READ'});
 }
 
@@ -96,6 +99,8 @@ export async function updateOfferingRoster(db,input,actor){
     const existing=new Set(state.enrollments.map(e=>e.student_id)),selected=new Set(studentIds),removed=state.enrollments.filter(e=>!selected.has(e.student_id));
     if(removed.some(hasNotes)&&input.confirm_grades!=='RETIRAR CON NOTAS')fail('Hay estudiantes desmarcados con notas o borradores. Confirma que deseas retirarlos junto con sus notas.',409);
     const students=await eligibility(db,studentIds,state.record,state.record.shift_id,state.groups[0]?.admission_year_id,existing,allowsRetakes(input.allow_retake));
+    const admits=await moduleAdmissionRule(db,state.record.module_id);
+    for(const student of students)if(!existing.has(student.user_id)&&student.level<=state.record.level&&!admits(student.admission_year_id))fail('El estudiante debe usar el módulo de su calendario de ingreso.');
     for(const row of removed)await db.prepare('DELETE FROM enrollments WHERE id=?').run(row.id);
     for(const group of state.groups){await db.query('DELETE FROM academic_group_students WHERE group_id=$1 AND NOT(student_id=ANY($2::int[]))',[group.id,studentIds]);for(const studentId of studentIds)await db.prepare('INSERT INTO academic_group_students(group_id,student_id) VALUES (?,?) ON CONFLICT DO NOTHING').run(group.id,studentId);}
     let added=0;for(const studentId of studentIds){
@@ -145,20 +150,8 @@ export async function deleteStudent(db,input,actor){
     await audit(db,actor,'Estudiante eliminado',`Estudiante ${studentId}: ${state.record.name}; ${state.public.enrollments} inscripciones y ${state.public.notes} registros con notas eliminados.`);return {ok:true};
   });
 }
-const isoDate=value=>{if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||!Number.isFinite(Date.parse(value))||new Date(value).toISOString().slice(0,10)!==value)fail('Fecha inválida.');return value;};
-export async function editModule(db,input,actor){
-  const moduleId=id(input.module_id),name=title(input.name),yearId=id(input.year_id),start=isoDate(input.start_date),end=isoDate(input.end_date);if(start>end)fail('La fecha final debe ser posterior al inicio.');
-  return db.transaction(async()=>{
-    await structuralLock(db);const old=await db.prepare('SELECT * FROM modules WHERE id=? FOR UPDATE').get(moduleId);if(!old)fail('Trimestre no encontrado.',404);
-    const year=await db.prepare('SELECT * FROM years WHERE id=? FOR UPDATE').get(yearId);if(!year||start.slice(0,4)!==year.name||end.slice(0,4)!==year.name)fail('Las fechas deben pertenecer a la gestión elegida.');
-    if(old.year_id!==yearId&&await db.prepare('SELECT id FROM offerings WHERE module_id=? LIMIT 1').get(moduleId))fail('El trimestre tiene asignaciones. Conserva su gestión; puedes corregir nombre y fechas.',409);
-    if((await db.prepare('SELECT COUNT(*) n FROM modules WHERE year_id=? AND id<>?').get(yearId,moduleId)).n>=4)fail('La gestión ya tiene cuatro módulos.');
-    if(await db.prepare('SELECT id FROM modules WHERE year_id=? AND id<>? AND start_date<=? AND end_date>=?').get(yearId,moduleId,end,start))fail('Las fechas se superponen con otro trimestre.');
-    const names=await db.prepare('SELECT id,name FROM modules WHERE year_id=? AND id<>?').all(yearId,moduleId);if(names.some(m=>academicUpper(m.name)===name))fail('Ya existe un trimestre con ese nombre en la gestión.',409);
-    await db.prepare('UPDATE modules SET name=?,year_id=?,start_date=?,end_date=? WHERE id=?').run(name,yearId,start,end,moduleId);
-    await audit(db,actor,'Trimestre editado',`Trimestre ${moduleId}: ${old.name} (${old.start_date}/${old.end_date}) → ${name} (${start}/${end}). Notas conservadas.`);return {ok:true};
-  });
-}
+export async function editModule(db,input,actor){return saveCalendarModule(db,input,actor,{moduleId:id(input.module_id)});}
+
 export async function deleteModule(db,input,actor){
   const moduleId=id(input.module_id);return db.transaction(async()=>{
     await structuralLock(db);const state=await snapshot(db,'module',moduleId,true);reviewed(input,state.public,'ELIMINAR TRIMESTRE');

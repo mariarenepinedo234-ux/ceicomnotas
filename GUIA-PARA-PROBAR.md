@@ -225,7 +225,7 @@ La migración 005 conserva tus registros y permite usar la misma materia en dist
 - **Corregir datos:** pulsa Editar o Completar datos en la fila del estudiante. Puedes corregir también el CI. Su historial conserva las inscripciones anteriores. Un CI corregido pasa a ser su usuario y conserva su contraseña.
 - **Contraseña olvidada:** pulsa Restablecer clave, escribe y repite una contraseña temporal de mínimo 8 caracteres, distinta del CI, y comunícala al estudiante. Al ingresar deberá cambiarla. Las sesiones anteriores quedan cerradas.
 - **Eliminar un registro erróneo:** pulsa Eliminar en la fila del estudiante, revisa identidad y cantidades y escribe ELIMINAR ESTUDIANTE. Se eliminarán sus inscripciones y notas de todas las gestiones. Los demás estudiantes no se eliminan.
-- **Corregir un trimestre:** Gestiones y módulos → Editar trimestre. Modifica nombre o fechas; las fechas no pueden superponerse con otro período. Si ya tiene asignaciones, conserva su gestión.
+- **Corregir un trimestre:** Gestiones y módulos → Editar trimestre. Modifica nombre o fechas; las fechas no pueden superponerse con otro período del mismo calendario. Si ya tiene asignaciones, conserva su gestión y calendario de ingreso.
 - **Eliminar un trimestre:** pulsa Eliminar trimestre, revisa las cantidades y escribe ELIMINAR TRIMESTRE. Se eliminan ese período, sus asignaciones, grupos, inscripciones y notas. Las personas registradas, materias del catálogo y otros períodos se conservan.
 
 Si el sistema indica que la información cambió durante una revisión, cierra el diálogo y vuelve a abrirlo para consultar la lista actual antes de confirmar. Puedes crear una copia desde Copias de seguridad para conservar un estado recuperable antes de una eliminación permanente.
@@ -317,3 +317,15 @@ Actualiza el proyecto completo conservando `.env`, `backups` y archivos privados
 5. Revisa la sección de complementarias y planes anteriores. Sus notas se conservan, pero se muestran aparte del avance del plan vigente. Si una materia ya cursada aparece Sin inscripción, solicita a secretaría completar sus registros anteriores al uso del portal.
 
 Actualiza el proyecto completo conservando `.env`, `backups` y tus archivos privados; reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones respecto de la versión 007. Para que el plan refleje el Excel revisado, administración debe haber aplicado el catálogo mediante `npm run catalogo:actualizar`.
+
+
+## Cuarto trimestre con fechas diferentes para ingreso 2026
+
+1. Actualiza el proyecto completo conservando `.env`, `backups` y archivos privados. Ejecuta `npm run db:migrate`, inicia con `npm run dev` y pulsa Ctrl + F5.
+2. En **Gestiones y módulos → Nuevo módulo**, escribe **CUARTO TRIMESTRE PRIMER AÑO 2026**.
+3. Elige **Gestión cursada: 2026** y **Calendario para ingreso: Ingreso 2026**. Indica **inicio 07/09/2026** y **fin 30/11/2026**.
+4. Guarda. Puede coincidir con el cuarto trimestre compartido del 05/10/2026 al 18/12/2026, que conserva sus fechas para ingresos 2024 y 2025.
+5. Al usar **Nueva asignación** o **Registrar grupo**, selecciona el nuevo módulo para los alumnos de ingreso 2026. En Registrar grupo, sin la excepción de pendientes, la lista mostrará el calendario correspondiente al ingreso elegido.
+6. Usa **Calendario por ingreso** para revisar las fechas de cada ingreso. Si otros trimestres de ingreso 2026 también tienen fechas diferentes, créalos en su propio calendario. Los períodos compartidos que coincidan con uno propio dejan de ofrecerse para nuevas inscripciones regulares de ese ingreso.
+
+La migración conserva las asignaciones y notas previas. Crear un módulo nuevo no mueve estudiantes ni cambia las notas de asignaciones anteriores. Los módulos se identifican por su calendario, aunque tengan nombres parecidos. Los plazos de notas de cada docente se calculan según la fecha final del módulo asignado.

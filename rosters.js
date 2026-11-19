@@ -1,3 +1,4 @@
+import {moduleAcceptsAdmission} from './module-calendars.js';
 import {academicUpper} from './public/academic-text.js';
 import {keyOf,teacherKey} from './catalog.js';
 
@@ -15,6 +16,7 @@ export async function loadRosters(db,input,actorId=null){
   const teacherName=required(input.teacher,'Docente');
   return db.transaction(async()=>{
     await db.query('SELECT pg_advisory_xact_lock(731202605)');
+    await db.query('SELECT pg_advisory_xact_lock(731202606)');
     const result={students_created:0,students_reused:0,subjects_created:0,groups_created:0,enrollments_created:0,group_ids:[]};
     async function yearId(name){const row=(await db.query('INSERT INTO years(name) VALUES ($1) ON CONFLICT(name) DO UPDATE SET name=EXCLUDED.name RETURNING id',[name])).rows[0];return row.id;}
     const admissionId=await yearId(admission),academicId=await yearId(year);
@@ -35,19 +37,21 @@ export async function loadRosters(db,input,actorId=null){
       const existing=(await db.prepare("SELECT id,name FROM users WHERE role='teacher'").all()).filter(u=>requested.every(token=>teacherKey(u.name).split(' ').includes(token)));
       if(existing.length!==1)throw new Error('El docente debe coincidir con un único registro.');teacherId=existing[0].id;
     }else throw new Error('El nombre del docente coincide con varios registros.');
+    if(await db.prepare('SELECT id FROM modules WHERE year_id=? AND admission_year_id=? AND start_date<=? AND end_date>=? LIMIT 1').get(academicId,admissionId,module.end_date,module.start_date))throw new Error('Este ingreso tiene calendario propio. Usa Registrar grupo para elegir su módulo y conservar las fechas de los otros calendarios.');
     const moduleName=required(module.name,'Módulo');
-    const candidates=await db.prepare('SELECT * FROM modules WHERE year_id=? AND (name=? OR start_date=?) FOR UPDATE').all(academicId,moduleName,module.start_date);
+    const candidates=await db.prepare('SELECT * FROM modules WHERE year_id=? AND admission_year_id IS NULL AND (name=? OR start_date=?) FOR UPDATE').all(academicId,moduleName,module.start_date);
     if(candidates.length>1)throw new Error('Hay más de un módulo que coincide; revisa la planificación.');
     let moduleId=candidates[0]?.id;
-    if(await db.prepare('SELECT id FROM modules WHERE year_id=? AND start_date<=? AND end_date>=? AND id<>?').get(academicId,module.end_date,module.start_date,moduleId||0))throw new Error('Las fechas se superponen con otro módulo.');
+    if(await db.prepare('SELECT id FROM modules WHERE year_id=? AND admission_year_id IS NULL AND start_date<=? AND end_date>=? AND id<>?').get(academicId,module.end_date,module.start_date,moduleId||0))throw new Error('Las fechas se superponen con otro módulo.');
     if(moduleId){
       const old=candidates[0];
       await db.prepare('UPDATE modules SET name=?,start_date=?,end_date=? WHERE id=?').run(moduleName,module.start_date,module.end_date,moduleId);
       if(old.name!==moduleName||old.start_date!==module.start_date||old.end_date!==module.end_date)await db.prepare('INSERT INTO audit(actor_id,action,detail) VALUES (?,?,?)').run(actorId,'Calendario actualizado',`Módulo ${moduleId}: ${old.start_date}/${old.end_date} → ${module.start_date}/${module.end_date}. Fechas confirmadas para la carga de grupos.`);
     }else{
-      if((await db.prepare('SELECT COUNT(*) n FROM modules WHERE year_id=?').get(academicId)).n>=4)throw new Error('La gestión ya tiene cuatro módulos.');
+      if((await db.prepare('SELECT COUNT(*) n FROM modules WHERE year_id=? AND admission_year_id IS NULL').get(academicId)).n>=4)throw new Error('La gestión ya tiene cuatro módulos.');
       moduleId=(await db.query('INSERT INTO modules(name,year_id,start_date,end_date) VALUES ($1,$2,$3,$4) RETURNING id',[moduleName,academicId,module.start_date,module.end_date])).rows[0].id;
     }
+    if(!await moduleAcceptsAdmission(db,moduleId,admissionId))throw new Error('El ingreso tiene un calendario propio. Usa Registrar grupo y elige su módulo específico.');
     const careers=await db.prepare('SELECT * FROM careers').all(),reused=new Set();
     for(const group of input.groups){
       const career=careers.filter(c=>careerKey(c.name)===careerKey(required(group.career,'Carrera')));if(career.length!==1)throw new Error('La carrera debe coincidir con un único registro.');
