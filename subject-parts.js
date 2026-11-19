@@ -17,7 +17,7 @@ export async function createSubjectPart(db,input,actor){
     const module=await db.prepare('SELECT * FROM modules WHERE id=? FOR UPDATE').get(moduleId);
     if(!module||module.start_date<=source.end_date)fail('Elige un trimestre que comience después de finalizar la parte de origen.');
     if(!await db.prepare("SELECT id FROM users WHERE id=? AND role='teacher'").get(teacherId))fail('Selecciona un docente registrado.');
-    if(await db.prepare('SELECT id FROM offerings WHERE subject_id=? AND module_id=? AND shift_id=?').get(source.subject_id,moduleId,source.shift_id))fail('Ya existe una asignación de esta materia y turno en el trimestre elegido. Selecciona otro trimestre.',409);
+    if(await db.prepare('SELECT id FROM offerings WHERE subject_id=? AND module_id=? AND shift_id=?').get(source.subject_id,moduleId,source.shift_id))fail('Ya existe una asignación de esta materia y turno en el trimestre elegido. Reabre Continuar materia y elige VINCULAR EXISTENTE para conservar su lista y notas.',409);
     let series=source.series_id?await db.prepare('SELECT * FROM subject_series WHERE id=? FOR UPDATE').get(source.series_id):null;
     if(input.mode==='recover'&&!series)fail('Esta asignación aún no pertenece a una materia por partes.');
     if(input.mode==='continue'&&series&&(series.completed||source.part_number!==series.part_count||source.part_recovery))fail('Continúa desde la última parte original. Si la materia está concluida, reábrela primero.',409);
@@ -60,5 +60,34 @@ export async function setSubjectSeriesStatus(db,input,actor){
     await db.prepare('UPDATE subject_series SET completed=? WHERE id=?').run(input.completed,seriesId);
     await audit(db,actor,input.completed?'Materia por partes concluida':'Materia por partes reabierta',`Serie ${seriesId} · ${series.part_count} partes. Promedio con igual peso; cada parte requiere al menos 61 puntos. Notas originales conservadas.`);
     return {ok:true};
+  });
+}
+
+export async function linkSubjectPart(db,input,actor){
+  const sourceId=id(input.offering_id),targetId=id(input.target_offering_id),expected=id(input.expected_part_count);
+  if(sourceId===targetId)fail('Elige dos asignaciones distintas.');
+  return db.transaction(async()=>{
+    await lock(db);
+    const offerings=(await db.query('SELECT o.*,m.start_date,m.end_date,s.name subject FROM offerings o JOIN modules m ON m.id=o.module_id JOIN subjects s ON s.id=o.subject_id WHERE o.id=ANY($1::int[]) ORDER BY o.id FOR UPDATE OF o',[ [sourceId,targetId] ])).rows;
+    const source=offerings.find(o=>o.id===sourceId),target=offerings.find(o=>o.id===targetId);
+    if(!source||!target)fail('Una de las asignaciones ya no existe. Reabre el formulario.',404);
+    if(source.subject_id!==target.subject_id||source.shift_id!==target.shift_id)fail('Las dos asignaciones deben corresponder a la misma materia, carrera y turno.');
+    if(target.start_date<=source.end_date)fail('La continuación debe comenzar después de finalizar el trimestre de origen.');
+    if(target.series_id)fail('La asignación de destino ya pertenece a una materia por partes. No se modificó.',409);
+    let series=source.series_id?await db.prepare('SELECT * FROM subject_series WHERE id=? FOR UPDATE').get(source.series_id):null;
+    if(expected!==(series?.part_count||1))fail('Las partes cambiaron. Reabre el formulario antes de vincular.',409);
+    if(series&&(series.completed||source.part_recovery||source.part_number!==series.part_count))fail('Continúa desde la última parte original de una materia abierta.',409);
+    // Vincular conserva íntegramente ambas listas; nunca copia ni reemplaza notas.
+    const rows=await db.prepare('SELECT student_id,offering_id FROM enrollments WHERE offering_id=? OR offering_id=? ORDER BY id FOR UPDATE').all(sourceId,targetId);
+    const sourceIds=new Set(rows.filter(r=>r.offering_id===sourceId).map(r=>r.student_id)),targetIds=rows.filter(r=>r.offering_id===targetId).map(r=>r.student_id);
+    if(sourceIds.size&&targetIds.length&&!targetIds.some(studentId=>sourceIds.has(studentId)))fail('Los grupos no comparten estudiantes. Revisa que sean el mismo grupo antes de vincularlos.');
+    let partNumber;
+    if(!series){
+      series=(await db.query('INSERT INTO subject_series(subject_id,shift_id,part_count) VALUES ($1,$2,2) RETURNING *',[source.subject_id,source.shift_id])).rows[0];
+      await db.prepare('UPDATE offerings SET series_id=?,part_number=1 WHERE id=?').run(series.id,sourceId);partNumber=2;
+    }else{partNumber=series.part_count+1;await db.prepare('UPDATE subject_series SET part_count=? WHERE id=?').run(partNumber,series.id);}
+    await db.prepare('UPDATE offerings SET series_id=?,part_number=? WHERE id=?').run(series.id,partNumber,targetId);
+    await audit(db,actor,'Asignación existente vinculada como continuación',`${source.subject} · serie ${series.id} · PARTE ${partNumber} · asignaciones ${sourceId} → ${targetId}. Listas, docentes y todas las notas conservados; sin inscripciones nuevas.`);
+    return {ok:true,series_id:series.id,offering_id:targetId,part_number:partNumber,students:targetIds.length};
   });
 }

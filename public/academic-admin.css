@@ -49,3 +49,9 @@
 .history-attempts .series-summary{min-width:280px;white-space:normal}
 @media(max-width:760px){#subject-part-form input,#subject-part-form select{font-size:16px}.series-summary{padding:15px}.subject-part-modal .form-actions{flex-wrap:wrap}.subject-part-modal .form-actions .btn{white-space:normal}}
 .teacher-assignment .row-actions{flex-wrap:wrap;min-width:240px;max-width:360px}
+.offering-continuation-notice,.part-existing-notice{border:1px solid var(--line);border-left:4px solid var(--wine);background:var(--wine-soft);padding:16px;border-radius:8px;margin:18px 0;font-size:13px;line-height:1.8;overflow-wrap:anywhere}
+.offering-continuation-notice p,.part-existing-notice p{margin-top:8px}
+.offering-continuation-notice label{margin:14px 0;font-size:13px}
+.offering-continuation-notice .btn{white-space:normal}
+.offering-continuation-notice[hidden],.part-existing-notice[hidden]{display:none}
+@media(max-width:760px){.offering-continuation-notice select{font-size:16px}}

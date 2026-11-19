@@ -108,3 +108,40 @@ test('planillas JSON, HTML, PDF y Excel identifican la parte y recuperación; no
   for(const e of before)assert.deepEqual(await db.prepare('SELECT * FROM enrollments WHERE id=?').get(e.id),e);
   assert.match((await api('reports/'+source.id,null,'teacher')).body.offering.subject,/PARTE I/);
 });
+
+test('vincular asignación existente convierte I y II sin crear grupos ni cambiar docentes, listas o notas',async t=>{
+  const {db,api,source,subject}=await setup(t);
+  const target=(await db.query('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES ($1,2,1,3) RETURNING *',[subject.id])).rows[0];
+  await db.query('INSERT INTO enrollments(student_id,offering_id,saber,hacer,ser,grade) VALUES(4,$1,30,30,15,75),(5,$1,NULL,NULL,NULL,NULL)',[target.id]);
+  const group=(await db.query('INSERT INTO academic_groups(subject_id,year_id,admission_year_id,shift_id,offering_id) VALUES($1,3,3,1,$2) RETURNING id',[subject.id,target.id])).rows[0];await db.query('INSERT INTO academic_group_students(group_id,student_id) VALUES($1,4),($1,5)',[group.id]);
+  const before={};for(const table of ['enrollments','academic_groups','academic_group_students','subjects','students','users'])before[table]=await db.prepare(`SELECT * FROM ${table} ORDER BY ${table==='students'?'user_id':table==='academic_group_students'?'group_id,student_id':'id'}`).all();
+  const count=(await db.prepare('SELECT COUNT(*) n FROM offerings').get()).n;
+  const response=await api('subject-parts/link',{offering_id:source.id,target_offering_id:target.id,expected_part_count:1});assert.equal(response.status,200,JSON.stringify(response.body));assert.equal(response.body.offering_id,target.id);assert.equal(response.body.part_number,2);
+  assert.equal((await db.prepare('SELECT COUNT(*) n FROM offerings').get()).n,count);
+  assert.deepEqual(await db.prepare('SELECT * FROM offerings WHERE id=?').get(target.id),{...target,series_id:response.body.series_id,part_number:2});
+  for(const [table,rows] of Object.entries(before))assert.deepEqual(await db.prepare(`SELECT * FROM ${table} ORDER BY ${table==='students'?'user_id':table==='academic_group_students'?'group_id,student_id':'id'}`).all(),rows);
+  assert.equal((await db.prepare('SELECT part_number FROM offerings WHERE id=?').get(source.id)).part_number,1);
+  assert.equal((await api('data')).body.offerings.find(o=>o.id===target.id).subject,'PROGRAMACIÓN I DE PRUEBA · PARTE II');
+  await api('subject-series/status',{series_id:response.body.series_id,part_count:2,completed:true});
+  const course=(await api('academic-history',null,'student')).body.courses.find(c=>c.id===subject.id);assert.equal(course.grade,70);assert.equal(course.state,'approved');
+});
+
+test('vincular valida materia, turno, fechas, grupo, identidad y permisos; errores no modifican notas ni asignaciones',async t=>{
+  const {db,api,source,subject}=await setup(t);
+  const target=(await db.query('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES($1,2,1,3) RETURNING id',[subject.id])).rows[0];await db.query('INSERT INTO enrollments(student_id,offering_id,grade) VALUES(6,$1,90)',[target.id]);
+  const before=await db.prepare('SELECT * FROM offerings ORDER BY id').all(),notes=await db.prepare('SELECT * FROM enrollments ORDER BY id').all();
+  const input={offering_id:source.id,target_offering_id:target.id,expected_part_count:1};
+  for(const body of [{...input,offering_id:target.id,target_offering_id:source.id},{...input,target_offering_id:1},{...input,target_offering_id:source.id},{...input,target_offering_id:999999},{...input,expected_part_count:2},input])assert.ok((await api('subject-parts/link',body)).status>=400);
+  for(const role of ['teacher','student','anonymous'])assert.equal((await api('subject-parts/link',input,role)).status,role==='anonymous'?401:403);
+  assert.deepEqual(await db.prepare('SELECT * FROM offerings ORDER BY id').all(),before);assert.deepEqual(await db.prepare('SELECT * FROM enrollments ORDER BY id').all(),notes);assert.equal((await db.prepare('SELECT COUNT(*) n FROM subject_series').get()).n,0);
+});
+
+test('vincular admite parte III existente y solicitudes simultáneas no duplican partes ni alteran las listas',async t=>{
+  const {db,api,source,subject}=await setup(t);
+  const targets=(await db.query('INSERT INTO offerings(subject_id,module_id,shift_id,teacher_id) VALUES($1,2,1,2),($1,3,1,3) RETURNING id,module_id',[subject.id])).rows;
+  const second=targets.find(o=>o.module_id===2),third=targets.find(o=>o.module_id===3);
+  const input={offering_id:source.id,target_offering_id:second.id,expected_part_count:1};
+  const responses=await Promise.all([api('subject-parts/link',input),api('subject-parts/link',input)]);assert.deepEqual(responses.map(r=>r.status).sort(),[200,409]);
+  const next=await api('subject-parts/link',{offering_id:second.id,target_offering_id:third.id,expected_part_count:2});assert.equal(next.status,200,JSON.stringify(next.body));assert.equal(next.body.part_number,3);
+  assert.equal((await db.prepare('SELECT COUNT(*) n FROM subject_series').get()).n,1);assert.equal((await db.prepare('SELECT part_count FROM subject_series').get()).part_count,3);assert.equal((await db.prepare('SELECT COUNT(*) n FROM enrollments WHERE offering_id=? OR offering_id=?').get(second.id,third.id)).n,0);
+});

@@ -1,4 +1,4 @@
-import {createSubjectPart,setSubjectSeriesStatus} from './subject-parts.js';
+import {createSubjectPart,setSubjectSeriesStatus,linkSubjectPart} from './subject-parts.js';
 import {decoratePart} from './public/part-summary.js';
 import {saveCalendarModule,moduleAcceptsAdmission} from './module-calendars.js';
 import {studentAcademicHistory} from './student-history.js';
@@ -208,7 +208,7 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
       if(path==='/api/academic-impact'&&req.method==='GET')return send(await academicImpact(db,url.searchParams.get('type'),number(url.searchParams.get('id'))));
       if(req.method!=='POST') fail('Ruta no encontrada.',404);
       const b=body;
-      const administration={'/api/subject-parts':createSubjectPart,'/api/subject-series/status':setSubjectSeriesStatus,'/api/student-edit':editStudent,'/api/student-password-reset':resetStudentPassword,'/api/teacher-password-reset':resetTeacherPassword,'/api/student-delete':deleteStudent,'/api/module-edit':editModule,'/api/module-delete':deleteModule,'/api/offering-roster':updateOfferingRoster};
+      const administration={'/api/subject-parts':createSubjectPart,'/api/subject-parts/link':linkSubjectPart,'/api/subject-series/status':setSubjectSeriesStatus,'/api/student-edit':editStudent,'/api/student-password-reset':resetStudentPassword,'/api/teacher-password-reset':resetTeacherPassword,'/api/student-delete':deleteStudent,'/api/module-edit':editModule,'/api/module-delete':deleteModule,'/api/offering-roster':updateOfferingRoster};
       if(administration[path])return send(await administration[path](db,b,user.id));
       if(path==='/api/rosters'){
         return send(await saveRegisteredGroup(db,b,user.id));

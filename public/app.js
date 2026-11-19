@@ -1,4 +1,4 @@
-import {bindSubjectParts,partsOverviewHTML} from './subject-parts.js';
+import {bindSubjectParts,partsOverviewHTML,bindOfferingContinuationNotice} from './subject-parts.js';
 import {mountModuleGroups} from './module-groups.js';
 import {moduleForm} from './module-admin.js';
 import {moduleForAdmission,calendarLabel,moduleLabel} from './module-calendar.js';
@@ -178,6 +178,7 @@ function offeringForm(teacherId='',moduleId=null){
     hint.textContent=!careerId?'Elige una carrera para ver sus materias.':subjects.length?`${subjects.length} materias disponibles para esta carrera.`:'Registra las materias de esta carrera antes de asignarlas.';
   }
   careerSelect.addEventListener('change',updateSubjects);updateSubjects();
+  bindOfferingContinuationNotice(form,catalogContext(),{teacherId:teacher?.id||''});
 }
 function enrollForm({moduleId=null,offeringId=null}={}){
   const pinned=moduleId?data.modules.find(m=>m.id===moduleId):null;

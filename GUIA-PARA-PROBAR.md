@@ -368,3 +368,17 @@ Si todavía tiene CI pendiente, primero usa **Completar CI y habilitar**. Actual
 8. En **Mi historial académico**, el estudiante abre los registros de la materia para ver las partes y sus intentos. El administrador también consulta el resumen desde el expediente del alumno. Ejemplo: 65, 50 y 85 requieren recuperar la segunda parte; si después obtiene 80 en esa recuperación, la materia queda aprobada con 76,67.
 
 **Reabrir materia** devuelve una materia concluida al estado en curso para agregar otra parte, conservando las notas. Después hay que concluirla nuevamente. Los módulos con partes vinculadas no se pueden eliminar, para conservar la secuencia y el historial. No es necesario volver a importar las materias ni registrar otra vez a los estudiantes.
+
+## Ya asigné la misma materia al tercer y cuarto trimestre
+
+Crear las dos asignaciones con **Nueva asignación** las registra como independientes. Para relacionarlas como partes:
+
+1. En **Materias y asignaciones**, abre al docente y ubica el grupo del **tercer trimestre**.
+2. Pulsa **Continuar materia**. En Trimestre de destino, elige la opción **VINCULAR EXISTENTE** que corresponde al cuarto trimestre.
+3. Revisa el docente, la cantidad de estudiantes y las notas guardadas que informa la pantalla. Pulsa **Vincular como PARTE II**.
+4. Comprueba que el tercero aparezca como **PARTE I** y el cuarto como **PARTE II**. Se conservan ambas listas, sus docentes y las notas anteriores; esta operación no incorpora estudiantes nuevos. Puedes usar Editar inscritos después si necesitas ajustar una lista.
+5. Al terminar todas las partes, usa **Concluir materia** en la última parte original para habilitar el promedio final de cada alumno con todas sus partes aprobadas.
+
+El formulario **Nueva asignación** ahora avisa cuando la materia ya tiene asignaciones y ofrece Continuar materia desde allí, con módulo y docente de destino precargados. Un trimestre vencido no convierte automáticamente la materia en PARTE I: las partes se establecen mediante la continuación explícita. El sistema comprueba misma materia, turno, orden de fechas y grupos compatibles; únicamente administración puede vincularlos.
+
+Actualiza el proyecto conservando `.env`, `backups` y archivos privados. Ejecuta `npm install`, reinicia con `npm run dev` y pulsa Ctrl + F5. Si ya tienes aplicada la migración 009, esta mejora no necesita migraciones adicionales.
