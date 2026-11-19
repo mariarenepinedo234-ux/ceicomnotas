@@ -1,4 +1,5 @@
 import {retakeStudentLabel} from './public/enrollment-rules.js';
+import {decoratePart} from './public/part-summary.js';
 import {academicUpper,uppercaseAcademicData} from './public/academic-text.js';
 import {readFileSync} from 'node:fs';
 import PDFDocument from 'pdfkit';
@@ -20,7 +21,7 @@ export async function reportData(db,id) {
   const rows=(await db.prepare('SELECT e.id,u.name student,u.ci,e.saber,e.hacer,e.ser,e.grade,e.is_retake,s.level student_level,y.name admission_year FROM enrollments e JOIN users u ON u.id=e.student_id JOIN students s ON s.user_id=e.student_id JOIN years y ON y.id=s.admission_year_id WHERE e.offering_id=?').all(id))
     .sort((a,b)=>a.student.localeCompare(b.student,'es',{sensitivity:'base'})||String(a.ci||'').localeCompare(String(b.ci||'')))
     .map((row,index)=>({...row,number:index+1,status:statusFor(row.grade)}));
-  return uppercaseAcademicData({offering:{...offering,course:levelName[offering.level]},rows,pending:rows.filter(r=>r.grade===null).length,
+  return uppercaseAcademicData({offering:{...decoratePart(offering),course:levelName[offering.level]},rows,pending:rows.filter(r=>r.grade===null).length,
     legacy:rows.filter(r=>r.grade!==null && [r.saber,r.hacer,r.ser].some(v=>v===null)).length,
     needs_review:rows.filter(r=>dimensions.some(d=>r[d.key]!==null && (r[d.key]<0 || r[d.key]>d.max))).length,
     generated_at:new Date().toISOString()});
@@ -74,7 +75,7 @@ export function renderPdf(report) {
         cell(x[0],y,widths[0],48,'Nº');cell(x[1],y,widths[1],48,'APELLIDOS Y NOMBRES');
         cell(x[2],y,widths[2]+widths[3]+widths[4],17,'DIMENSIONES',CREAM);
         ['SABER\n40 PTS','HACER\n40 PTS','SER\n20 PTS'].forEach((t,i)=>cell(x[i+2],y+17,widths[i+2],31,t,i===0?'#f8eee3':BLUE));
-        cell(x[5],y,widths[5],48,'NOTA\nFINAL');cell(x[6],y,widths[6],48,'OBSERVACIÓN');y+=48;
+        cell(x[5],y,widths[5],48,o.series_id?'NOTA\nPARTE':'NOTA\nFINAL');cell(x[6],y,widths[6],48,'OBSERVACIÓN');y+=48;
         let rendered=0;
         for(const row of rows){
           const failed=row.grade!==null && row.grade<61;
@@ -114,7 +115,7 @@ export async function renderExcel(report){
   merge('B9:C9','CARRERA:',10,true);merge('D9:J9',o.career.toLocaleUpperCase('es'),10);sheet.getRow(9).height=27;
   merge('B10:C10','MATERIA:',10,true);merge('D10:J10',`${o.subject}${o.subject_code?' ('+o.subject_code+')':''}`.toLocaleUpperCase('es'),10);sheet.getRow(10).height=28;
   merge('B11:C11','CURSO:',10,true);merge('D11:E11',o.course,10);merge('F11:J11',`${o.module} · ${o.year} · ${o.shift}`,8,false,'right');sheet.getRow(11).height=20;
-  merge('B12:B14','Nº',10,true,'center');merge('C12:E14','APELLIDOS Y NOMBRES',10,true,'center');merge('F12:H12','DIMENSIONES',10,true,'center');merge('I12:I14','NOTA FINAL',9,true,'center');merge('J12:J14','OBSERVACIONES',9,true,'center');
+  merge('B12:B14','Nº',10,true,'center');merge('C12:E14','APELLIDOS Y NOMBRES',10,true,'center');merge('F12:H12','DIMENSIONES',10,true,'center');merge('I12:I14',o.series_id?'NOTA DE LA PARTE':'NOTA FINAL',9,true,'center');merge('J12:J14','OBSERVACIONES',9,true,'center');
   sheet.getRow(12).height=17;sheet.getRow(13).height=45;sheet.getRow(14).height=18;
   ['SABER','HACER','SER'].forEach((name,i)=>{const cell=sheet.getCell(13,i+6);cell.value=name;cell.alignment={horizontal:'center',vertical:'middle',textRotation:90};sheet.getCell(14,i+6).value=[40,40,20][i]+' PTS';});
   for(let r=12;r<=14;r++)for(let c=2;c<=10;c++){

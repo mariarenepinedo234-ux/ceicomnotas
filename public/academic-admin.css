@@ -37,3 +37,15 @@
 .student-admission-filter{font-size:12px;gap:6px;min-width:200px;max-width:230px}
 .student-admission-filter select{height:38px;min-height:38px;font-size:12px;padding:8px 10px}
 @media(max-width:760px){.student-admission-filter{flex-basis:100%;min-width:0;max-width:none;width:100%}.student-admission-filter select{font-size:16px}.toolbar:has(#student-admission-filter) .search-box{min-width:0}}
+
+.subject-part-modal{width:min(860px,calc(100% - 28px))}
+#subject-part-form>label{margin:18px 0;font-size:13px}
+.part-calendar-notice{font-size:13px;line-height:1.7;margin:16px 0;color:var(--muted)}
+.series-summary{padding:20px;margin:18px 0;border:1px solid var(--line);border-radius:9px;background:var(--surface,#fff);font-size:13px;line-height:1.8;break-inside:avoid}
+.series-summary h3{font-size:15px;margin-bottom:12px;overflow-wrap:anywhere}
+.series-summary p{margin-bottom:8px}
+.series-summary ul{list-style:none;margin:12px 0 0;padding:0}
+.series-summary li{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line)}
+.history-attempts .series-summary{min-width:280px;white-space:normal}
+@media(max-width:760px){#subject-part-form input,#subject-part-form select{font-size:16px}.series-summary{padding:15px}.subject-part-modal .form-actions{flex-wrap:wrap}.subject-part-modal .form-actions .btn{white-space:normal}}
+.teacher-assignment .row-actions{flex-wrap:wrap;min-width:240px;max-width:360px}

@@ -1,0 +1,39 @@
+import {studentPicker} from './student-picker.js';
+import {moduleLabel,moduleForAdmission} from './module-calendar.js';
+import {romanPart,summarizeSeries} from './part-summary.js';
+const $=selector=>document.querySelector(selector);
+export function partActions(o){
+  const latest=!o.series_id||(!o.part_recovery&&o.part_number===o.part_count);
+  return `${latest&&!o.series_complete?`<button type="button" class="btn secondary compact" data-continue-part="${o.id}">Continuar materia</button>`:''}${o.series_id?`<button type="button" class="btn secondary compact" data-recover-part="${o.id}">Recuperar parte</button>`:''}${o.series_id&&latest?`<button type="button" class="btn secondary compact" data-series-status="${o.id}">${o.series_complete?'Reabrir materia':'Concluir materia'}</button>`:''}`;
+}
+export function seriesSummaryHTML(series,{escape:esc,badge},title=''){
+  return `<section class="series-summary" data-series-summary="${series.series_id}">${title?`<h3>${esc(title)}</h3>`:''}<p><strong>Promedio final: ${series.grade??'—'}</strong> ${badge(series.state==='approved'?'APROBADA':series.state==='failed'?'POR RECUPERAR':'PENDIENTE',series.state==='approved'?'success':series.state==='failed'?'danger':'warning')}</p><p>${esc(series.note)}</p><p class="muted">Todas las partes tienen el mismo peso. Cada una debe alcanzar 61 puntos. El promedio se redondea a dos decimales.</p><ul>${series.parts.map(part=>`<li><strong>${esc(part.label)}</strong><span>${part.grade??'—'} · ${part.state==='approved'?'APROBADA':part.state==='failed'?'POR RECUPERAR':part.state==='not_enrolled'?'SIN INSCRIPCIÓN':'NOTA PENDIENTE'}</span></li>`).join('')}</ul></section>`;
+}
+export function partsOverviewHTML(offerings,enrollments,ctx,visibleIds=offerings.map(o=>o.id)){
+  const groups=new Map(),visible=new Set(visibleIds),visibleSeries=new Set(offerings.filter(o=>visible.has(o.id)).map(o=>o.series_id));
+  for(const row of enrollments){const o=offerings.find(o=>o.id===row.offering_id);if(!o?.series_id||!visibleSeries.has(o.series_id))continue;if(!groups.has(o.series_id))groups.set(o.series_id,{title:o.subject_base,rows:[]});groups.get(o.series_id).rows.push({...o,...row,enrollment_id:row.id});}
+  return [...groups.values()].map(group=>seriesSummaryHTML(summarizeSeries(group.rows),ctx,group.title+' · TODAS LAS GESTIONES')).join('');
+}
+export function openPartForm(ctx,sourceId,mode='continue'){
+  const {data,escape:esc,select}=ctx,source=data.offerings.find(o=>o.id===sourceId);if(!source)return;
+  const records=data.enrollments.filter(e=>e.offering_id===sourceId),people=data.students.filter(s=>records.some(e=>e.student_id===s.user_id));
+  const next=mode==='recover'?source.part_number:(source.part_count||1)+1;
+  const modules=data.modules.filter(m=>m.start_date>source.end_date&&!data.offerings.some(o=>o.subject_id===source.subject_id&&o.shift_id===source.shift_id&&o.module_id===m.id));
+  ctx.modal(mode==='recover'?'Recuperar parte':'Continuar materia',`<p class="admin-context">${esc(source.subject_base||source.subject)} · PARTE ${romanPart(next)}${mode==='recover'?' · RECUPERACIÓN':''}</p><p class="admin-description">${esc(source.career)} · ${esc(source.shift)}. ${source.series_id?'Se conserva la relación con las partes anteriores.':'La asignación de origen se convertirá en PARTE I conservando sus notas.'} La nueva lista empezará sin notas. Selecciona los estudiantes que continuarán.</p><form id="subject-part-form">${select('Trimestre de destino','module_id',modules.map(m=>({...m,label:`${moduleLabel(m)} · Gestión ${m.year}`})),'id','label')}${select('Docente','teacher_id',data.teachers,'id','name',source.teacher_id)}<p class="part-calendar-notice" role="status"></p><div class="student-picker"></div><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" class="btn secondary cancel">Cancelar</button><button type="submit" class="btn primary" ${modules.length?'':'disabled'}>${mode==='recover'?'Crear recuperación':'Crear continuación'}</button></div></form>`, 'Promedio final con todas las partes aprobadas · Sin límite de dos o tres partes');
+  const form=$('#subject-part-form'),dialog=$('#modal');dialog.classList.add('subject-part-modal');
+  const compatible=()=>{const module=modules.find(m=>String(m.id)===form.elements.module_id.value);return module?people.filter(s=>s.career_id===source.career_id&&s.shift_id===source.shift_id&&s.level>=source.level&&(s.level>source.level||moduleForAdmission(module,data.modules,s.admission_year_id))):people;};
+  const picker=studentPicker(form.querySelector('.student-picker'),{escape:esc,candidates:compatible,initialIds:people.filter(s=>mode!=='recover'||records.some(e=>e.student_id===s.user_id&&(e.grade===null||e.grade<61))).map(s=>s.user_id)});
+  form.elements.module_id.onchange=()=>{picker.prune();form.querySelector('.part-calendar-notice').textContent='Se muestran estudiantes compatibles con el calendario de destino. Revisa las casillas antes de guardar.';};
+  if(!modules.length)form.querySelector('.part-calendar-notice').textContent='Crea primero un trimestre posterior con fechas y calendario compatibles. No hay un destino disponible para esta materia y turno.';
+  form.querySelector('.cancel').onclick=()=>dialog.close();
+  form.onsubmit=async event=>{event.preventDefault();const button=form.querySelector('[type=submit]');button.disabled=true;try{await ctx.api('subject-parts',{offering_id:sourceId,mode,module_id:form.elements.module_id.value,teacher_id:form.elements.teacher_id.value,student_ids:picker.values()});if(form.isConnected)dialog.close();await ctx.refresh();ctx.toast(`PARTE ${romanPart(next)} creada. Notas anteriores conservadas.`);}catch(error){if(form.isConnected)form.querySelector('.form-error').textContent=error.message;}finally{button.disabled=false;}};
+}
+export function openSeriesStatus(ctx,sourceId){
+  const o=ctx.data.offerings.find(o=>o.id===sourceId);if(!o?.series_id)return;const complete=!o.series_complete;
+  ctx.modal(complete?'Concluir materia':'Reabrir materia',`<p class="admin-context">${ctx.escape(o.subject_base)} · ${o.part_count} partes</p><p class="admin-description">${complete?'Esta es la última parte. El promedio final se calculará cuando el alumno tenga nota en todas las partes; solo aprobará si cada una alcanza 61 puntos. Podrás registrar recuperaciones sin repetir las partes aprobadas.':'La materia volverá a estar en curso y su promedio dejará de ser final hasta que la concluyas nuevamente. Podrás agregar una parte más. Las notas se conservan.'}</p><form id="series-status-form"><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" class="btn secondary cancel">Cancelar</button><button class="btn primary" type="submit">${complete?'Concluir materia':'Reabrir materia'}</button></div></form>`);
+  const form=$('#series-status-form'),dialog=$('#modal');form.querySelector('.cancel').onclick=()=>dialog.close();
+  form.onsubmit=async event=>{event.preventDefault();const button=form.querySelector('[type=submit]');button.disabled=true;try{await ctx.api('subject-series/status',{series_id:o.series_id,part_count:o.part_count,completed:complete});if(form.isConnected)dialog.close();await ctx.refresh();ctx.toast(complete?'Materia concluida. Cada estudiante requiere aprobar todas las partes.':'Materia reabierta. Puedes crear otra parte.');}catch(error){if(form.isConnected)form.querySelector('.form-error').textContent=error.message;}finally{button.disabled=false;}};
+}
+export function bindSubjectParts(root,ctx){
+  for(const [attr,callback] of [['data-continue-part',id=>openPartForm(ctx,id)],['data-recover-part',id=>openPartForm(ctx,id,'recover')],['data-series-status',id=>openSeriesStatus(ctx,id)]])root.querySelectorAll(`[${attr}]`).forEach(button=>button.onclick=()=>callback(Number(button.getAttribute(attr))));
+}

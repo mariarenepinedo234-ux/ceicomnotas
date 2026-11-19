@@ -169,6 +169,7 @@ export async function editModule(db,input,actor){return saveCalendarModule(db,in
 export async function deleteModule(db,input,actor){
   const moduleId=id(input.module_id);return db.transaction(async()=>{
     await structuralLock(db);const state=await snapshot(db,'module',moduleId,true);reviewed(input,state.public,'ELIMINAR TRIMESTRE');
+    if(state.offerings.some(o=>o.series_id))fail('Este trimestre contiene partes de una materia. Conserva sus asignaciones para no interrumpir el historial por partes.',409);
     await db.query('DELETE FROM academic_group_students WHERE group_id=ANY($1::int[])',[state.groups.map(g=>g.id)]);await db.query('DELETE FROM academic_groups WHERE id=ANY($1::int[])',[state.groups.map(g=>g.id)]);
     await db.query('DELETE FROM enrollments WHERE offering_id=ANY($1::int[])',[state.offerings.map(o=>o.id)]);await db.prepare('DELETE FROM offerings WHERE module_id=?').run(moduleId);await db.prepare('DELETE FROM modules WHERE id=?').run(moduleId);
     await audit(db,actor,'Trimestre eliminado',`Trimestre ${moduleId}: ${state.record.name}; ${state.public.offerings} asignaciones, ${state.public.enrollments} inscripciones y ${state.public.notes} registros con notas eliminados. Personas y catálogo conservados.`);return {ok:true};

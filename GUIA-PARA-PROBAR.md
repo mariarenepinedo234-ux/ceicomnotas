@@ -355,3 +355,16 @@ Se filtra por el año en que ingresó, no por la gestión actual de cursada. Par
 4. El docente ingresará con su mismo CI y esa contraseña temporal. Antes de ver el panel deberá cambiarla por una contraseña personal. Sus sesiones anteriores se cierran y sus materias y notas se conservan.
 
 Si todavía tiene CI pendiente, primero usa **Completar CI y habilitar**. Actualiza conservando `.env`, `backups` y archivos privados, reinicia con `npm run dev` y pulsa Ctrl + F5. No requiere nuevas migraciones.
+
+## Continuar una materia por partes y calcular el promedio final
+
+1. Actualiza el proyecto conservando `.env`, `backups` y archivos privados. Reinicia con `npm run dev`: se aplicará la migración **009_subject_parts.sql**. Pulsa Ctrl + F5.
+2. Como administrador, entra a **Materias y asignaciones**, abre al docente y localiza la materia y carrera. Pulsa **Continuar materia**. La misma opción está en la lista de materias y grupos de cada módulo.
+3. Elige un trimestre que empiece después de finalizar el anterior y un docente. Marca los estudiantes que continuarán. El calendario debe corresponder a su ingreso; los alumnos de años superiores conservan la excepción de materias pendientes. La asignación anterior pasa a ser PARTE I sin perder sus notas; la nueva PARTE II empieza sin notas.
+4. Para una PARTE III o IV, vuelve a usar **Continuar materia** desde la última parte original. Las materias que no necesiten continuación se dejan como están.
+5. Cada docente registra sus notas y genera las planillas de su parte. El nombre identifica PARTE I, II, III, etc.; la columna corresponde a la nota de esa parte.
+6. Cuando ya no habrá más partes, pulsa **Concluir materia** en la última parte original. El promedio usa todas las partes con el mismo peso y dos decimales; cada parte debe aprobarse con al menos 61. Si falta una nota o inscripción, el promedio final queda pendiente.
+7. Si un alumno reprueba una parte, pulsa **Recuperar parte** en esa asignación y elige el trimestre y los estudiantes que recuperarán. Se guarda un nuevo intento de esa misma parte y se conservan los anteriores. No crea una PARTE adicional ni repite las partes aprobadas.
+8. En **Mi historial académico**, el estudiante abre los registros de la materia para ver las partes y sus intentos. El administrador también consulta el resumen desde el expediente del alumno. Ejemplo: 65, 50 y 85 requieren recuperar la segunda parte; si después obtiene 80 en esa recuperación, la materia queda aprobada con 76,67.
+
+**Reabrir materia** devuelve una materia concluida al estado en curso para agregar otra parte, conservando las notas. Después hay que concluirla nuevamente. Los módulos con partes vinculadas no se pueden eliminar, para conservar la secuencia y el historial. No es necesario volver a importar las materias ni registrar otra vez a los estudiantes.

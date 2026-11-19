@@ -1,5 +1,5 @@
 export const academicUpper=value=>String(value??'').toLocaleUpperCase('es');
-const nameFields=new Set(['name','student','subject','subject_code','career','teacher','shift','module','actor']);
+const nameFields=new Set(['name','student','subject','subject_base','subject_code','career','teacher','shift','module','actor']);
 // Convertir solo datos académicos; los CI, contraseñas y claves técnicas se conservan.
 export function uppercaseAcademicData(value){
   if(Array.isArray(value))return value.map(uppercaseAcademicData);
