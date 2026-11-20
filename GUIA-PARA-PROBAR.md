@@ -401,3 +401,45 @@ Actualiza conservando `.env`, `backups` y archivos privados, ejecuta `npm instal
 Actualiza los archivos del proyecto conservando `.env`, `backups`, archivos privados y tus personalizaciones. Ejecuta `npm install`, reinicia con `npm run dev` y pulsa Ctrl + F5. Elige **Tema claro**: verás el menú lateral guinda oscuro con logo blanco, fondo crema y tarjetas blancas. En móvil, abre el menú para comprobar la misma combinación. El tema oscuro sigue disponible con su propia paleta. Esta actualización visual no requiere migraciones.
 
 Para cambiar los colores, consulta **public/light-theme.css** y el [manual de personalización](MANUAL-DE-PERSONALIZACION.md). Si ya usas `personalizacion.css`, su enlace debe ir después de `light-theme.css` en `public/index.html` para que tus ajustes se apliquen al final. Comprueba ambos temas y, si modificas documentos, la impresión y las descargas PDF/Excel.
+
+## Editar y eliminar carreras
+
+Estas acciones se encuentran en **Gestiones y módulos → Configuración institucional → Carreras** y están disponibles solo para administración.
+
+### Conservar nombres distintos por gestión
+
+1. Pulsa **Editar** al lado de la carrera.
+2. Elige la **gestión del nombre**. El formulario muestra los nombres de todas las gestiones registradas.
+3. Escribe el nombre correcto y pulsa **Guardar nombre de esta gestión**.
+
+Por ejemplo, puedes definir **ANALISTA DE SISTEMAS** para 2024 y conservar **SISTEMAS INFORMÁTICOS** para 2026. Se mantiene el mismo ID de carrera, sus materias, asignaciones, estudiantes y notas; no se crea otra carrera. Solo cambia el nombre de la gestión elegida. Una gestión sin nombre propio usa el nombre original del catálogo; al crear una nueva gestión, define su nombre si debe ser distinto.
+
+Las asignaciones, grupos, listas de notas, planillas PDF/Excel y los intentos del historial usan la **gestión cursada**. El perfil del estudiante y el encabezado de su historial usan su **gestión de ingreso**. Al cambiar el filtro de gestión en Configuración institucional se muestra el nombre de ese año; con Todas las gestiones se muestra el nombre original. Los planes PDF, que no tienen una gestión asociada, conservan el nombre original del catálogo. Los PDFs ya descargados conservan su contenido.
+
+![Edición del nombre por gestión con datos ficticios](docs/career-year-name-preview.png)
+
+### Eliminar una carrera creada por error
+
+1. Pulsa **Eliminar** al lado de la carrera. Se revisan **todas las gestiones**, incluidas las anteriores, materias inactivas, inscripciones sin nota y grupos pendientes sin asignación.
+2. Si tiene alumnos inscritos, la eliminación queda bloqueada. La pantalla muestra las materias y permite abrir **Editar inscritos** directamente. Desmarca a quienes deban retirarse y guarda. Si tienen notas o borradores, la retirada requiere confirmar que esos registros también se eliminarán. Los demás inscritos y sus notas se conservan. Al guardar se vuelve a revisar la carrera automáticamente.
+3. Si aparece un grupo pendiente sin asignación, **Revisar grupo pendiente** permite vaciar esa lista escribiendo **VACIAR GRUPO**. Se conservan las cuentas, perfiles y las inscripciones y notas de otras materias.
+4. Cuando no queden inscripciones ni integrantes de grupos, aparece el resumen de eliminación. Si aún hay perfiles de estudiantes registrados con esa carrera, debes elegir otra carrera de destino. Se conservan sus cuentas, CI, contraseñas, nivel, turno, ingreso y notas de otras carreras. Si no hay otra carrera de destino, crea una primero.
+5. Revisa el resumen y escribe **ELIMINAR CARRERA**. Se eliminan la carrera de todas las gestiones y sus nombres históricos, materias, asignaciones/grupos vacíos, series vacías y planes de estudio PDF asociados. Las otras carreras, docentes, cuentas y períodos se conservan. **Cancelar** cierra sin eliminar.
+
+La revisión se invalida si alguien cambia los registros antes de confirmar; usa **Volver a revisar**. Si aparece una nueva inscripción, vuelve a bloquearse la eliminación. Las operaciones y retiradas quedan en el registro de actividad.
+
+![Carrera bloqueada por estudiantes inscritos; datos ficticios](docs/career-deletion-block-preview.png)
+
+### Actualizar esta versión
+
+Detén `npm run dev` con Ctrl + C. Conserva tu `.env`, `backups` y archivos privados al actualizar el proyecto completo. Desde la carpeta del proyecto ejecuta:
+
+```sh
+npm install
+npm run db:migrate
+npm run dev
+```
+
+La migración **010_career_names.sql** agrega los nombres por gestión sin cambiar los nombres existentes ni borrar datos. No edites migraciones ya aplicadas. Finalmente recarga el navegador con **Ctrl + F5**. Las nuevas copias de seguridad incluyen los nombres por gestión; su restauración se comprobó en una base temporal.
+
+Validación de esta entrega: 94 pruebas automáticas y comprobación en Chromium de nombres por gestión, bloqueo de eliminación, retirada desde la revisión, cancelación, grupos pendientes, conservación de perfiles y notas ajenas, permisos de los tres roles y presentación en temas claro/oscuro y móvil. Las capturas muestran datos ficticios.

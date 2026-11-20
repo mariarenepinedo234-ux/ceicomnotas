@@ -66,3 +66,23 @@ html[data-theme=dark] :is(.app-layout,dialog) .btn.delete-offering-button{color:
 @media(max-width:760px){#roster-admission-filter{font-size:16px}.roster-scope{padding:12px}}
 .roster-locked-field[hidden],.offering-roster-form .roster-module-context[hidden]{display:none}
 .offering-roster-form .form-grid{grid-template-columns:1fr}
+
+.career-config-list{min-width:0;margin-bottom:18px}
+.career-config-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.career-config-row:last-child{border-bottom:0}
+.career-config-name{display:flex;align-items:flex-start;gap:9px;min-width:0;flex:1;font-size:12px;line-height:1.7;overflow-wrap:anywhere;color:var(--ink)}
+.career-config-name .icon{color:var(--wine);margin-top:3px;flex-shrink:0}
+.career-config-actions{display:flex;gap:6px;flex-shrink:0}
+.settings-grid .career-config-actions .btn{margin-top:0;font-size:12px}
+#career-edit-form label,#career-delete-form label,#career-pending-form label{font-size:13px;margin:18px 0}
+.career-review-modal{max-width:930px}
+.career-delete-counts{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+.career-delete-counts>span{padding:12px 15px;border:1px solid var(--line);border-radius:8px;flex:1;min-width:120px;font-size:12px;line-height:1.8;color:var(--muted)}
+.career-delete-counts strong{display:block;font-size:23px;color:var(--ink)}
+.career-blocking-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.8}
+.career-blocking-row>div{min-width:0;overflow-wrap:anywhere}
+.career-blocking-row small{display:block;color:var(--muted);font-size:12px}
+.career-blocking-row .btn{flex-shrink:0}
+@media(max-width:760px){.career-config-row{flex-wrap:wrap}.career-config-name{flex-basis:100%}.career-blocking-row{flex-wrap:wrap}.career-config-actions .btn,.career-blocking-row .btn{white-space:normal}#career-edit-form input,#career-edit-form select,#career-delete-form input,#career-delete-form select,#career-pending-form input{font-size:16px}.career-review-modal .form-actions{flex-wrap:wrap}.career-review-modal .form-actions .btn{white-space:normal}}
+
+.career-name-history{font-size:12px;line-height:1.8;color:var(--muted)}

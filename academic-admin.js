@@ -1,3 +1,4 @@
+import {careerNameSql} from './career-names.js';
 import {saveCalendarModule,moduleAcceptsAdmission,moduleAdmissionRule} from './module-calendars.js';
 import {enrollmentMatches,allowsRetakes} from './public/enrollment-rules.js';
 import {createHash} from 'node:crypto';
@@ -66,7 +67,7 @@ async function snapshot(db,type,targetId,lock=false){
     record=await db.prepare('SELECT * FROM modules WHERE id=?'+(lock?' FOR UPDATE':'')).get(targetId);if(!record)fail('Trimestre no encontrado.',404);
     offerings=await db.prepare('SELECT * FROM offerings WHERE module_id=? ORDER BY id'+(lock?' FOR UPDATE':'')).all(targetId);
   }else if(type==='offering'){
-    record=await db.prepare('SELECT o.*,s.career_id,s.level,s.name,c.name career,sh.name shift,m.name module,y.name AS "year",u.name teacher FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN shifts sh ON sh.id=o.shift_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN users u ON u.id=o.teacher_id WHERE o.id=?'+(lock?' FOR UPDATE OF o':'')).get(targetId);if(!record)fail('Asignación no encontrada.',404);offerings=[record];
+    record=await db.prepare(`SELECT o.*,s.career_id,s.level,s.name,${careerNameSql('c','m.year_id')} career,sh.name shift,m.name module,y.name AS "year",u.name teacher FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN shifts sh ON sh.id=o.shift_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN users u ON u.id=o.teacher_id WHERE o.id=?`+(lock?' FOR UPDATE OF o':'')).get(targetId);if(!record)fail('Asignación no encontrada.',404);offerings=[record];
   }else fail('Tipo de revisión inválido.');
   const offeringIds=offerings.map(o=>o.id);
   const enrollments=type==='student'?await db.prepare('SELECT * FROM enrollments WHERE student_id=? ORDER BY id'+(lock?' FOR UPDATE':'')).all(targetId):(await db.query('SELECT * FROM enrollments WHERE offering_id=ANY($1::int[]) ORDER BY id'+(lock?' FOR UPDATE':''),[offeringIds])).rows;
@@ -87,7 +88,7 @@ export async function offeringRosterReview(db,offeringId){
     const candidates=(await db.query(`SELECT s.*,u.name,u.ci,y.name AS admission_year FROM students s JOIN users u ON u.id=s.user_id JOIN years y ON y.id=s.admission_year_id
       WHERE s.user_id=ANY($1::int[]) OR (s.career_id=$2 AND s.shift_id=$4 AND ((s.level=$3 AND ($5::int IS NULL OR s.admission_year_id=$5)) OR s.level>$3)) ORDER BY upper(u.name),s.user_id`,[enrolled,r.career_id,r.level,r.shift_id,state.groups[0]?.admission_year_id||null])).rows;
     const admits=await moduleAdmissionRule(db,r.module_id),allowed=candidates.filter(student=>enrolled.includes(student.user_id)||student.level>r.level||admits(student.admission_year_id));
-    const detail=await db.prepare('SELECT c.name AS career,m.name AS module,y.name AS year,sh.name AS shift FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id WHERE o.id=?').get(offeringId);
+    const detail=await db.prepare(`SELECT ${careerNameSql('c','m.year_id')} AS career,m.name AS module,y.name AS year,sh.name AS shift FROM offerings o JOIN subjects s ON s.id=o.subject_id JOIN careers c ON c.id=s.career_id JOIN modules m ON m.id=o.module_id JOIN years y ON y.id=m.year_id JOIN shifts sh ON sh.id=o.shift_id WHERE o.id=?`).get(offeringId);
     const profiles=await db.prepare('SELECT level,COUNT(*) count FROM students WHERE career_id=? AND shift_id=? GROUP BY level ORDER BY level').all(r.career_id,r.shift_id);
     const levels=Object.fromEntries([1,2,3].map(level=>[level,profiles.find(p=>p.level===level)?.count||0]));
     const regular=allowed.filter(s=>s.career_id===r.career_id&&s.shift_id===r.shift_id&&s.level===r.level);

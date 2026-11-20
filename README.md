@@ -4,6 +4,8 @@ Sistema web de registro académico del Instituto Tecnológico Ceicom. **Node.js 
 
 La guía de instalación, actualización desde SQLite, respaldos y problemas de Windows está en [GUIA-PARA-PROBAR.md](GUIA-PARA-PROBAR.md).
 
+En **Gestiones y módulos → Configuración institucional → Carreras**, administración puede **Editar** el nombre por gestión y **Eliminar** una carrera creada por error. Los nombres históricos se conservan: las planillas usan la gestión cursada y el perfil del estudiante, su ingreso. La eliminación revisa todas las gestiones y se bloquea mientras haya alumnos inscritos en materias o grupos. Los pasos y la actualización con la migración 010 están en [la guía de carreras](GUIA-PARA-PROBAR.md#editar-y-eliminar-carreras).
+
 Para editar tamaños, colores, textos, logos e imágenes, consulta el [manual de personalización](MANUAL-DE-PERSONALIZACION.md), también disponible en [PDF](docs/manual-personalizacion.pdf) y [HTML para leer sin conexión](docs/manual-personalizacion.html). Incluye una [plantilla CSS opcional](docs/ejemplos/personalizacion.css), con instrucciones para copiarla y activarla; la plantilla de documentación no se carga automáticamente en el portal.
 
 ## Inicio institucional sin datos ficticios

@@ -37,6 +37,8 @@ test('solo administradores con contraseña actualizada pueden crear, listar y de
 });
 
 test('el respaldo es restaurable, conserva notas y contraseñas, se descarga íntegro y no cambia el origen',async t=>{
+  await db.exec("INSERT INTO career_names(career_id,year_id,name) VALUES(1,1,'ANALISTA DE SISTEMAS')");
+  const careerNames=await db.prepare('SELECT * FROM career_names ORDER BY career_id,year_id').all();
   const series=(await db.query('INSERT INTO subject_series(subject_id,shift_id,part_count,completed) VALUES (1,1,2,true) RETURNING id')).rows[0];
   await db.prepare('UPDATE offerings SET series_id=?,part_number=1 WHERE id=6').run(series.id);
   await db.prepare('UPDATE offerings SET series_id=?,part_number=2 WHERE id=1').run(series.id);
@@ -62,7 +64,7 @@ test('el respaldo es restaurable, conserva notas y contraseñas, se descarga ín
   child.stderr.resume();const restored=new Promise((resolve,reject)=>{child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(new Error('No se pudo restaurar el respaldo de prueba.')));});child.stdin.end(bytes);await restored;
   const url=new URL(process.env.TEST_DATABASE_URL);url.pathname='/'+destination;
   const target=await openDatabase({connectionString:url.href,schema,migrate:false});
-  try{assert.deepEqual((await target.prepare('SELECT content FROM study_plans WHERE id=?').get(plan.id)).content,planBytes);assert.deepEqual(await target.prepare('SELECT * FROM enrollments ORDER BY id').all(),enrollments);assert.deepEqual(await target.prepare('SELECT id,password FROM users ORDER BY id').all(),passwords);assert.deepEqual(await target.prepare('SELECT * FROM subject_series ORDER BY id').all(),seriesRows);assert.deepEqual(await target.prepare('SELECT * FROM offerings ORDER BY id').all(),offerings);assert.ok((await target.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n>0);}finally{await target.close();}
+  try{assert.deepEqual(await target.prepare('SELECT * FROM career_names ORDER BY career_id,year_id').all(),careerNames);assert.deepEqual((await target.prepare('SELECT content FROM study_plans WHERE id=?').get(plan.id)).content,planBytes);assert.deepEqual(await target.prepare('SELECT * FROM enrollments ORDER BY id').all(),enrollments);assert.deepEqual(await target.prepare('SELECT id,password FROM users ORDER BY id').all(),passwords);assert.deepEqual(await target.prepare('SELECT * FROM subject_series ORDER BY id').all(),seriesRows);assert.deepEqual(await target.prepare('SELECT * FROM offerings ORDER BY id').all(),offerings);assert.ok((await target.prepare('SELECT COUNT(*) n FROM schema_migrations').get()).n>0);}finally{await target.close();}
   assert.equal((await request('/'+backup.saved_path)).status,404);
   assert.equal((await request('/api/backups/no-existe.dump')).status,404);
   assert.equal((await request('/api/backups/..%5C.env')).status,404);
