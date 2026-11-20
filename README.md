@@ -27,6 +27,10 @@ Para una instalación de prueba nueva con datos ficticios, usa `npm run configur
 
 También se admite un servidor PostgreSQL propio o administrado, configurando `DATABASE_URL` y usando los mismos comandos de migración, administrador e inicio. No se necesita Docker si ya existe PostgreSQL.
 
+## Recuperar el acceso del administrador
+
+Si olvidaste la contraseña, abre una terminal en la carpeta del sistema en el servidor y ejecuta `npm run recuperar-admin`. Solicita tu usuario y dos veces una contraseña temporal de 8 a 160 caracteres, sin mostrarla. Anula las sesiones anteriores y exige elegir una contraseña personal nueva al ingresar. Conserva usuarios y registros académicos; registra la recuperación sin guardar la clave en auditoría. Requiere PostgreSQL disponible y el `.env` de esa instalación. Solo recupera administradores existentes y no admite claves por argumentos ni entrada redirigida. `crear-admin` sigue siendo exclusivo para la creación inicial. Consulta los [pasos detallados](GUIA-PARA-PROBAR.md#recuperar-la-contraseña-del-administrador).
+
 ## Actualizar desde SQLite
 
 Detén la aplicación anterior y respalda su carpeta `data`. Prepara PostgreSQL vacío con `SEED_DEMO=false`; antes de crear usuarios, ejecuta:
@@ -151,7 +155,7 @@ La restauración requiere un destino vacío configurado en `DATABASE_URL`. Para 
 
 ## Alcance pendiente
 
-No se ha desplegado una instalación institucional de producción. Falta decidir alojamiento, configurar HTTPS, permisos mínimos para usuarios PostgreSQL, respaldos automáticos fuera del servidor, recuperación de contraseñas y revisión de privacidad. El limitador de intentos de acceso es local a cada proceso; varias instancias necesitan un limitador compartido o en el proxy.
+No se ha desplegado una instalación institucional de producción. Falta decidir alojamiento, configurar HTTPS, permisos mínimos para usuarios PostgreSQL, respaldos automáticos fuera del servidor y revisión de privacidad. La recuperación del administrador desde terminal está disponible; la recuperación por correo sigue pendiente. El limitador de intentos de acceso es local a cada proceso; varias instancias necesitan un limitador compartido o en el proxy.
 
 Pendientes funcionales: CI de los docentes importados, edición y bajas de otros catálogos, recuperación de cuentas sin intervención administrativa, importación de notas desde Excel, equivalencias y validación de convalidaciones al cambiar de carrera. Confirmar subevaluaciones, feriados y procedimiento de traslado durante un módulo. La estructura puede evolucionar mediante nuevas migraciones sin borrar datos; una base más sólida no elimina la necesidad de mantenimiento.
 

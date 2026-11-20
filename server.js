@@ -73,12 +73,17 @@ export function createApp(db,{backupDirectory,backupNative=process.env.BACKUP_MO
         const key=req.socket.remoteAddress;
         const a=attempts.get(key); if(a && a.count>=15 && a.until>Date.now()) fail('Demasiados intentos. Intenta en 15 minutos.',429);
         const ci=required(body.ci,'Usuario'); const password=required(body.password,'Contraseña');
-        const found=(await db.prepare('SELECT * FROM users WHERE ci=?').get(ci));
-        if(!found || !verifyPassword(password,found.password)) { attempts.set(key,{count:(a?.until>Date.now()?a.count:0)+1,until:Date.now()+900000}); fail('Usuario o contraseña incorrectos.',401); }
-        attempts.delete(key);
-        const t=randomBytes(32).toString('hex');
-        (await db.prepare('DELETE FROM sessions WHERE expires<?').run(Date.now()));
-        (await db.prepare('INSERT INTO sessions VALUES (?,?,?)').run(createHash('sha256').update(t).digest('hex'),found.id,Date.now()+8*3600000));
+        // Comparte el bloqueo de la cuenta con la recuperación local: un acceso
+        // iniciado con la clave anterior no puede crear una sesión después de ella.
+        const {found,t}=await transaction(async()=>{
+          const found=await db.prepare('SELECT * FROM users WHERE ci=? FOR SHARE').get(ci);
+          if(!found || !verifyPassword(password,found.password)) { attempts.set(key,{count:(a?.until>Date.now()?a.count:0)+1,until:Date.now()+900000}); fail('Usuario o contraseña incorrectos.',401); }
+          attempts.delete(key);
+          const t=randomBytes(32).toString('hex');
+          await db.prepare('DELETE FROM sessions WHERE expires<?').run(Date.now());
+          await db.prepare('INSERT INTO sessions VALUES (?,?,?)').run(createHash('sha256').update(t).digest('hex'),found.id,Date.now()+8*3600000);
+          return {found,t};
+        });
         res.setHeader('Set-Cookie',`ceicom_session=${t}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800${process.env.COOKIE_SECURE==='true'?'; Secure':''}`);
         return send(safeUser(found));
       }

@@ -26,7 +26,7 @@ npm run crear-admin
 npm run dev
 ```
 
-`crear-admin` solicita usuario, nombre y contraseña en la terminal. La contraseña no se muestra y debe tener al menos 8 caracteres. El primer acceso exige cambiarla. Anota tus credenciales; no hay recuperación de contraseña desde la interfaz todavía.
+`crear-admin` solicita usuario, nombre y contraseña en la terminal. La contraseña no se muestra y debe tener al menos 8 caracteres. El primer acceso exige cambiarla. Anota tus credenciales. Si las olvidas, usa `npm run recuperar-admin` desde la terminal del servidor siguiendo la sección Recuperar la contraseña del administrador; no hay recuperación de administrador desde la interfaz web.
 
 **Para explorar con datos ficticios**, desde una carpeta y configuración nuevas:
 
@@ -443,3 +443,38 @@ npm run dev
 La migración **010_career_names.sql** agrega los nombres por gestión sin cambiar los nombres existentes ni borrar datos. No edites migraciones ya aplicadas. Finalmente recarga el navegador con **Ctrl + F5**. Las nuevas copias de seguridad incluyen los nombres por gestión; su restauración se comprobó en una base temporal.
 
 Validación de esta entrega: 94 pruebas automáticas y comprobación en Chromium de nombres por gestión, bloqueo de eliminación, retirada desde la revisión, cancelación, grupos pendientes, conservación de perfiles y notas ajenas, permisos de los tres roles y presentación en temas claro/oscuro y móvil. Las capturas muestran datos ficticios.
+
+
+## Recuperar la contraseña del administrador
+
+Si olvidaste tu contraseña, usa la computadora donde está instalado el servidor de Ceicom Académico. No necesitas borrar ni restaurar la base de datos.
+
+1. Si el sistema está abierto en una terminal, detén `npm run dev` con **Ctrl + C**. Mantén PostgreSQL encendido.
+2. Abre una terminal de Visual Studio Code, PowerShell o Símbolo del sistema en la carpeta que contiene `package.json` y tu `.env` habitual.
+3. Ejecuta:
+
+   ```sh
+   npm run recuperar-admin
+   ```
+
+4. Escribe el **usuario del administrador con el que inicias sesión**, no su nombre completo. El comando solo puede recuperar una cuenta de administrador existente; un usuario estudiante o docente no se modifica.
+5. Escribe una contraseña **temporal** nueva de entre **8 y 160 caracteres**, distinta del usuario y de la anterior, sin espacios al principio ni al final. Vuelve a escribirla para confirmar. **No aparecen letras ni asteriscos al escribir ambas claves**; es normal. El comando no pide la contraseña anterior.
+6. Al ver **Acceso recuperado**, inicia el sistema de nuevo:
+
+   ```sh
+   npm run dev
+   ```
+
+7. Abre el portal, ingresa con tu usuario y la contraseña temporal y establece una contraseña personal distinta cuando el sistema lo solicite.
+
+La recuperación cambia únicamente la contraseña del administrador y la obligación de cambiarla, anula sus sesiones anteriores y agrega un registro de auditoría. Conserva su usuario, nombre y permisos, las demás cuentas, estudiantes, materias, inscripciones, notas, carreras y planes PDF. Otras cuentas permanecen conectadas. Un acceso que ya estaba iniciándose con la clave anterior tampoco conserva una sesión válida después de la recuperación.
+
+Si las contraseñas no coinciden, el usuario no corresponde a un administrador o se cancela con Ctrl + C durante las preguntas, la cuenta no cambia. Si falla PostgreSQL o el registro de auditoría, la operación se revierte. No se imprime la contraseña ni se incluye en la auditoría.
+
+**Acceso necesario:** esta herramienta requiere una terminal interactiva en el servidor y acceso a la conexión PostgreSQL configurada en `.env`. Conserva ese archivo privado. No hay una contraseña maestra ni una ruta web de recuperación. No pases claves después del comando ni mediante tuberías, archivos o variables de entorno. Para consultar la ayuda sin cambiar cuentas:
+
+```sh
+npm run recuperar-admin -- --help
+```
+
+Si aparece **Missing script: recuperar-admin**, actualiza el proyecto completo conservando `.env`, `backups` y archivos privados, y ejecuta `npm install`. Esta función no necesita nuevas migraciones ni dependencias. Si no encuentra al administrador, comprueba el usuario y que `.env` apunta a la instalación correcta. Si indica que necesita una terminal interactiva, ejecútalo directamente en la terminal, sin redirigir la entrada o salida. `npm run crear-admin` crea el primer administrador de una instalación vacía; no sustituye este procedimiento.

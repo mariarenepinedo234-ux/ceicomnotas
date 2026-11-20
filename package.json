@@ -15,6 +15,7 @@
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.js",
     "db:importar": "node --env-file-if-exists=.env scripts/import-sqlite.js",
     "crear-admin": "node --env-file-if-exists=.env scripts/admin.js",
+    "recuperar-admin": "node --env-file-if-exists=.env scripts/recover-admin.js",
     "db:backup": "node --env-file-if-exists=.env scripts/backup.js",
     "db:restore": "node --env-file-if-exists=.env scripts/backup.js --restore",
     "catalogo:importar": "node --env-file-if-exists=.env scripts/catalog-excel.js",
